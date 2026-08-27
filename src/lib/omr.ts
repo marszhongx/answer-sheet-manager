@@ -166,6 +166,18 @@ function darkness(data: ImageData, x: number, y: number, radius: number): number
   return count ? dark / count : 0;
 }
 
+export function hasValidMarkers(imageData: ImageData, layout: CardLayout): boolean {
+  return layout.markers.every(
+    (marker) =>
+      darkness(
+        imageData,
+        marker.x + marker.size / 2,
+        marker.y + marker.size / 2,
+        marker.size * 0.3,
+      ) >= 0.8,
+  );
+}
+
 export function classifyFillRates(
   fillRates: number[][],
 ): Pick<Recognition, "answers" | "confidence"> {
@@ -210,5 +222,6 @@ export function recognizeAnswerCard(
   template: AnswerCardTemplate,
 ): Recognition {
   const layout = createLayout(template.questionCount);
-  return recognizeWarpedCard(cropAndScale(image, sourceWidth, sourceHeight, layout), template);
+  const imageData = cropAndScale(image, sourceWidth, sourceHeight, layout);
+  return recognizeWarpedCard(imageData, template, hasValidMarkers(imageData, layout));
 }

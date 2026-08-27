@@ -34,14 +34,23 @@ import {
   recognizeAnswerCard,
 } from "./lib/omr";
 
-type Page = "home" | "templates" | "scan" | "analysis" | "profile";
+type Page = "home" | "templates" | "detail" | "scan" | "analysis" | "profile";
 const STORAGE_KEY = "answer-sheet-manager.templates";
+const RECORDS_STORAGE_KEY = "answer-sheet-manager.records";
 
 function loadTemplates(): AnswerCardTemplate[] {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
   } catch {
     return [];
+  }
+}
+
+function loadRecords(): Record<string, GradedStudent[]> {
+  try {
+    return JSON.parse(localStorage.getItem(RECORDS_STORAGE_KEY) ?? "{}");
+  } catch {
+    return {};
   }
 }
 
@@ -567,6 +576,7 @@ function ReviewPage({
 }) {
   const [answers, setAnswers] = useState(recognition.answers);
   const unresolved = answers.filter((answer) => answer === null).length;
+  const canSave = unresolved === 0;
   return (
     <>
       <header className="page-top">
@@ -618,11 +628,12 @@ function ReviewPage({
           ))}
         </section>
         <button
-          onClick={() => onSave(answers, recognition.confidence)}
+          onClick={() => canSave && onSave(answers, recognition.confidence)}
+          disabled={!canSave}
           className="create-template-button"
         >
           <Check size={19} />
-          确认批改并保存
+          {canSave ? "确认批改并保存" : "请先补全所有题目"}
         </button>
         <small className="file-name">
           <FileImage size={14} />
@@ -791,13 +802,15 @@ export default function App() {
   const [selected, setSelected] = useState<AnswerCardTemplate | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [answerOpen, setAnswerOpen] = useState(false);
-  const [detailOpen, setDetailOpen] = useState(false);
   const [review, setReview] = useState<{ recognition: Recognition; fileName: string } | null>(null);
-  const [records, setRecords] = useState<Record<string, GradedStudent[]>>({});
+  const [records, setRecords] = useState<Record<string, GradedStudent[]>>(loadRecords);
   const [message, setMessage] = useState<string | null>(null);
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
   }, [templates]);
+  useEffect(() => {
+    localStorage.setItem(RECORDS_STORAGE_KEY, JSON.stringify(records));
+  }, [records]);
   const notify = (text: string) => {
     setMessage(text);
     window.setTimeout(() => setMessage(null), 2200);
@@ -806,12 +819,12 @@ export default function App() {
     setTemplates((current) => [template, ...current]);
     setSelected(template);
     setCreateOpen(false);
-    setDetailOpen(true);
+    setPage("detail");
     notify("标准答题卡已创建，请先设置答案并下载打印");
   };
   const select = (template: AnswerCardTemplate) => {
     setSelected(template);
-    setDetailOpen(true);
+    setPage("detail");
   };
   const saveAnswers = (answers: Option[]) => {
     if (!selected) return;
@@ -832,6 +845,10 @@ export default function App() {
   };
   const saveReview = (answers: Array<Option | null>, confidence: number[]) => {
     if (!selected || !review) return;
+    if (answers.some((answer) => answer === null)) {
+      notify("请先补全所有题目");
+      return;
+    }
     const record = gradeAnswers(
       selected,
       `答卷 ${new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`,
@@ -859,6 +876,15 @@ export default function App() {
           onSelect={select}
         />
       )}
+      {page === "detail" && selected && (
+        <TemplateDetail
+          template={selected}
+          onBack={() => setPage("templates")}
+          onAnswers={() => setAnswerOpen(true)}
+          onScan={() => setPage("scan")}
+          notify={notify}
+        />
+      )}
       {page === "scan" && (
         <ScanPage
           template={selected ?? templates[0] ?? null}
@@ -875,18 +901,6 @@ export default function App() {
         />
       )}
       {page === "profile" && <ProfilePage templateCount={templates.length} onPage={setPage} />}
-      {detailOpen && selected && (
-        <TemplateDetail
-          template={selected}
-          onBack={() => setDetailOpen(false)}
-          onAnswers={() => setAnswerOpen(true)}
-          onScan={() => {
-            setDetailOpen(false);
-            setPage("scan");
-          }}
-          notify={notify}
-        />
-      )}
       {createOpen && <NewTemplate onCreate={create} onClose={() => setCreateOpen(false)} />}
       {answerOpen && selected && (
         <AnswerEditor

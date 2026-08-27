@@ -33,7 +33,23 @@ function chooseCorners(points: Point[]): Point[] | null {
   if (!bottomRight) return null;
   selected.push(bottomRight);
   const bottomLeft = select((a, b) => a.y - a.x - b.y + b.x, selected);
-  return bottomLeft ? [topLeft, topRight, bottomRight, bottomLeft] : null;
+  if (!bottomLeft) return null;
+  const corners = [topLeft, topRight, bottomRight, bottomLeft];
+  const lengths = corners.map((point, index) => {
+    const next = corners[(index + 1) % corners.length];
+    return Math.hypot(next.x - point.x, next.y - point.y);
+  });
+  const area = Math.abs(
+    corners.reduce((sum, point, index) => {
+      const next = corners[(index + 1) % corners.length];
+      return sum + point.x * next.y - point.y * next.x;
+    }, 0) / 2,
+  );
+  return area >= 20_000 &&
+    Math.min(...lengths) >= 80 &&
+    Math.max(...lengths) / Math.min(...lengths) <= 2.2
+    ? corners
+    : null;
 }
 
 function project(point: Point, matrix: number[]): Point {
@@ -51,6 +67,7 @@ export default function LiveScanner({ template, onConfirm, onClose }: Props) {
   const requestRef = useRef<number | undefined>(undefined);
   const streamRef = useRef<MediaStream | undefined>(undefined);
   const lastRun = useRef(0);
+  const processingRef = useRef(false);
   const [state, setState] = useState<ScannerState>("loading");
   const [message, setMessage] = useState("正在启动相机");
   const [recognition, setRecognition] = useState<Recognition | null>(null);
@@ -99,7 +116,7 @@ export default function LiveScanner({ template, onConfirm, onClose }: Props) {
     if (state !== "searching" && state !== "ready") return;
     const tick = (time: number) => {
       requestRef.current = requestAnimationFrame(tick);
-      if (time - lastRun.current < 180) return;
+      if (processingRef.current || time - lastRun.current < 180) return;
       lastRun.current = time;
       const video = videoRef.current;
       const frame = frameRef.current;
@@ -116,7 +133,12 @@ export default function LiveScanner({ template, onConfirm, onClose }: Props) {
       if (!frameCtx || !overlayCtx) return;
       frameCtx.drawImage(video, 0, 0, width, height);
       overlayCtx.clearRect(0, 0, width, height);
-      void processFrame(frame, overlayCtx, template, setState, setMessage, setRecognition);
+      processingRef.current = true;
+      void processFrame(frame, overlayCtx, template, setState, setMessage, setRecognition).finally(
+        () => {
+          processingRef.current = false;
+        },
+      );
     };
     requestRef.current = requestAnimationFrame(tick);
     return () => {
@@ -188,13 +210,24 @@ async function processFrame(
   setMessage: (message: string) => void,
   setRecognition: (recognition: Recognition | null) => void,
 ) {
+  let src: any;
+  let gray: any;
+  let binary: any;
+  let contours: any;
+  let hierarchy: any;
+  let sourcePoints: any;
+  let targetPoints: any;
+  let transform: any;
+  let inverse: any;
+  let full: any;
+  let warped: any;
   try {
     const cv = await getOpenCv();
-    const src = cv.imread(frame);
-    const gray = new cv.Mat();
-    const binary = new cv.Mat();
-    const contours = new cv.MatVector();
-    const hierarchy = new cv.Mat();
+    src = cv.imread(frame);
+    gray = new cv.Mat();
+    binary = new cv.Mat();
+    contours = new cv.MatVector();
+    hierarchy = new cv.Mat();
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
     cv.threshold(gray, binary, 92, 255, cv.THRESH_BINARY_INV);
     cv.findContours(binary, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
@@ -216,11 +249,6 @@ async function processFrame(
       if (rect.width * rect.height < 170) continue;
       candidates.push({ x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 });
     }
-    src.delete();
-    gray.delete();
-    binary.delete();
-    contours.delete();
-    hierarchy.delete();
     const corners = chooseCorners(candidates);
     if (!corners) {
       setState("searching");
@@ -233,23 +261,23 @@ async function processFrame(
       x: marker.x + marker.size / 2,
       y: marker.y + marker.size / 2,
     }));
-    const sourcePoints = cv.matFromArray(
+    sourcePoints = cv.matFromArray(
       4,
       1,
       cv.CV_32FC2,
       corners.flatMap((point) => [point.x, point.y]),
     );
-    const targetPoints = cv.matFromArray(
+    targetPoints = cv.matFromArray(
       4,
       1,
       cv.CV_32FC2,
       destination.flatMap((point) => [point.x, point.y]),
     );
-    const transform = cv.getPerspectiveTransform(sourcePoints, targetPoints);
-    const inverse = new cv.Mat();
+    transform = cv.getPerspectiveTransform(sourcePoints, targetPoints);
+    inverse = new cv.Mat();
     cv.invert(transform, inverse);
-    const full = cv.imread(frame);
-    const warped = new cv.Mat();
+    full = cv.imread(frame);
+    warped = new cv.Mat();
     cv.warpPerspective(
       full,
       warped,
@@ -271,12 +299,6 @@ async function processFrame(
     );
     const inverseMatrix = Array.from(inverse.data64F as Float64Array);
     drawOverlay(overlay, corners, layout, inverseMatrix, recognition, template);
-    sourcePoints.delete();
-    targetPoints.delete();
-    transform.delete();
-    inverse.delete();
-    full.delete();
-    warped.delete();
     setRecognition(recognition);
     setState("ready");
     setMessage(
@@ -288,6 +310,20 @@ async function processFrame(
     setState("searching");
     setRecognition(null);
     setMessage("正在调整识别，请保持答题卡平整并避免反光");
+  } finally {
+    [
+      src,
+      gray,
+      binary,
+      contours,
+      hierarchy,
+      sourcePoints,
+      targetPoints,
+      transform,
+      inverse,
+      full,
+      warped,
+    ].forEach((value) => value?.delete());
   }
 }
 
