@@ -39,6 +39,7 @@ describe("OMR marker validation", () => {
       subject: "数学",
       questionCount: 3,
       answers: ["A", "B", "C"] as Option[],
+      records: [],
       createdAt: "2025-01-01T00:00:00.000Z",
     };
     expect(recognizeWarpedCard(imageWithMarkers(false), template, false).markerValid).toBe(false);

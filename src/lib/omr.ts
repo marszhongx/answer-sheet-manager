@@ -1,3 +1,5 @@
+import type { GradedStudent } from "./grading";
+
 export const OPTION_LABELS = ["A", "B", "C", "D"] as const;
 export type Option = (typeof OPTION_LABELS)[number];
 
@@ -7,6 +9,7 @@ export type AnswerCardTemplate = {
   subject: string;
   questionCount: number;
   answers: Option[];
+  records: GradedStudent[];
   createdAt: string;
 };
 

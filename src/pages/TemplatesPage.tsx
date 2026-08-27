@@ -1,11 +1,12 @@
 import { useEffect, useRef } from "react";
-import { ChevronRight, Plus } from "lucide-react";
+import { Copy, Plus } from "lucide-react";
 import { AnswerCardTemplate, drawAnswerCard } from "../lib/omr";
 import EmptyState from "./EmptyState";
 
 type Props = {
   templates: AnswerCardTemplate[];
   onCreate: () => void;
+  onCopy: (template: AnswerCardTemplate) => void;
   onSelect: (template: AnswerCardTemplate) => void;
 };
 function CardPreview({ template }: { template: AnswerCardTemplate }) {
@@ -15,7 +16,7 @@ function CardPreview({ template }: { template: AnswerCardTemplate }) {
   }, [template]);
   return <canvas ref={ref} className="card-preview" />;
 }
-export default function TemplatesPage({ templates, onCreate, onSelect }: Props) {
+export default function TemplatesPage({ templates, onCreate, onCopy, onSelect }: Props) {
   return (
     <>
       <header className="page-top">
@@ -33,20 +34,24 @@ export default function TemplatesPage({ templates, onCreate, onSelect }: Props) 
         ) : (
           <div className="template-list">
             {templates.map((template) => (
-              <button
-                className="real-template-card"
-                onClick={() => onSelect(template)}
-                key={template.id}
-              >
-                <CardPreview template={template} />
-                <div>
-                  <span>{template.subject}</span>
-                  <h2>{template.name}</h2>
-                  <p>{template.questionCount} 道单选题 · 每题 5 分</p>
-                  <small>点击编辑、打印或开始扫描</small>
-                </div>
-                <ChevronRight size={19} />
-              </button>
+              <article className="real-template-card" key={template.id}>
+                <button className="template-summary" onClick={() => onSelect(template)}>
+                  <CardPreview template={template} />
+                  <div>
+                    <span>{template.subject}</span>
+                    <h2>{template.name}</h2>
+                    <p>{template.questionCount} 道单选题 · 每题 5 分</p>
+                  </div>
+                </button>
+                <button
+                  className="copy-template"
+                  aria-label={`复制 ${template.name}`}
+                  title="复制答题卡"
+                  onClick={() => onCopy(template)}
+                >
+                  <Copy size={18} />
+                </button>
+              </article>
             ))}
           </div>
         )}

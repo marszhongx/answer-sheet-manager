@@ -8,6 +8,7 @@ const template: AnswerCardTemplate = {
   subject: "数学",
   questionCount: 3,
   answers: ["A", "B", "C"],
+  records: [],
   createdAt: "2025-01-01T00:00:00.000Z",
 };
 

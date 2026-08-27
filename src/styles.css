@@ -260,17 +260,27 @@ button {
 }
 .real-template-card {
   display: flex;
-  gap: 13px;
+  gap: 10px;
   align-items: center;
-  width: 100%;
   padding: 11px;
   color: #293731;
-  text-align: left;
   border: 1px solid #dfe7e2;
   border-radius: 8px;
   background: #fff;
 }
-.real-template-card > div {
+.template-summary {
+  display: flex;
+  flex: 1;
+  gap: 13px;
+  align-items: center;
+  min-width: 0;
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  border: 0;
+  background: transparent;
+}
+.template-summary > div {
   flex: 1;
   min-width: 0;
 }
@@ -300,8 +310,16 @@ button {
   margin-top: 9px;
   color: #a0aba5;
 }
-.real-template-card > svg {
-  color: #9aa7a1;
+.copy-template {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: #477a6b;
+  border: 0;
+  border-radius: 5px;
+  background: #edf6f1;
 }
 .card-preview {
   width: 70px;
@@ -938,7 +956,7 @@ button {
   bottom: 0;
   left: 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   width: 100%;
   max-width: 600px;
   height: 68px;

@@ -1,32 +1,19 @@
 import { useEffect, useState } from "react";
-import { Check, Home, LayoutTemplate, ScanLine, UserRound, X, Plus } from "lucide-react";
-import AnalysisPage from "./pages/AnalysisPage";
-import HomePage from "./pages/HomePage";
-import ProfilePage from "./pages/ProfilePage";
-import ReviewPage from "./pages/ReviewPage";
-import ScanPage from "./pages/ScanPage";
-import TemplateDetailPage from "./pages/TemplateDetailPage";
+import { Check, Plus, X } from "lucide-react";
+import { Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import AnswerCardDetail from "./pages/AnswerCardDetail";
 import TemplatesPage from "./pages/TemplatesPage";
-import { Page } from "./pages/Page";
-import { gradeAnswers, GradedStudent } from "./lib/grading";
-import { AnswerCardTemplate, createAnswers, OPTION_LABELS, Option, Recognition } from "./lib/omr";
+import { AnswerCardTemplate, createAnswers, OPTION_LABELS, Option } from "./lib/omr";
 
 const STORAGE_KEY = "answer-sheet-manager.templates";
-const RECORDS_STORAGE_KEY = "answer-sheet-manager.records";
 
 function loadTemplates(): AnswerCardTemplate[] {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
+    return (JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]") as AnswerCardTemplate[]).map(
+      (template) => ({ ...template, records: template.records ?? [] }),
+    );
   } catch {
     return [];
-  }
-}
-
-function loadRecords(): Record<string, GradedStudent[]> {
-  try {
-    return JSON.parse(localStorage.getItem(RECORDS_STORAGE_KEY) ?? "{}");
-  } catch {
-    return {};
   }
 }
 
@@ -37,32 +24,6 @@ function Toast({ message }: { message: string | null }) {
       {message}
     </div>
   ) : null;
-}
-
-function BottomNav({ page, onChange }: { page: Page; onChange: (page: Page) => void }) {
-  const items: Array<[Page, string, typeof Home]> = [
-    ["home", "首页", Home],
-    ["templates", "答题卡", LayoutTemplate],
-    ["scan", "扫描", ScanLine],
-    ["profile", "我的", UserRound],
-  ];
-  return (
-    <nav className="bottom-nav">
-      {items.map(([id, label, Icon]) => (
-        <button
-          key={id}
-          aria-label={label}
-          onClick={() => onChange(id)}
-          className={page === id ? "active" : ""}
-        >
-          <span className={id === "scan" ? "scan-nav-icon" : ""}>
-            <Icon size={id === "scan" ? 23 : 21} />
-          </span>
-          <small>{label}</small>
-        </button>
-      ))}
-    </nav>
-  );
 }
 
 function AnswerEditor({
@@ -87,9 +48,6 @@ function AnswerEditor({
             保存
           </button>
         </header>
-        <p className="answer-modal-tip">
-          每题仅支持一个正确选项。答案会作为实时对错浮层和最终判分依据。
-        </p>
         <div className="answer-editor">
           {answers.map((answer, index) => (
             <div className="answer-row" key={index}>
@@ -138,6 +96,7 @@ function NewTemplate({
       subject,
       questionCount: count,
       answers: createAnswers(count),
+      records: [],
       createdAt: new Date().toISOString(),
     });
   };
@@ -200,127 +159,125 @@ function NewTemplate({
 }
 
 export default function App() {
-  const [page, setPage] = useState<Page>("home");
   const [templates, setTemplates] = useState(loadTemplates);
-  const [selected, setSelected] = useState<AnswerCardTemplate | null>(null);
-  const [createOpen, setCreateOpen] = useState(false);
   const [answerOpen, setAnswerOpen] = useState(false);
-  const [review, setReview] = useState<{ recognition: Recognition; fileName: string } | null>(null);
-  const [records, setRecords] = useState<Record<string, GradedStudent[]>>(loadRecords);
   const [message, setMessage] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  useEffect(() => localStorage.setItem(STORAGE_KEY, JSON.stringify(templates)), [templates]);
-  useEffect(() => localStorage.setItem(RECORDS_STORAGE_KEY, JSON.stringify(records)), [records]);
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
+  }, [templates]);
+
   const notify = (text: string) => {
     setMessage(text);
     window.setTimeout(() => setMessage(null), 2200);
   };
   const create = (template: AnswerCardTemplate) => {
     setTemplates((current) => [template, ...current]);
-    setSelected(template);
-    setCreateOpen(false);
-    setPage("detail");
-    notify("标准答题卡已创建，请先设置答案并下载打印");
+    navigate(`/answer-sheets/${template.id}`);
+    notify("标准答题卡已创建");
   };
-  const select = (template: AnswerCardTemplate) => {
-    setSelected(template);
-    setPage("detail");
+  const copy = (template: AnswerCardTemplate) => {
+    setTemplates((current) => [
+      {
+        ...template,
+        id: crypto.randomUUID(),
+        name: `${template.name} 副本`,
+        answers: [...template.answers],
+        records: [],
+        createdAt: new Date().toISOString(),
+      },
+      ...current,
+    ]);
+    notify("已复制答题卡");
   };
-  const saveAnswers = (answers: Option[]) => {
-    if (!selected) return;
-    const updated = { ...selected, answers };
-    setTemplates((current) =>
-      current.map((template) => (template.id === updated.id ? updated : template)),
-    );
-    setSelected(updated);
+  const saveAnswers = (template: AnswerCardTemplate, answers: Option[]) => {
+    const updated = { ...template, answers };
+    setTemplates((current) => current.map((item) => (item.id === updated.id ? updated : item)));
     setAnswerOpen(false);
     notify("标准答案已保存");
-  };
-  const scanned = (recognition: Recognition, fileName: string) => {
-    if (!recognition.markerValid) {
-      notify("未检测到完整定位标记，请使用实时相机重拍");
-      return;
-    }
-    setReview({ recognition, fileName });
-  };
-  const saveReview = (answers: Array<Option | null>, confidence: number[]) => {
-    if (!selected || !review) return;
-    if (answers.some((answer) => answer === null)) {
-      notify("请先补全所有题目");
-      return;
-    }
-    const record = gradeAnswers(
-      selected,
-      `答卷 ${new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`,
-      review.fileName,
-      answers,
-      confidence,
-    );
-    setRecords((current) => ({
-      ...current,
-      [selected.id]: [...(current[selected.id] ?? []), record],
-    }));
-    setReview(null);
-    setPage("analysis");
-    notify("真实识别结果已保存");
   };
 
   return (
     <div className="mobile-app">
-      {page === "home" && (
-        <HomePage templates={templates} onPage={setPage} onCreate={() => setCreateOpen(true)} />
-      )}
-      {page === "templates" && (
-        <TemplatesPage
-          templates={templates}
-          onCreate={() => setCreateOpen(true)}
-          onSelect={select}
+      <Routes>
+        <Route path="/" element={<Navigate to="/answer-sheets" replace />} />
+        <Route
+          path="/answer-sheets"
+          element={
+            <TemplatesPage
+              templates={templates}
+              onCreate={() => navigate("/answer-sheets/new")}
+              onCopy={copy}
+              onSelect={(template) => navigate(`/answer-sheets/${template.id}`)}
+            />
+          }
         />
-      )}
-      {page === "detail" && selected && (
-        <TemplateDetailPage
-          template={selected}
-          onBack={() => setPage("templates")}
-          onAnswers={() => setAnswerOpen(true)}
-          onScan={() => setPage("scan")}
-          notify={notify}
+        <Route
+          path="/answer-sheets/new"
+          element={
+            <>
+              <TemplatesPage
+                templates={templates}
+                onCreate={() => navigate("/answer-sheets/new")}
+                onCopy={copy}
+                onSelect={(template) => navigate(`/answer-sheets/${template.id}`)}
+              />
+              <NewTemplate onCreate={create} onClose={() => navigate("/answer-sheets")} />
+            </>
+          }
         />
-      )}
-      {page === "scan" && (
-        <ScanPage
-          template={selected ?? templates[0] ?? null}
-          onSelect={() => setPage("templates")}
-          onScanned={scanned}
-          notify={notify}
+        <Route
+          path="/answer-sheets/:id"
+          element={
+            <AnswerSheetRoute
+              templates={templates}
+              answerOpen={answerOpen}
+              onBack={() => navigate("/answer-sheets")}
+              onAnswers={() => setAnswerOpen(true)}
+              onSaveAnswers={saveAnswers}
+              onCloseAnswers={() => setAnswerOpen(false)}
+              notify={notify}
+            />
+          }
         />
-      )}
-      {page === "analysis" && (
-        <AnalysisPage
-          template={selected}
-          records={selected ? (records[selected.id] ?? []) : []}
-          onBack={() => setPage("home")}
-        />
-      )}
-      {page === "profile" && <ProfilePage templateCount={templates.length} onPage={setPage} />}
-      {createOpen && <NewTemplate onCreate={create} onClose={() => setCreateOpen(false)} />}
-      {answerOpen && selected && (
-        <AnswerEditor
-          template={selected}
-          onSave={saveAnswers}
-          onClose={() => setAnswerOpen(false)}
-        />
-      )}
-      {review && selected && (
-        <ReviewPage
-          template={selected}
-          recognition={review.recognition}
-          fileName={review.fileName}
-          onSave={saveReview}
-          onCancel={() => setReview(null)}
-        />
-      )}
+        <Route path="*" element={<Navigate to="/answer-sheets" replace />} />
+      </Routes>
       <Toast message={message} />
-      <BottomNav page={page} onChange={setPage} />
     </div>
+  );
+}
+
+function AnswerSheetRoute({
+  templates,
+  answerOpen,
+  onBack,
+  onAnswers,
+  onSaveAnswers,
+  onCloseAnswers,
+  notify,
+}: {
+  templates: AnswerCardTemplate[];
+  answerOpen: boolean;
+  onBack: () => void;
+  onAnswers: () => void;
+  onSaveAnswers: (template: AnswerCardTemplate, answers: Option[]) => void;
+  onCloseAnswers: () => void;
+  notify: (text: string) => void;
+}) {
+  const { id } = useParams();
+  const template = templates.find((item) => item.id === id);
+  if (!template) return <Navigate to="/answer-sheets" replace />;
+  return (
+    <>
+      <AnswerCardDetail template={template} onBack={onBack} onAnswers={onAnswers} notify={notify} />
+      {answerOpen && (
+        <AnswerEditor
+          template={template}
+          onSave={(answers) => onSaveAnswers(template, answers)}
+          onClose={onCloseAnswers}
+        />
+      )}
+    </>
   );
 }

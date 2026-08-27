@@ -1,19 +1,20 @@
 import { useEffect, useRef } from "react";
-import { Camera, Check, Download, X } from "lucide-react";
+import { Check, Download, X } from "lucide-react";
 import { AnswerCardTemplate, drawAnswerCard } from "../lib/omr";
 
 type Props = {
   template: AnswerCardTemplate;
   onBack: () => void;
   onAnswers: () => void;
-  onScan: () => void;
   notify: (text: string) => void;
 };
-export default function TemplateDetailPage({ template, onBack, onAnswers, onScan, notify }: Props) {
+
+export default function AnswerCardDetail({ template, onBack, onAnswers, notify }: Props) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     if (ref.current) drawAnswerCard(ref.current, template);
   }, [template]);
+
   const download = () => {
     if (!ref.current) return;
     const link = document.createElement("a");
@@ -22,6 +23,7 @@ export default function TemplateDetailPage({ template, onBack, onAnswers, onScan
     link.click();
     notify("答题卡 PNG 已下载，可直接打印");
   };
+
   return (
     <>
       <header className="page-top">
@@ -48,14 +50,7 @@ export default function TemplateDetailPage({ template, onBack, onAnswers, onScan
             <Download size={19} />
             下载打印答题卡
           </button>
-          <button className="primary-action" onClick={onScan}>
-            <Camera size={19} />
-            开始扫描阅卷
-          </button>
         </section>
-        <p className="real-note">
-          答题卡四角的黑色定位方块必须完整打印且拍摄时清晰可见，识别器会据此校正纸张角度。
-        </p>
       </main>
     </>
   );
