@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import PageHeader from "../components/PageHeader";
 import { Copy, Plus } from "lucide-react";
 import { AnswerCardTemplate, drawAnswerCard } from "../lib/omr";
 import EmptyState from "./EmptyState";
@@ -19,15 +20,14 @@ function CardPreview({ template }: { template: AnswerCardTemplate }) {
 export default function TemplatesPage({ templates, onCreate, onCopy, onSelect }: Props) {
   return (
     <>
-      <header className="page-top">
-        <div>
-          <h1>答题卡</h1>
-          <p>只识别本系统生成的标准答题卡</p>
-        </div>
-        <button onClick={onCreate} className="create-mini" aria-label="新建答题卡">
-          <Plus size={20} />
-        </button>
-      </header>
+      <PageHeader
+        title="答题卡"
+        action={
+          <button onClick={onCreate} className="create-mini" aria-label="新建答题卡">
+            <Plus size={20} />
+          </button>
+        }
+      />
       <main className="page templates-page">
         {templates.length === 0 ? (
           <EmptyState onCreate={onCreate} />

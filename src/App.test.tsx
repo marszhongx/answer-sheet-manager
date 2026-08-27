@@ -20,6 +20,8 @@ beforeEach(() => {
     beginPath: vi.fn(),
     fillRect: vi.fn(),
     fillText: vi.fn(),
+    lineTo: vi.fn(),
+    moveTo: vi.fn(),
     stroke: vi.fn(),
     strokeRect: vi.fn(),
   } as unknown as CanvasRenderingContext2D);
@@ -40,10 +42,10 @@ describe("Answer Sheet Manager H5", () => {
 
     expect(window.location.pathname).toBe("/answer-sheets/new");
     expect(screen.getByRole("heading", { name: "新建答题卡" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "创建标准答题卡" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "创建答题卡" })).toBeDisabled();
   });
 
-  it("copies an answer sheet as a new exam without its records", async () => {
+  it("copies an answer sheet without retaining obsolete score data", async () => {
     const user = userEvent.setup();
     localStorage.setItem(
       "answer-sheet-manager.templates",
@@ -54,6 +56,7 @@ describe("Answer Sheet Manager H5", () => {
           subject: "数学",
           questionCount: 3,
           answers: ["A", "B", "C"],
+          candidateNumberLength: 6,
           records: [{ name: "张同学" }],
           createdAt: "2025-01-01T00:00:00.000Z",
         },
@@ -65,6 +68,6 @@ describe("Answer Sheet Manager H5", () => {
 
     expect(screen.getByText("单元测验 副本")).toBeInTheDocument();
     const templates = JSON.parse(localStorage.getItem("answer-sheet-manager.templates") ?? "[]");
-    expect(templates[0].records).toEqual([]);
+    expect(templates[0].records).toBeUndefined();
   });
 });

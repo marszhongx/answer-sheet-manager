@@ -1,7 +1,9 @@
-import { AnswerCardTemplate, Option } from "./omr";
+import { AnswerCardTemplate, Option, questionPoints } from "./omr";
 
 export type GradedStudent = {
   name: string;
+  studentNumber: string;
+  className: string;
   fileName: string;
   answers: Array<Option | null>;
   wrong: boolean[];
@@ -11,26 +13,30 @@ export type GradedStudent = {
   confidence: number[];
 };
 
-export const POINTS_PER_QUESTION = 5;
-
 export function gradeAnswers(
   template: AnswerCardTemplate,
   studentName: string,
   fileName: string,
   answers: Array<Option | null>,
   confidence: number[],
+  studentNumber = "",
+  className = "",
 ): GradedStudent {
   const wrong = answers.map((answer, index) => answer !== template.answers[index]);
   const correctCount = wrong.filter((value) => !value).length;
+  const points = questionPoints(template);
+  const score = wrong.reduce((sum, value, index) => sum + (value ? 0 : points[index]), 0);
   return {
     name: studentName.trim() || "未命名学生",
+    studentNumber,
+    className,
     fileName,
     answers,
     wrong,
     confidence,
     correctCount,
-    score: correctCount * POINTS_PER_QUESTION,
-    totalScore: template.questionCount * POINTS_PER_QUESTION,
+    score,
+    totalScore: points.reduce((sum, point) => sum + point, 0),
   };
 }
 
@@ -49,12 +55,16 @@ export function averageScore(records: GradedStudent[]): number {
 
 export function toCSV(template: AnswerCardTemplate, records: GradedStudent[]): string {
   const header = [
+    "班级",
+    "学号",
     "姓名",
     ...Array.from({ length: template.questionCount }, (_, index) => `第${index + 1}题`),
     "得分",
     "总分",
   ];
   const rows = records.map((record) => [
+    record.className,
+    record.studentNumber,
     record.name,
     ...record.answers.map((answer) => answer ?? "未识别"),
     record.score,
