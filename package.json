@@ -8,7 +8,11 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check"
   },
   "dependencies": {
     "@techstark/opencv-js": "^5.0.0-release.1",
@@ -25,6 +29,8 @@
     "@vitejs/plugin-react": "^5.1.1",
     "@vitest/coverage-v8": "^4.1.11",
     "jsdom": "^29.1.1",
+    "oxfmt": "^0.65.0",
+    "oxlint": "^1.80.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
     "vitest": "^4.1.11"
