@@ -972,15 +972,13 @@ button {
 .bottom-nav .scan-nav-icon {
   display: grid;
   place-items: center;
-  align-self: start;
-  width: 44px;
-  height: 44px;
-  margin-top: -13px;
+  width: 30px;
+  height: 30px;
   color: #fff;
-  border: 4px solid #f6f8f6;
+  border: 0;
   border-radius: 50%;
   background: #176b58;
-  box-shadow: 0 3px 8px #176b584d;
+  box-shadow: 0 2px 5px #176b5840;
 }
 .scanner-screen {
   position: fixed;
