@@ -1,4 +1,5 @@
 import PageHeader from "../components/PageHeader";
+import StudentTable from "../components/StudentTable";
 import { FilePenLine, Trash2, UsersRound } from "lucide-react";
 import { ClassRoster } from "../lib/roster";
 
@@ -14,9 +15,24 @@ export default function ClassDetailPage({ classroom, onBack, onEdit, onDelete }:
     <>
       <PageHeader title={classroom.name} onBack={onBack} backLabel="返回班级管理" />
       <main className="page detail-page">
-        <section className="exam-summary">
-          <b>{classroom.name}</b>
-          <span>{classroom.students.length} 名学生</span>
+        <section className="class-info-panel">
+          <div className="exam-info-row">
+            <span>班级名称</span>
+            <b>{classroom.name}</b>
+          </div>
+          <div className="exam-info-row">
+            <span>学生人数</span>
+            <b>{classroom.students.length} 人</b>
+          </div>
+          {classroom.students.length ? (
+            <StudentTable students={classroom.students} />
+          ) : (
+            <section className="analysis-empty">
+              <UsersRound size={34} />
+              <h2>还没有学生</h2>
+              <p>编辑班级后可以添加学生。</p>
+            </section>
+          )}
         </section>
         <section className="detail-actions">
           <button onClick={onEdit}>
@@ -28,22 +44,6 @@ export default function ClassDetailPage({ classroom, onBack, onEdit, onDelete }:
             删除班级
           </button>
         </section>
-        {classroom.students.length ? (
-          <div className="student-list">
-            {classroom.students.map((student) => (
-              <div key={student.id}>
-                <span>{student.name}</span>
-                <b>{student.studentNumber}</b>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <section className="analysis-empty">
-            <UsersRound size={34} />
-            <h2>还没有学生</h2>
-            <p>编辑班级后可以添加学生。</p>
-          </section>
-        )}
       </main>
     </>
   );

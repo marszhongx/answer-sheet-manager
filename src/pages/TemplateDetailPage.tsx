@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import PageHeader from "../components/PageHeader";
-import { Download, FilePenLine, Trash2 } from "lucide-react";
+import { Copy, Download, FilePenLine, Trash2 } from "lucide-react";
 import { AnswerCardTemplate, drawA4PrintPage, templateSections } from "../lib/omr";
 
 type Props = {
@@ -8,6 +8,7 @@ type Props = {
   locked: boolean;
   onBack: () => void;
   onEdit: () => void;
+  onCopy: () => void;
   onDelete: () => void;
   notify: (text: string) => void;
 };
@@ -16,6 +17,7 @@ export default function TemplateDetailPage({
   locked,
   onBack,
   onEdit,
+  onCopy,
   onDelete,
   notify,
 }: Props) {
@@ -50,7 +52,11 @@ export default function TemplateDetailPage({
         <section className="detail-actions">
           <button onClick={onEdit} disabled={locked}>
             <FilePenLine size={19} />
-            {locked ? "已有成绩，不能编辑" : "编辑答题卡"}
+            编辑答题卡
+          </button>
+          <button onClick={onCopy}>
+            <Copy size={19} />
+            复制答题卡
           </button>
           <button onClick={download} disabled={!printable}>
             <Download size={19} />

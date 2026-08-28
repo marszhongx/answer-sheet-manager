@@ -20,6 +20,8 @@ beforeEach(() => {
     beginPath: vi.fn(),
     fillRect: vi.fn(),
     fillText: vi.fn(),
+    drawImage: vi.fn(),
+    setLineDash: vi.fn(),
     lineTo: vi.fn(),
     moveTo: vi.fn(),
     stroke: vi.fn(),
@@ -64,9 +66,10 @@ describe("Answer Sheet Manager H5", () => {
     );
     renderApp();
 
-    await user.click(screen.getByRole("button", { name: "复制 单元测验" }));
+    await user.click(screen.getByRole("button", { name: /单元测验/ }));
+    await user.click(screen.getByRole("button", { name: "复制答题卡" }));
 
-    expect(screen.getByText("单元测验 副本")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "单元测验 副本" })).toBeInTheDocument();
     const templates = JSON.parse(localStorage.getItem("answer-sheet-manager.templates") ?? "[]");
     expect(templates[0].records).toBeUndefined();
   });

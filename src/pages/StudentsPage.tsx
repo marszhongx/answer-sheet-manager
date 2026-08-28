@@ -1,3 +1,4 @@
+import ListCard from "../components/ListCard";
 import PageHeader from "../components/PageHeader";
 import { Plus, UsersRound } from "lucide-react";
 import { ClassRoster } from "../lib/roster";
@@ -22,20 +23,13 @@ export default function StudentsPage({ classes, onCreate, onSelect }: Props) {
         {classes.length ? (
           <div className="template-list">
             {classes.map((classroom) => (
-              <button
-                className="real-template-card"
+              <ListCard
                 key={classroom.id}
+                leading={<UsersRound size={21} />}
+                title={classroom.name}
+                description={`${classroom.students.length} 名学生`}
                 onClick={() => onSelect(classroom)}
-              >
-                <span className="exam-icon">
-                  <UsersRound size={21} />
-                </span>
-                <div>
-                  <span>班级</span>
-                  <h2>{classroom.name}</h2>
-                  <p>{classroom.students.length} 名学生</p>
-                </div>
-              </button>
+              />
             ))}
           </div>
         ) : (

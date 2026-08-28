@@ -1,20 +1,14 @@
+import ListCard from "../components/ListCard";
 import PageHeader from "../components/PageHeader";
 import { BarChart3, ClipboardPlus, Plus, ScanLine } from "lucide-react";
-import { AnswerCardTemplate } from "../lib/omr";
 import { Exam } from "../lib/exam";
-import { ClassRoster } from "../lib/roster";
 
 type Props = {
   exams: Exam[];
-  templates: AnswerCardTemplate[];
-  classes: ClassRoster[];
   onCreate: () => void;
   onSelect: (exam: Exam) => void;
 };
-export default function ExamsPage({ exams, templates, classes, onCreate, onSelect }: Props) {
-  const templateName = (id: string) =>
-    templates.find((template) => template.id === id)?.name ?? "已删除答题卡";
-  const className = (id: string) => classes.find((item) => item.id === id)?.name ?? "未分班";
+export default function ExamsPage({ exams, onCreate, onSelect }: Props) {
   return (
     <>
       <PageHeader
@@ -29,19 +23,14 @@ export default function ExamsPage({ exams, templates, classes, onCreate, onSelec
         {exams.length ? (
           <div className="template-list">
             {exams.map((exam) => (
-              <button className="real-template-card" key={exam.id} onClick={() => onSelect(exam)}>
-                <span className="exam-icon">
-                  <ScanLine size={21} />
-                </span>
-                <div>
-                  <span>{className(exam.classId)}</span>
-                  <h2>{exam.name}</h2>
-                  <p>
-                    {templateName(exam.templateId)} · 已阅 {exam.records.length} 份
-                  </p>
-                </div>
-                <BarChart3 size={19} />
-              </button>
+              <ListCard
+                key={exam.id}
+                leading={<ScanLine size={21} />}
+                tags={[exam.classroom.name, exam.template.name]}
+                title={exam.name}
+                description={`已阅 ${exam.records.length} 份`}
+                onClick={() => onSelect(exam)}
+              />
             ))}
           </div>
         ) : (

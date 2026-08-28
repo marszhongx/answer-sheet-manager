@@ -8,11 +8,12 @@ import EmptyState from "./EmptyState";
 
 type Props = {
   template: AnswerCardTemplate | null;
+  onBack: () => void;
   onSelect: () => void;
   onScanned: (recognition: Recognition, fileName: string) => void;
   notify: (text: string) => void;
 };
-export default function ScanPage({ template, onSelect, onScanned, notify }: Props) {
+export default function ScanPage({ template, onBack, onSelect, onScanned, notify }: Props) {
   const [processing, setProcessing] = useState(false);
   const [scanner, setScanner] = useState(false);
   const importImage = (file: File) => {
@@ -59,7 +60,7 @@ export default function ScanPage({ template, onSelect, onScanned, notify }: Prop
     );
   return (
     <>
-      <PageHeader title="扫描答卷" />
+      <PageHeader title="扫描答卷" onBack={onBack} backLabel="返回考试详情" />
       <main className="page scan-page">
         {template ? (
           <>

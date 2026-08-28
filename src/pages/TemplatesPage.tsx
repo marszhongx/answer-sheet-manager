@@ -1,23 +1,15 @@
-import { useEffect, useRef } from "react";
+import ListCard from "../components/ListCard";
 import PageHeader from "../components/PageHeader";
-import { Copy, Plus } from "lucide-react";
-import { AnswerCardTemplate, drawAnswerCard } from "../lib/omr";
+import { FileText, Plus } from "lucide-react";
+import { AnswerCardTemplate } from "../lib/omr";
 import EmptyState from "./EmptyState";
 
 type Props = {
   templates: AnswerCardTemplate[];
   onCreate: () => void;
-  onCopy: (template: AnswerCardTemplate) => void;
   onSelect: (template: AnswerCardTemplate) => void;
 };
-function CardPreview({ template }: { template: AnswerCardTemplate }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    if (ref.current) drawAnswerCard(ref.current, template);
-  }, [template]);
-  return <canvas ref={ref} className="card-preview" />;
-}
-export default function TemplatesPage({ templates, onCreate, onCopy, onSelect }: Props) {
+export default function TemplatesPage({ templates, onCreate, onSelect }: Props) {
   return (
     <>
       <PageHeader
@@ -34,24 +26,14 @@ export default function TemplatesPage({ templates, onCreate, onCopy, onSelect }:
         ) : (
           <div className="template-list">
             {templates.map((template) => (
-              <article className="real-template-card" key={template.id}>
-                <button className="template-summary" onClick={() => onSelect(template)}>
-                  <CardPreview template={template} />
-                  <div>
-                    <span>{template.subject}</span>
-                    <h2>{template.name}</h2>
-                    <p>{template.questionCount} 道单选题 · 每题 5 分</p>
-                  </div>
-                </button>
-                <button
-                  className="copy-template"
-                  aria-label={`复制 ${template.name}`}
-                  title="复制答题卡"
-                  onClick={() => onCopy(template)}
-                >
-                  <Copy size={18} />
-                </button>
-              </article>
+              <ListCard
+                key={template.id}
+                leading={<FileText size={22} />}
+                tags={[template.subject]}
+                title={template.name}
+                description={`${template.questionCount} 道单选题 · 每题 5 分`}
+                onClick={() => onSelect(template)}
+              />
             ))}
           </div>
         )}

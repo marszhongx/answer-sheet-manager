@@ -8,6 +8,7 @@ export default function AnalysisPage({ template, records, onBack }: Props) {
   if (!template || !records.length)
     return (
       <>
+        <PageHeader title="阅卷记录" onBack={onBack} backLabel="返回考试详情" />
         <main className="page analysis-page">
           <section className="analysis-empty">
             <BarChart3 size={34} />
@@ -21,7 +22,7 @@ export default function AnalysisPage({ template, records, onBack }: Props) {
   const average = averageScore(records);
   return (
     <>
-      <PageHeader title="成绩分析" onBack={onBack} backLabel="返回考试详情" />
+      <PageHeader title="阅卷记录" onBack={onBack} backLabel="返回考试详情" />
       <main className="page analysis-page">
         <section className="score-hero">
           <span>班级平均分</span>

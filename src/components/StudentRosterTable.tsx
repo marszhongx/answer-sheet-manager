@@ -27,48 +27,46 @@ export default function StudentRosterTable({ students, onChange }: Props) {
   };
 
   return (
-    <EditableTable
-      rows={students}
-      onChange={onChange}
-      createRow={() => ({ id: crypto.randomUUID(), name: "", studentNumber: "" })}
-      columns={[
-        {
-          key: "name",
-          label: "学生姓名",
-          render: (student, onValueChange) => (
-            <Input
-              size="sm"
-              value={student.name}
-              onChange={(event) => onValueChange(event.target.value)}
-            />
-          ),
-        },
-        {
-          key: "studentNumber",
-          label: "学号",
-          render: (student, onValueChange) => (
-            <Input
-              size="sm"
-              value={student.studentNumber}
-              inputMode="numeric"
-              placeholder="例如：88"
-              onChange={(event) => onValueChange(event.target.value.replace(/\D/g, ""))}
-            />
-          ),
-        },
-      ]}
-      toolbar={
-        <div className={styles.toolbar}>
-          <div className={styles.toolbarRow}>
-            <b>学生名单</b>
-            <FileUploader className={styles.import} accept=".csv,text/csv" onFile={importFile}>
-              <FileUp size={17} />
-              导入 CSV
-            </FileUploader>
-          </div>
-          {error && <span className={styles.error}>{error}</span>}
-        </div>
-      }
-    />
+    <>
+      <EditableTable
+        rows={students}
+        onChange={onChange}
+        createRow={() => ({ id: crypto.randomUUID(), name: "", studentNumber: "" })}
+        columns={[
+          {
+            key: "name",
+            label: "学生姓名",
+            render: (student, onValueChange) => (
+              <Input
+                size="sm"
+                value={student.name}
+                onChange={(event) => onValueChange(event.target.value)}
+              />
+            ),
+          },
+          {
+            key: "studentNumber",
+            label: "学号",
+            render: (student, onValueChange) => (
+              <Input
+                size="sm"
+                value={student.studentNumber}
+                inputMode="numeric"
+                placeholder="例如：88"
+                onChange={(event) => onValueChange(event.target.value.replace(/\D/g, ""))}
+              />
+            ),
+          },
+        ]}
+        title="学生名单"
+        actions={
+          <FileUploader className={styles.import} accept=".csv,text/csv" onFile={importFile}>
+            <FileUp size={17} />
+            导入 CSV
+          </FileUploader>
+        }
+      />
+      {error && <span className={styles.error}>{error}</span>}
+    </>
   );
 }

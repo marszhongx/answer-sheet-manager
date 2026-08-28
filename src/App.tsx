@@ -6,7 +6,7 @@ import { Navigate, Route, Routes, useNavigate, useParams } from "react-router-do
 import { gradeAnswers } from "./lib/grading";
 import { AnswerCardTemplate, Option, Recognition } from "./lib/omr";
 import { Exam } from "./lib/exam";
-import { ClassRoster, findStudent } from "./lib/roster";
+import { ClassRoster } from "./lib/roster";
 import AnalysisPage from "./pages/AnalysisPage";
 import ClassDetailPage from "./pages/ClassDetailPage";
 import ClassEditorPage from "./pages/ClassEditorPage";
@@ -109,8 +109,17 @@ export default function App() {
       }),
     ),
   );
-  const [exams, setExams] = useState(() => load<Exam[]>(EXAMS_KEY, []));
   const [classes, setClasses] = useState(() => load<ClassRoster[]>(CLASSES_KEY, []));
+  const [exams, setExams] = useState(() =>
+    load<Array<Exam & { templateId?: string; classId?: string }>>(EXAMS_KEY, []).flatMap((exam) => {
+      if (exam.template && exam.classroom) return [exam];
+      const template = templates.find((item) => item.id === exam.templateId);
+      const classroom = classes.find((item) => item.id === exam.classId);
+      return template && classroom
+        ? [{ ...exam, template: structuredClone(template), classroom: structuredClone(classroom) }]
+        : [];
+    }),
+  );
   const [review, setReview] = useState<ReviewState | null>(null);
   const [deleteExam, setDeleteExam] = useState<Exam | null>(null);
   const [deleteClass, setDeleteClass] = useState<ClassRoster | null>(null);
@@ -162,7 +171,9 @@ export default function App() {
       notify("未识别完整准考证号，请重新扫描");
       return;
     }
-    const student = findStudent(classes, exam.classId, recognition.studentNumber);
+    const student = exam.classroom.students.find(
+      (item) => item.studentNumber === recognition.studentNumber,
+    );
     if (!student) {
       notify(`未找到学号 ${recognition.studentNumber} 对应的学生`);
       return;
@@ -171,11 +182,11 @@ export default function App() {
     navigate(`/exams/${exam.id}/review`);
   };
   const saveReview = (exam: Exam, answers: Array<Option | null>, confidence: number[]) => {
-    const template = templates.find((item) => item.id === exam.templateId);
-    const classroom = classes.find((item) => item.id === exam.classId);
+    const template = exam.template;
+    const classroom = exam.classroom;
     const studentNumber = review?.recognition.studentNumber;
-    const student = findStudent(classes, exam.classId, studentNumber ?? "");
-    if (!template || !classroom || !student || answers.some((answer) => answer === null)) {
+    const student = classroom.students.find((item) => item.studentNumber === studentNumber);
+    if (!student || answers.some((answer) => answer === null)) {
       notify("识别信息不完整，无法保存成绩");
       return;
     }
@@ -207,7 +218,6 @@ export default function App() {
             <TemplatesPage
               templates={templates}
               onCreate={() => navigate("/answer-sheets/new")}
-              onCopy={copyTemplate}
               onSelect={(template) => navigate(`/answer-sheets/${template.id}`)}
             />
           }
@@ -226,6 +236,18 @@ export default function App() {
               exams={exams}
               onBack={() => navigate("/answer-sheets")}
               onEdit={(template) => navigate(`/answer-sheets/${template.id}/edit`)}
+              onCopy={(template) => {
+                const copied = {
+                  ...template,
+                  id: crypto.randomUUID(),
+                  name: `${template.name} 副本`,
+                  answers: [...template.answers],
+                  createdAt: new Date().toISOString(),
+                };
+                setTemplates((current) => [copied, ...current]);
+                navigate(`/answer-sheets/${copied.id}`);
+                notify("已复制答题卡");
+              }}
               onDelete={setDeleteTemplate}
               notify={notify}
             />
@@ -234,12 +256,7 @@ export default function App() {
         <Route
           path="/answer-sheets/:id/edit"
           element={
-            <TemplateEditor
-              templates={templates}
-              exams={exams}
-              onSave={saveEditedTemplate}
-              onBack={() => navigate("/answer-sheets")}
-            />
+            <TemplateEditor templates={templates} exams={exams} onSave={saveEditedTemplate} />
           }
         />
         <Route
@@ -247,8 +264,6 @@ export default function App() {
           element={
             <ExamsPage
               exams={exams}
-              templates={templates}
-              classes={classes}
               onCreate={() => navigate("/exams/new")}
               onSelect={(exam) => navigate(`/exams/${exam.id}`)}
             />
@@ -270,6 +285,52 @@ export default function App() {
           }
         />
         <Route
+          path="/exams/:id/edit"
+          element={
+            <ExamEditorRoute
+              exams={exams}
+              templates={templates}
+              classes={classes}
+              onSave={(exam) => {
+                setExams((current) => current.map((item) => (item.id === exam.id ? exam : item)));
+                navigate(`/exams/${exam.id}`);
+                notify("考试已保存");
+              }}
+              onBack={(exam) => navigate(`/exams/${exam.id}`)}
+            />
+          }
+        />
+        <Route
+          path="/exams/:id/template/edit"
+          element={
+            <ExamTemplateEditorRoute
+              exams={exams}
+              onSave={(exam, template) => {
+                setExams((current) =>
+                  current.map((item) => (item.id === exam.id ? { ...item, template } : item)),
+                );
+                navigate(`/exams/${exam.id}`);
+                notify("考试答题卡已保存");
+              }}
+            />
+          }
+        />
+        <Route
+          path="/exams/:id/classroom/edit"
+          element={
+            <ExamClassroomEditorRoute
+              exams={exams}
+              onSave={(exam, classroom) => {
+                setExams((current) =>
+                  current.map((item) => (item.id === exam.id ? { ...item, classroom } : item)),
+                );
+                navigate(`/exams/${exam.id}`);
+                notify("考试班级已保存");
+              }}
+            />
+          }
+        />
+        <Route
           path="/exams/:id"
           element={
             <ExamRoute
@@ -277,6 +338,9 @@ export default function App() {
               templates={templates}
               classes={classes}
               onBack={() => navigate("/exams")}
+              onEdit={(exam) => navigate(`/exams/${exam.id}/edit`)}
+              onEditTemplate={(exam) => navigate(`/exams/${exam.id}/template/edit`)}
+              onEditClassroom={(exam) => navigate(`/exams/${exam.id}/classroom/edit`)}
               onScan={(exam) => navigate(`/exams/${exam.id}/scan`)}
               onResults={(exam) => navigate(`/exams/${exam.id}/results`)}
               onDelete={setDeleteExam}
@@ -290,6 +354,7 @@ export default function App() {
               {(exam, template) => (
                 <ScanPage
                   template={template}
+                  onBack={() => navigate(`/exams/${exam.id}`)}
                   onSelect={() => navigate(`/exams/${exam.id}`)}
                   onScanned={(recognition, fileName) => scanned(exam, recognition, fileName)}
                   notify={notify}
@@ -367,7 +432,6 @@ export default function App() {
           element={
             <ClassEditorRoute
               classes={classes}
-              onBack={() => navigate("/students")}
               onSave={(classroom) => {
                 setClasses((current) =>
                   current.map((item) => (item.id === classroom.id ? classroom : item)),
@@ -403,7 +467,6 @@ export default function App() {
           onCancel={() => setDeleteClass(null)}
           onConfirm={() => {
             setClasses((current) => current.filter((item) => item.id !== deleteClass.id));
-            setExams((current) => current.filter((exam) => exam.classId !== deleteClass.id));
             setDeleteClass(null);
             navigate("/students");
             notify("班级已删除");
@@ -432,6 +495,7 @@ function TemplateDetailRoute({
   exams,
   onBack,
   onEdit,
+  onCopy,
   onDelete,
   notify,
 }: {
@@ -439,19 +503,21 @@ function TemplateDetailRoute({
   exams: Exam[];
   onBack: () => void;
   onEdit: (template: AnswerCardTemplate) => void;
+  onCopy: (template: AnswerCardTemplate) => void;
   onDelete: (template: AnswerCardTemplate) => void;
   notify: (text: string) => void;
 }) {
   const { id } = useParams();
   const template = templates.find((item) => item.id === id);
   if (!template) return <Navigate to="/answer-sheets" replace />;
-  const locked = exams.some((exam) => exam.templateId === template.id && exam.records.length > 0);
+  const locked = exams.some((exam) => exam.template.id === template.id && exam.records.length > 0);
   return (
     <TemplateDetailPage
       template={template}
       locked={locked}
       onBack={onBack}
       onEdit={() => onEdit(template)}
+      onCopy={() => onCopy(template)}
       onDelete={() => onDelete(template)}
       notify={notify}
     />
@@ -461,25 +527,100 @@ function TemplateEditor({
   templates,
   exams,
   onSave,
-  onBack,
 }: {
   templates: AnswerCardTemplate[];
   exams: Exam[];
   onSave: (template: AnswerCardTemplate) => void;
-  onBack: () => void;
 }) {
   const { id } = useParams();
   const template = templates.find((item) => item.id === id);
   if (!template) return <Navigate to="/answer-sheets" replace />;
-  if (exams.some((exam) => exam.templateId === template.id && exam.records.length))
-    return <Navigate to="/answer-sheets" replace />;
-  return <NewAnswerCardPage template={template} onSave={onSave} onBack={onBack} />;
+  if (exams.some((exam) => exam.template.id === template.id && exam.records.length))
+    return <Navigate to={`/answer-sheets/${template.id}`} replace />;
+  const navigate = useNavigate();
+  return (
+    <NewAnswerCardPage
+      template={template}
+      onSave={onSave}
+      onBack={() => navigate(`/answer-sheets/${template.id}`)}
+    />
+  );
+}
+function ExamEditorRoute({
+  exams,
+  templates,
+  classes,
+  onSave,
+  onBack,
+}: {
+  exams: Exam[];
+  templates: AnswerCardTemplate[];
+  classes: ClassRoster[];
+  onSave: (exam: Exam) => void;
+  onBack: (exam: Exam) => void;
+}) {
+  const { id } = useParams();
+  const exam = exams.find((item) => item.id === id);
+  if (!exam) return <Navigate to="/exams" replace />;
+  if (exam.records.length) return <Navigate to={`/exams/${exam.id}`} replace />;
+  return (
+    <NewExamPage
+      exam={exam}
+      templates={templates}
+      classes={classes}
+      onSave={onSave}
+      onBack={() => onBack(exam)}
+    />
+  );
+}
+function ExamTemplateEditorRoute({
+  exams,
+  onSave,
+}: {
+  exams: Exam[];
+  onSave: (exam: Exam, template: AnswerCardTemplate) => void;
+}) {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const exam = exams.find((item) => item.id === id);
+  if (!exam) return <Navigate to="/exams" replace />;
+  if (exam.records.length) return <Navigate to={`/exams/${exam.id}`} replace />;
+  return (
+    <NewAnswerCardPage
+      template={exam.template}
+      onSave={(template) => onSave(exam, template)}
+      onBack={() => navigate(`/exams/${exam.id}`)}
+    />
+  );
+}
+function ExamClassroomEditorRoute({
+  exams,
+  onSave,
+}: {
+  exams: Exam[];
+  onSave: (exam: Exam, classroom: ClassRoster) => void;
+}) {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const exam = exams.find((item) => item.id === id);
+  if (!exam) return <Navigate to="/exams" replace />;
+  if (exam.records.length) return <Navigate to={`/exams/${exam.id}`} replace />;
+  return (
+    <ClassEditorPage
+      classroom={exam.classroom}
+      onSave={(classroom) => onSave(exam, classroom)}
+      onBack={() => navigate(`/exams/${exam.id}`)}
+    />
+  );
 }
 function ExamRoute({
   exams,
   templates,
   classes,
   onBack,
+  onEdit,
+  onEditTemplate,
+  onEditClassroom,
   onScan,
   onResults,
   onDelete,
@@ -488,20 +629,24 @@ function ExamRoute({
   templates: AnswerCardTemplate[];
   classes: ClassRoster[];
   onBack: () => void;
+  onEdit: (exam: Exam) => void;
+  onEditTemplate: (exam: Exam) => void;
+  onEditClassroom: (exam: Exam) => void;
   onScan: (exam: Exam) => void;
   onResults: (exam: Exam) => void;
   onDelete: (exam: Exam) => void;
 }) {
   const { id } = useParams();
   const exam = exams.find((item) => item.id === id);
-  const template = templates.find((item) => item.id === exam?.templateId);
-  const classroom = classes.find((item) => item.id === exam?.classId);
-  return exam && template && classroom ? (
+  return exam ? (
     <ExamDetailPage
       exam={exam}
-      template={template}
-      classroom={classroom}
+      template={exam.template}
+      classroom={exam.classroom}
       onBack={onBack}
+      onEdit={() => onEdit(exam)}
+      onEditTemplate={() => onEditTemplate(exam)}
+      onEditClassroom={() => onEditClassroom(exam)}
       onScan={() => onScan(exam)}
       onResults={() => onResults(exam)}
       onDelete={() => onDelete(exam)}
@@ -521,8 +666,7 @@ function ExamTemplateRoute({
 }) {
   const { id } = useParams();
   const exam = exams.find((item) => item.id === id);
-  const template = templates.find((item) => item.id === exam?.templateId);
-  return exam && template ? children(exam, template) : <Navigate to="/exams" replace />;
+  return exam ? children(exam, exam.template) : <Navigate to="/exams" replace />;
 }
 function ReviewRoute({
   exams,
@@ -541,9 +685,11 @@ function ReviewRoute({
 }) {
   const { id } = useParams();
   const exam = exams.find((item) => item.id === id);
-  const template = templates.find((item) => item.id === exam?.templateId);
-  const classroom = classes.find((item) => item.id === exam?.classId);
-  const student = findStudent(classes, exam?.classId, review?.recognition.studentNumber ?? "");
+  const template = exam?.template;
+  const classroom = exam?.classroom;
+  const student = classroom?.students.find(
+    (item) => item.studentNumber === review?.recognition.studentNumber,
+  );
   return exam && template && classroom && student && review?.examId === exam.id ? (
     <ReviewPage
       template={template}
@@ -585,17 +731,20 @@ function ClassRoute({
 }
 function ClassEditorRoute({
   classes,
-  onBack,
   onSave,
 }: {
   classes: ClassRoster[];
-  onBack: () => void;
   onSave: (classroom: ClassRoster) => void;
 }) {
   const { id } = useParams();
+  const navigate = useNavigate();
   const classroom = classes.find((item) => item.id === id);
   return classroom ? (
-    <ClassEditorPage classroom={classroom} onSave={onSave} onBack={onBack} />
+    <ClassEditorPage
+      classroom={classroom}
+      onSave={onSave}
+      onBack={() => navigate(`/students/${classroom.id}`)}
+    />
   ) : (
     <Navigate to="/students" replace />
   );

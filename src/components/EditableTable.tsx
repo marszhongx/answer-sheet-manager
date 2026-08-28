@@ -12,7 +12,8 @@ type Props<Row extends { id: string }> = {
   rows: Row[];
   onChange: (rows: Row[]) => void;
   createRow: () => Row;
-  toolbar?: ReactNode;
+  title?: ReactNode;
+  actions?: ReactNode;
 };
 
 export default function EditableTable<Row extends { id: string }>({
@@ -20,7 +21,8 @@ export default function EditableTable<Row extends { id: string }>({
   rows,
   onChange,
   createRow,
-  toolbar,
+  title,
+  actions,
 }: Props<Row>) {
   const update = (id: string, key: keyof Row, value: string) =>
     onChange(rows.map((row) => (row.id === id ? { ...row, [key]: value } : row)));
@@ -28,7 +30,12 @@ export default function EditableTable<Row extends { id: string }>({
 
   return (
     <section className={styles.section}>
-      <div className={styles.toolbar}>{toolbar}</div>
+      {(title || actions) && (
+        <div className={styles.toolbar}>
+          <div className={styles.title}>{title}</div>
+          <div className={styles.actions}>{actions}</div>
+        </div>
+      )}
       <div className={styles.table} role="table">
         <div className={styles.header} role="row">
           {columns.map((column) => (
