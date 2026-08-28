@@ -1,5 +1,6 @@
 import { Check, ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import styles from "./Select.module.css";
 
 type Option = { value: string; label: string };
 type Props = {
@@ -7,9 +8,10 @@ type Props = {
   options: Option[];
   onChange: (value: string) => void;
   ariaLabel?: string;
+  size?: "sm" | "md";
 };
 
-export default function Select({ value, options, onChange, ariaLabel }: Props) {
+export default function Select({ value, options, onChange, ariaLabel, size = "md" }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const current = options.find((option) => option.value === value) ?? options[0];
@@ -23,25 +25,28 @@ export default function Select({ value, options, onChange, ariaLabel }: Props) {
   }, []);
 
   return (
-    <div className="select-control" ref={ref}>
+    <div className={styles.root} ref={ref}>
       <button
         type="button"
-        className="select-trigger"
+        className={`${styles.trigger} ${styles[size]}`}
         aria-label={ariaLabel}
         aria-expanded={open}
         onClick={() => setOpen((currentOpen) => !currentOpen)}
       >
         <span>{current?.label ?? "请选择"}</span>
-        <ChevronDown size={17} className={open ? "select-chevron open" : "select-chevron"} />
+        <ChevronDown
+          size={17}
+          className={`${styles.chevron}${open ? ` ${styles.chevronOpen}` : ""}`}
+        />
       </button>
       {open && (
-        <div className="select-menu" role="listbox" aria-label={ariaLabel}>
+        <div className={styles.menu} role="listbox" aria-label={ariaLabel}>
           {options.map((option) => (
             <button
               type="button"
               role="option"
               aria-selected={option.value === value}
-              className={option.value === value ? "select-option selected" : "select-option"}
+              className={`${styles.option}${option.value === value ? ` ${styles.selected}` : ""}`}
               key={option.value}
               onClick={() => {
                 onChange(option.value);

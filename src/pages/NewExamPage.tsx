@@ -1,4 +1,5 @@
 import { useState } from "react";
+import FormSection from "../components/FormSection";
 import Input from "../components/Input";
 import PageHeader from "../components/PageHeader";
 import Select from "../components/Select";
@@ -22,7 +23,7 @@ export default function NewExamPage({ templates, classes, onSave, onBack }: Prop
     <>
       <PageHeader title="新建考试" onBack={onBack} backLabel="返回考试管理" />
       <main className="page new-answer-card-page">
-        <div className="form-block">
+        <FormSection>
           <label>
             考试名称
             <Input
@@ -50,7 +51,7 @@ export default function NewExamPage({ templates, classes, onSave, onBack }: Prop
               ariaLabel="参考班级"
             />
           </label>
-        </div>
+        </FormSection>
         <button
           className="create-template-button"
           disabled={!canSave}
@@ -69,7 +70,7 @@ export default function NewExamPage({ templates, classes, onSave, onBack }: Prop
           创建考试
         </button>
         {(!templates.length || !classes.length) && (
-          <p className="real-note">请先创建答题卡，并在学生管理中创建班级。</p>
+          <p className="real-note">请先创建答题卡，并在班级管理中创建班级。</p>
         )}
       </main>
     </>

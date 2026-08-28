@@ -1,0 +1,39 @@
+.section {
+  display: grid;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.section:first-child {
+  margin-top: 21px;
+}
+
+.section label {
+  display: grid;
+  gap: 7px;
+  color: #64716b;
+  font-size: 12px;
+}
+
+.spaced {
+  margin-bottom: 14px;
+}
+
+.card {
+  padding: 16px;
+  border: 1px solid #dfe7e2;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.card button {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  background: #176b58;
+}

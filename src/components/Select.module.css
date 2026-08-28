@@ -1,0 +1,81 @@
+.root {
+  position: relative;
+  width: 100%;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 10px;
+  color: var(--color-text);
+  text-align: left;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.md {
+  height: 42px;
+  font-size: 16px;
+}
+
+.sm {
+  height: 38px;
+  font-size: 14px;
+}
+
+.trigger:focus-visible {
+  border-color: var(--color-primary-muted);
+  outline: 2px solid #5cad8850;
+  outline-offset: 1px;
+}
+
+.chevron {
+  color: var(--color-primary);
+  transition: transform 0.15s ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 5px);
+  right: 0;
+  left: 0;
+  display: grid;
+  gap: 2px;
+  padding: 5px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  background: #fff;
+  box-shadow: 0 5px 16px #176b5820;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 36px;
+  padding: 0 8px;
+  color: var(--color-text);
+  text-align: left;
+  border: 0;
+  border-radius: 5px;
+  background: #fff;
+  font-size: 12px;
+}
+
+.option:hover,
+.selected {
+  color: var(--color-primary-dark);
+  background: var(--color-primary-pale);
+}
+
+.option svg {
+  color: var(--color-primary);
+}

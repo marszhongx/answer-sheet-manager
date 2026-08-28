@@ -1,4 +1,12 @@
 :root {
+  --color-primary: #176b58;
+  --color-primary-dark: #125744;
+  --color-primary-muted: #5cad88;
+  --color-primary-pale: #edf6f1;
+  --color-text: #202825;
+  --color-text-muted: #74817b;
+  --color-border: #dfe7e2;
+  --color-danger: #c53f32;
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei",
     "Noto Sans SC", sans-serif;
@@ -34,8 +42,7 @@ button:disabled {
 .page {
   padding: 0 18px;
 }
-.app-header,
-.page-top {
+.app-header {
   background: #fff;
   display: flex;
   align-items: center;
@@ -45,10 +52,7 @@ button:disabled {
   height: 60px;
   padding: 0 19px;
 }
-.page-top {
-  height: 83px;
-  padding: 20px 18px 12px;
-}
+
 .logo {
   display: flex;
   gap: 9px;
@@ -64,34 +68,7 @@ button:disabled {
   border-radius: 9px;
   background: #176b58;
 }
-.page-top-with-back {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 8px;
-  justify-content: initial;
-}
-.page-top-with-back > div {
-  min-width: 0;
-}
-.page-top h1 {
-  margin: 0;
-  font-size: 21px;
-  letter-spacing: 0;
-}
 
-.page-top p {
-  margin: 4px 0 0;
-  color: #77837e;
-  font-size: 11px;
-}
-.header-icon {
-  display: grid;
-  place-items: center;
-  padding: 7px;
-  color: #51605a;
-  border: 0;
-  background: transparent;
-}
 .welcome {
   padding: 23px 0 18px;
 }
@@ -212,12 +189,12 @@ button:disabled {
   background: #e0f3ea;
 }
 .template {
-  color: #596db5;
-  background: #edf0ff;
+  color: #277a61;
+  background: #e8f5ee;
 }
 .report {
-  color: #d57735;
-  background: #fff0df;
+  color: #477a6b;
+  background: #edf6f1;
 }
 .empty-state {
   display: grid;
@@ -432,36 +409,9 @@ button:disabled {
   color: #74817b;
   font-size: 11px;
 }
-.student-form {
-  display: grid;
-  gap: 12px;
-  padding: 16px;
-  border: 1px solid #dfe7e2;
-  border-radius: 8px;
-  background: #fff;
-}
-.student-form label {
-  display: grid;
-  gap: 6px;
-  color: #64716b;
-  font-size: 12px;
-}
-.student-form input {
-  height: 40px;
-  padding: 0 10px;
-  border: 1px solid #d7e1db;
-  border-radius: 6px;
-}
-.student-form button {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  justify-content: center;
-  height: 40px;
-  color: #fff;
-  border: 0;
-  border-radius: 6px;
-  background: #176b58;
+.detail-actions + .student-list,
+.detail-actions + .analysis-empty {
+  margin-top: 14px;
 }
 .student-list {
   display: grid;
@@ -540,148 +490,7 @@ button:disabled {
   font-size: 13px;
   font-weight: 600;
 }
-.form-block {
-  display: grid;
-  gap: 16px;
-  margin: 21px 18px 0;
-}
-.form-block label {
-  display: grid;
-  gap: 7px;
-  color: #64716b;
-  font-size: 12px;
-}
-.form-block label > input,
-.form-block label > .select-control,
-.form-block label > .number-input {
-  width: 100%;
-}
-.form-block input,
-.form-block select,
-.form-block .number-input {
-  height: 42px;
-  padding: 0 10px;
-  color: #2e3b35;
-  border: 1px solid #d7e1db;
-  border-radius: 6px;
-  background: #fff;
-}
-.form-block .number-input {
-  max-width: none;
-}
-.number-input {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 154px;
-  height: 40px;
-  overflow: hidden;
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: #fff;
-}
-.number-input button {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 100%;
-  color: var(--color-primary);
-  border: 0;
-  background: transparent;
-}
-.number-input button:disabled {
-  color: #b8c2bd;
-  background: transparent;
-  opacity: 1;
-}
-.number-input button:disabled svg {
-  opacity: 1;
-}
-.number-input input {
-  flex: 1;
-  min-width: 0;
-  width: auto;
-  height: 100%;
-  padding: 0;
-  color: var(--color-text);
-  text-align: center;
-  border: 0;
-  background: #fff;
-  font-size: 12px;
-  font-weight: 600;
-  outline: none;
-}
-.number-input span {
-  display: grid;
-  place-items: center;
-  color: var(--color-text-muted);
-  font-size: 11px;
-}
-.select-control {
-  position: relative;
-}
-.select-trigger {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  height: 42px;
-  padding: 0 10px;
-  color: var(--color-text);
-  text-align: left;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: #fff;
-}
-.select-trigger:focus-visible {
-  border-color: var(--color-primary-muted);
-  outline: 2px solid #5cad8850;
-  outline-offset: 1px;
-}
-.select-chevron {
-  color: var(--color-primary);
-  transition: transform 0.15s ease;
-}
-.select-chevron.open {
-  transform: rotate(180deg);
-}
-.select-menu {
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + 5px);
-  right: 0;
-  left: 0;
-  display: grid;
-  gap: 2px;
-  padding: 5px;
-  border: 1px solid var(--color-border);
-  border-radius: 7px;
-  background: #fff;
-  box-shadow: 0 5px 16px #176b5820;
-}
-.select-option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 36px;
-  padding: 0 8px;
-  color: var(--color-text);
-  text-align: left;
-  border: 0;
-  border-radius: 5px;
-  background: #fff;
-  font-size: 12px;
-}
-.select-option:hover,
-.select-option.selected {
-  color: var(--color-primary-dark);
-  background: var(--color-primary-pale);
-}
-.select-option svg {
-  color: var(--color-primary);
-}
+
 .template-modal .create-template-button {
   width: calc(100% - 36px);
   margin: 24px 18px 0;
@@ -717,17 +526,10 @@ button:disabled {
   justify-content: space-between;
   gap: 8px;
 }
-.question-section input,
-.question-section select {
-  width: 100%;
-  height: 36px;
-  padding: 0 8px;
-  border: 1px solid #d7e1db;
-  border-radius: 5px;
-  background: #fff;
-}
-.question-section > div input {
+.question-section .section-name-input {
   flex: 1;
+  min-width: 0;
+  height: 36px;
   font-weight: 600;
 }
 .question-section > label {
@@ -737,20 +539,6 @@ button:disabled {
   color: #64716b;
   font-size: 11px;
   text-align: center;
-}
-.question-section .number-input {
-  width: 110px;
-  min-width: 0;
-  max-width: 100%;
-  margin: 0 auto;
-}
-.question-section .number-input button {
-  width: 28px;
-  flex: none;
-}
-.question-section .number-input input {
-  min-width: 0;
-  padding: 0;
 }
 
 .icon-danger {

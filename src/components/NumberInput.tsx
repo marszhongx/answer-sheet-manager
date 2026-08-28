@@ -1,11 +1,15 @@
 import { InputHTMLAttributes } from "react";
 import { Minus, Plus } from "lucide-react";
+import styles from "./NumberInput.module.css";
 
-type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "onChange"> & {
+type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "onChange" | "size"> & {
   value: number;
   min: number;
   max: number;
   suffix?: string;
+  size?: "sm" | "md";
+  fullWidth?: boolean;
+  compact?: boolean;
   onChange: (value: number) => void;
 };
 
@@ -14,14 +18,28 @@ export default function NumberInput({
   min,
   max,
   suffix,
+  size = "md",
+  fullWidth = false,
+  compact = false,
   onChange,
   className,
   ...props
 }: Props) {
   const setValue = (next: number) => onChange(Math.min(max, Math.max(min, next)));
+  const classes = [
+    styles.root,
+    styles[size],
+    fullWidth && styles.fullWidth,
+    compact && styles.compact,
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div className={`number-input${className ? ` ${className}` : ""}`}>
+    <div className={classes}>
       <button
+        className={styles.button}
         type="button"
         aria-label="减少"
         disabled={value <= min}
@@ -31,14 +49,16 @@ export default function NumberInput({
       </button>
       <input
         {...props}
+        className={styles.input}
         type="number"
         value={value}
         min={min}
         max={max}
         onChange={(event) => setValue(Number(event.target.value) || min)}
       />
-      {suffix && <span>{suffix}</span>}
+      {suffix && <span className={styles.suffix}>{suffix}</span>}
       <button
+        className={styles.button}
         type="button"
         aria-label="增加"
         disabled={value >= max}

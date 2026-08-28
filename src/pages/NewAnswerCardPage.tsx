@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import FormSection from "../components/FormSection";
 import Input from "../components/Input";
 import NumberInput from "../components/NumberInput";
 import PageHeader from "../components/PageHeader";
@@ -75,7 +76,7 @@ export default function NewAnswerCardPage({ template, onSave, onBack }: Props) {
         backLabel="返回答题卡列表"
       />
       <main className="page answer-card-editor">
-        <div className="form-block">
+        <FormSection>
           <label>
             答题卡名称
             <Input
@@ -103,10 +104,11 @@ export default function NewAnswerCardPage({ template, onSave, onBack }: Props) {
               value={candidateNumberLength}
               min={1}
               max={6}
+              fullWidth
               onChange={setCandidateNumberLength}
             />
           </label>
-        </div>
+        </FormSection>
         <section className="sections-editor">
           <div className="section-head">
             <h2>题目结构</h2>
@@ -119,6 +121,7 @@ export default function NewAnswerCardPage({ template, onSave, onBack }: Props) {
               <div>
                 <Input
                   aria-label={`第${index + 1}大题名称`}
+                  className="section-name-input"
                   value={section.name}
                   onChange={(event) => update(section.id, "name", event.target.value)}
                 />
@@ -139,6 +142,7 @@ export default function NewAnswerCardPage({ template, onSave, onBack }: Props) {
                   value={section.questionCount}
                   min={1}
                   max={60}
+                  compact
                   onChange={(value) => update(section.id, "questionCount", value)}
                 />
               </label>
@@ -148,6 +152,7 @@ export default function NewAnswerCardPage({ template, onSave, onBack }: Props) {
                   value={section.pointsPerQuestion}
                   min={1}
                   max={100}
+                  compact
                   onChange={(value) => update(section.id, "pointsPerQuestion", value)}
                 />
               </label>
@@ -157,6 +162,7 @@ export default function NewAnswerCardPage({ template, onSave, onBack }: Props) {
                   value={section.optionCount}
                   min={2}
                   max={10}
+                  compact
                   onChange={(value) => update(section.id, "optionCount", value)}
                 />
               </label>
