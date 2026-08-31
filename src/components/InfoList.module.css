@@ -2,30 +2,41 @@
   display: grid;
   gap: 5px;
   padding: 18px;
-  border: 1px solid #dfe7e2;
-  border-radius: 8px;
-  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xs);
 }
+
 .scroll {
   max-height: min(62vh, 620px);
   overflow-y: auto;
 }
+
 .row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  min-height: 38px;
+  min-height: 40px;
   padding: 0 2px;
-  border-bottom: 1px solid #edf1ef;
+  border-bottom: 1px solid var(--color-border-subtle);
 }
+
 .row:last-child {
   border-bottom: 0;
 }
+
 .row span {
-  color: #74817b;
-  font-size: 11px;
+  color: var(--color-text-muted);
+  font-size: 12px;
 }
+
 .row b {
-  font-size: 16px;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

@@ -1,8 +1,8 @@
 .table {
   overflow: hidden;
   border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: #fff;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
 }
 
 .header,
@@ -18,17 +18,34 @@
 .header {
   color: var(--color-text);
   background: var(--color-primary-pale);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
 }
 
 .row {
-  border-top: 1px solid #edf1ef;
+  border-top: 1px solid var(--color-border-subtle);
   color: var(--color-text);
   font-size: 14px;
+  transition: background-color var(--duration-fast) var(--ease);
+}
+
+.row span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .row b {
-  color: var(--color-primary);
+  overflow: hidden;
+  color: var(--color-primary-dark);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .row:hover {
+    background: var(--color-surface-sunken);
+  }
 }

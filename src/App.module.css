@@ -1,10 +1,13 @@
 .shell {
+  position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
   max-width: 600px;
   margin: auto;
-  padding-bottom: calc(82px + env(safe-area-inset-bottom));
-  overflow: hidden;
-  background: #f6f8f6;
+  /* clip 而非 hidden：不创建滚动容器，页面头部 sticky 与下拉菜单才不会被裁切 */
+  overflow-x: clip;
+  padding-bottom: calc(var(--nav-height) + 14px + env(safe-area-inset-bottom));
+  background: var(--color-surface-sunken);
 }
 
 @media (min-width: 601px) {

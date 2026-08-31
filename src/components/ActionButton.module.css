@@ -3,6 +3,7 @@
   gap: 9px;
   margin-top: 15px;
 }
+
 .button {
   display: flex;
   align-items: center;
@@ -10,25 +11,63 @@
   gap: 7px;
   width: 100%;
   height: 44px;
-  color: #41514a;
-  border: 1px solid #d8e2dc;
-  border-radius: 6px;
-  background: #fff;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
   font-size: 13px;
   font-weight: 600;
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease),
+    transform var(--duration-fast) var(--ease);
 }
+
 .button:disabled {
-  color: #9ea9a4;
-  border-color: #e0e7e3;
-  background: #e9eeeb;
+  color: var(--color-text-disabled);
+  border-color: var(--color-border-disabled);
+  background: var(--color-surface-disabled);
 }
+
 .primary {
-  color: #fff;
-  border-color: #176b58;
-  background: #176b58;
+  color: var(--color-on-primary);
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  box-shadow: var(--shadow-brand);
 }
+
 .danger {
-  color: #c53f32;
-  border-color: #efc3bd;
-  background: #fff4f2;
+  color: var(--color-danger);
+  border-color: var(--color-danger-border);
+  background: var(--color-danger-bg);
+}
+
+@media (hover: hover) {
+  .button:not(:disabled):hover {
+    color: var(--color-primary-dark);
+    border-color: var(--color-primary-muted);
+    background: var(--color-primary-pale);
+  }
+
+  .primary:not(:disabled):hover {
+    color: var(--color-on-primary);
+    border-color: var(--color-primary-hover);
+    background: var(--color-primary-hover);
+  }
+
+  .danger:not(:disabled):hover {
+    color: var(--color-danger-hover);
+    border-color: var(--color-danger);
+    background: var(--color-danger-bg);
+  }
+}
+
+.button:not(:disabled):active {
+  transform: scale(0.99);
+}
+
+.primary:not(:disabled):active {
+  border-color: var(--color-primary-active);
+  background: var(--color-primary-active);
 }

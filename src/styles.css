@@ -1,38 +1,154 @@
 :root {
+  color-scheme: light;
+
+  /* 品牌色 */
   --color-primary: #176b58;
+  --color-primary-hover: #14604f;
+  --color-primary-active: #0f4d3f;
   --color-primary-dark: #125744;
   --color-primary-muted: #5cad88;
   --color-primary-pale: #edf6f1;
+  --color-primary-pale-hover: #e2f0e9;
+  --color-on-primary: #ffffff;
+  --color-on-primary-muted: #d3e6de;
+
+  /* 文本层级 */
   --color-text: #202825;
-  --color-text-muted: #74817b;
+  --color-text-secondary: #41514a;
+  --color-text-muted: #66736d;
+  --color-text-subtle: #7d8983;
+  --color-text-disabled: #9ea9a4;
+
+  /* 表面 */
+  --color-bg: #eef2ef;
+  --color-bg-wide: #e5ece7;
+  --color-surface: #ffffff;
+  --color-surface-sunken: #f6f8f6;
+  --color-surface-muted: #f2f5f3;
+  --color-surface-disabled: #e9eeeb;
+  --color-surface-inverse: #263a34;
+
+  /* 边框 */
   --color-border: #dfe7e2;
+  --color-border-control: #d7e1db;
+  --color-border-strong: #c3d2cb;
+  --color-border-subtle: #edf1ef;
+  --color-border-disabled: #e0e7e3;
+
+  /* 状态色 */
   --color-danger: #c53f32;
+  --color-danger-hover: #b0362b;
+  --color-danger-soft: #e2745f;
+  --color-danger-bg: #fff4f2;
+  --color-danger-bg-hover: #fdeae7;
+  --color-danger-border: #efc3bd;
+  --color-success: #2f8f6f;
+  --color-success-bg: #e8f6ee;
+  --color-success-border: #bfe4d3;
+  --color-warning: #a46723;
+  --color-warning-bg: #fff3df;
+  --color-warning-border: #d9b174;
+  --color-rate-low: #d98a4f;
+
+  /* 圆角 */
+  --radius-sm: 5px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-pill: 999px;
+
+  /* 阴影 */
+  --shadow-xs: 0 1px 2px #1e332a0a;
+  --shadow-sm: 0 1px 3px #1e332a14, 0 1px 2px #1e332a0a;
+  --shadow-md: 0 6px 16px #1e332a12;
+  --shadow-lg: 0 16px 40px #1e332a1f;
+  --shadow-brand: 0 4px 14px #176b5833;
+  --shadow-sheet: 0 -8px 32px #16231e2e;
+
+  /* 焦点环 */
+  --ring-width: 3px;
+  --ring-color: #5cad8859;
+  --ring: 0 0 0 var(--ring-width) var(--ring-color);
+
+  /* 动效 */
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration-fast: 0.12s;
+  --duration: 0.18s;
+
+  /* 层级 */
+  --z-header: 4;
+  --z-nav: 5;
+  --z-menu: 20;
+  --z-toast: 30;
+  --z-dialog: 40;
+  --z-scanner: 50;
+
+  /* 尺寸 */
+  --nav-height: 68px;
+  --page-gutter: 18px;
+  --tap-min: 36px;
+
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei",
     "Noto Sans SC", sans-serif;
-  color: #202825;
-  background: #eef2ef;
+  color: var(--color-text);
+  background: var(--color-bg);
   font-synthesis: none;
 }
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
 }
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
   min-width: 320px;
-  background: #eef2ef;
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
 button,
 input,
 select {
   font: inherit;
 }
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+
 button:disabled {
   cursor: not-allowed;
 }
+
+:focus-visible {
+  outline: 2px solid var(--color-primary-muted);
+  outline-offset: 2px;
+}
+
+::placeholder {
+  color: var(--color-text-disabled);
+}
+
 @media (min-width: 601px) {
   body {
-    background: #e5ece7;
+    background: var(--color-bg-wide);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

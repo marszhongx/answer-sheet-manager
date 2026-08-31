@@ -1,6 +1,6 @@
 .screen {
   position: fixed;
-  z-index: 50;
+  z-index: var(--z-scanner);
   inset: 0;
   overflow: hidden;
   color: #fff;
@@ -26,22 +26,27 @@
   display: grid;
   grid-template-columns: 45px 1fr 45px;
   align-items: center;
-  padding: 12px;
+  padding: calc(12px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 12px
+    calc(12px + env(safe-area-inset-left));
   background: linear-gradient(#0009, transparent);
   text-align: center;
 }
 .header button {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: var(--tap-min);
+  height: var(--tap-min);
   color: #fff;
   border: 0;
   border-radius: 50%;
   background: #0005;
+  transition: background-color var(--duration-fast) var(--ease);
 }
 .header button:last-child {
   justify-self: end;
+}
+.header button:active {
+  background: #00000099;
 }
 .header b,
 .header span {
@@ -53,22 +58,22 @@
 .header span {
   margin-top: 3px;
   color: #d0e7df;
-  font-size: 10px;
+  font-size: 11px;
 }
 .status {
   position: absolute;
   z-index: 2;
-  top: 74px;
+  top: calc(74px + env(safe-area-inset-top));
   left: 50%;
   display: flex;
   gap: 6px;
   align-items: center;
   max-width: calc(100% - 40px);
-  padding: 9px 12px;
+  padding: 9px 13px;
   transform: translateX(-50%);
-  border-radius: 18px;
+  border-radius: var(--radius-pill);
   background: #000a;
-  font-size: 11px;
+  font-size: 12px;
   white-space: nowrap;
 }
 .status.ready {
@@ -85,20 +90,21 @@
   z-index: 2;
   bottom: 105px;
   left: 20px;
-  padding: 10px 13px;
+  padding: 10px 14px;
   border: 1px solid #ffffff33;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   background: #0008;
 }
 .score b {
   display: block;
   color: #5cf0c6;
   font-size: 28px;
+  font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 .score span {
   color: #e3f4ed;
-  font-size: 10px;
+  font-size: 11px;
 }
 .footer {
   position: absolute;
@@ -106,7 +112,7 @@
   right: 0;
   bottom: 0;
   left: 0;
-  padding: 15px 20px 27px;
+  padding: 15px 20px calc(27px + env(safe-area-inset-bottom));
   background: linear-gradient(transparent, #000c);
 }
 .capture {
@@ -115,22 +121,26 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 47px;
+  height: 50px;
   color: #073c2f;
   border: 0;
-  border-radius: 7px;
+  border-radius: var(--radius-lg);
   background: #ddf39c;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
+  box-shadow: 0 4px 18px #ddf39c33;
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    transform var(--duration-fast) var(--ease);
 }
 .capture:disabled {
   color: #9aa9a3;
   background: #d5ddd9;
+  box-shadow: none;
 }
-@media (prefers-reduced-motion: reduce) {
-  .spin {
-    animation: none;
-  }
+.capture:not(:disabled):active {
+  background: #cfe98a;
+  transform: scale(0.99);
 }
 @keyframes spin {
   to {

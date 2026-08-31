@@ -1,84 +1,143 @@
 .backdrop {
   position: fixed;
-  z-index: 10;
+  z-index: var(--z-dialog);
   inset: 0;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: #16231e7c;
+  background: #16231e8c;
+  backdrop-filter: blur(2px);
+  animation: fade var(--duration) var(--ease);
 }
+
 .sheet {
   width: 100%;
   max-width: 600px;
   max-height: 92vh;
-  padding-bottom: 25px;
+  max-height: 92dvh;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
   overflow: auto;
-  border-radius: 15px 15px 0 0;
-  background: #fff;
-  animation: rise 0.18s ease-out;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sheet);
+  animation: rise 0.22s var(--ease);
 }
+
 .sheet header {
+  position: sticky;
+  top: 0;
   display: grid;
   grid-template-columns: 45px 1fr 45px;
   align-items: center;
   height: 57px;
-  border-bottom: 1px solid #e6ece8;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
   text-align: center;
 }
+
 .sheet header h2 {
   margin: 0;
   font-size: 16px;
 }
+
 .sheet header button {
   display: grid;
   place-items: center;
-  color: #56635d;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  margin-left: 4px;
+  color: var(--color-text-secondary);
   border: 0;
+  border-radius: var(--radius-pill);
   background: transparent;
+  transition: background-color var(--duration-fast) var(--ease);
 }
+
+.sheet header button:active {
+  background: var(--color-surface-muted);
+}
+
 .sheet > p {
   margin: 22px 20px;
-  color: #66736d;
+  color: var(--color-text-muted);
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.7;
 }
+
 .sheet > div {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin: 0 20px;
 }
+
 .sheet > div > button {
-  height: 42px;
-  border: 1px solid #d8e2dc;
-  border-radius: 6px;
-  background: #fff;
+  height: 44px;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease),
+    transform var(--duration-fast) var(--ease);
 }
+
 .danger {
   display: flex;
   gap: 7px;
   align-items: center;
   justify-content: center;
-  color: #c53f32;
-  border: 1px solid #efc3bd;
-  border-radius: 6px;
-  background: #fff4f2;
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger-border);
+  border-radius: var(--radius-md);
+  background: var(--color-danger-bg);
 }
+
 .sheet > div > .danger {
-  color: #fff;
-  border-color: #c53f32;
-  background: #c53f32;
+  color: var(--color-on-primary);
+  border-color: var(--color-danger);
+  background: var(--color-danger);
 }
-@media (prefers-reduced-motion: reduce) {
-  .sheet {
-    animation: none;
+
+@media (hover: hover) {
+  .sheet header button:hover {
+    background: var(--color-surface-muted);
+  }
+
+  .sheet > div > button:hover {
+    border-color: var(--color-border-strong);
+    background: var(--color-surface-muted);
+  }
+
+  .sheet > div > .danger:hover {
+    border-color: var(--color-danger-hover);
+    background: var(--color-danger-hover);
   }
 }
+
+.sheet > div > button:active {
+  transform: scale(0.99);
+}
+
 @keyframes rise {
   from {
     transform: translateY(100%);
   }
+
   to {
     transform: translateY(0);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
   }
 }

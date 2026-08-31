@@ -1,16 +1,23 @@
 .header {
+  position: sticky;
+  z-index: var(--z-header);
+  top: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 83px;
-  padding: 20px 18px 12px;
-  background: #fff;
+  gap: 12px;
+  min-height: 62px;
+  padding: 12px var(--page-gutter);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: #fffffffa;
+  backdrop-filter: blur(12px);
 }
 
 .withBack {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  gap: 8px;
+  gap: 6px;
+  align-items: center;
 }
 
 .heading {
@@ -18,17 +25,39 @@
 }
 
 .heading h1 {
+  overflow: hidden;
   margin: 0;
-  color: #202825;
-  font-size: 21px;
-  letter-spacing: 0;
+  color: var(--color-text);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .backButton {
   display: grid;
   place-items: center;
-  padding: 7px;
-  color: #51605a;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  margin-left: -6px;
+  color: var(--color-text-secondary);
   border: 0;
+  border-radius: var(--radius-pill);
   background: transparent;
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
+}
+
+.backButton:active {
+  color: var(--color-primary);
+  background: var(--color-primary-pale);
+}
+
+@media (hover: hover) {
+  .backButton:hover {
+    color: var(--color-primary);
+    background: var(--color-primary-pale);
+  }
 }

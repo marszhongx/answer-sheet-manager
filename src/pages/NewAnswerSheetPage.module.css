@@ -3,139 +3,236 @@
   gap: 10px;
   margin-top: 24px;
 }
+
 .sectionHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   margin: 0;
 }
+
 .sectionHead h2 {
   margin: 0;
   font-size: 16px;
+  font-weight: 700;
 }
+
 .sectionHead span {
-  color: #477a6b;
+  color: var(--color-primary-muted);
   font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
+
 .questionSection {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 9px;
   padding: 13px;
-  border: 1px solid #dfe7e2;
-  border-radius: 8px;
-  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xs);
 }
+
 .questionSectionHeader {
   display: flex;
   grid-column: 1 / -1;
   justify-content: space-between;
   gap: 8px;
 }
+
 .sectionNameInput {
   flex: 1;
   min-width: 0;
   height: 36px;
   font-weight: 600;
 }
+
 .questionSection > label {
   display: grid;
   min-width: 0;
   gap: 5px;
-  color: #64716b;
+  color: var(--color-text-muted);
   font-size: 11px;
   text-align: center;
 }
+
 .iconDanger {
   display: grid;
+  flex: none;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  color: #c53f32;
-  border: 1px solid #efc3bd;
-  border-radius: 5px;
-  background: #fff4f2;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-danger-bg);
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
 }
+
 .iconDanger:disabled {
-  opacity: 0.45;
+  color: var(--color-text-disabled);
+  border-color: var(--color-border-disabled);
+  background: var(--color-surface-disabled);
 }
+
 .addSection {
   display: flex;
   gap: 6px;
   align-items: center;
   justify-content: center;
-  height: 42px;
-  color: #176b58;
-  border: 1px dashed #82af9f;
-  border-radius: 6px;
-  background: #f5faf7;
+  height: 44px;
+  color: var(--color-primary);
+  border: 1px dashed var(--color-primary-muted);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-pale);
+  font-size: 13px;
   font-weight: 600;
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease),
+    transform var(--duration-fast) var(--ease);
 }
+
 .answersEditor {
   display: grid;
   grid-column: 1 / -1;
   gap: 7px;
   margin: 14px 2px 0;
   padding: 12px;
-  border: 1px dashed #d7e0da;
-  border-radius: 8px;
-  background: #fafcfa;
+  border: 1px dashed var(--color-border-control);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-sunken);
 }
+
 .answersLabel {
-  color: #68766f;
+  color: var(--color-text-secondary);
   font-size: 11px;
   font-weight: 600;
 }
+
 .answerRow {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
 }
+
 .answerRow > b {
   width: 24px;
-  color: #68766f;
+  color: var(--color-text-secondary);
   font-size: 11px;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
   text-align: right;
 }
+
 .answerRow button {
-  min-width: 36px;
-  height: 34px;
-  color: #57645e;
-  border: 1px solid #d7e0da;
-  border-radius: 5px;
-  background: #fff;
+  min-width: 38px;
+  height: var(--tap-min);
+  padding: 0 4px;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
   font-size: 12px;
   font-weight: 600;
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease),
+    transform var(--duration-fast) var(--ease);
 }
+
 .answerRow button.selected {
-  color: #fff;
-  border-color: #176b58;
-  background: #176b58;
+  color: var(--color-on-primary);
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  box-shadow: var(--shadow-brand);
 }
+
+/* 复写 .answerRow button 的通用样式，保证删除按钮保持危险态配色 */
 .answerRow .iconDanger {
-  min-width: 32px;
+  min-width: var(--tap-min);
   height: 32px;
   margin-left: auto;
   padding: 0;
+  color: var(--color-danger);
+  border-color: var(--color-danger-border);
+  background: var(--color-danger-bg);
 }
+
+.answerRow .iconDanger:disabled {
+  color: var(--color-text-disabled);
+  border-color: var(--color-border-disabled);
+  background: var(--color-surface-disabled);
+}
+
 .addQuestion {
   display: inline-flex;
   gap: 5px;
   align-items: center;
   justify-content: center;
+  min-height: var(--tap-min);
   padding: 7px 12px;
-  color: #176b58;
-  border: 1px dashed #8fb8a8;
-  border-radius: 6px;
-  background: #fff;
+  color: var(--color-primary);
+  border: 1px dashed var(--color-primary-muted);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
   font-size: 12px;
+  font-weight: 600;
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease),
+    transform var(--duration-fast) var(--ease);
 }
+
 .formError {
   margin: 15px 4px;
-  color: #b42318;
+  padding: 11px 14px;
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-danger-bg);
   font-size: 13px;
   line-height: 1.6;
   text-align: center;
+}
+
+@media (hover: hover) {
+  .iconDanger:not(:disabled):hover {
+    color: var(--color-danger-hover);
+    border-color: var(--color-danger);
+    background: var(--color-danger-bg-hover);
+  }
+
+  .addSection:hover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-pale-hover);
+  }
+
+  .answerRow button:not(.selected):not(.iconDanger):hover {
+    color: var(--color-primary-dark);
+    border-color: var(--color-primary-muted);
+    background: var(--color-primary-pale);
+  }
+
+  .addQuestion:hover {
+    border-color: var(--color-primary);
+    background: var(--color-primary-pale);
+  }
+}
+
+.addSection:active,
+.addQuestion:active {
+  transform: scale(0.99);
+}
+
+.answerRow button:active {
+  transform: scale(0.94);
 }

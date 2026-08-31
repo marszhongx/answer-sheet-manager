@@ -1,139 +1,197 @@
 .analysisPage {
   padding-top: 16px;
 }
+
 .hero {
-  padding: 20px;
-  color: #fff;
+  padding: 22px 20px;
+  color: var(--color-on-primary);
   text-align: center;
-  border-radius: 8px;
-  background: #176b58;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(145deg, var(--color-primary), var(--color-primary-dark));
+  box-shadow: var(--shadow-brand);
 }
+
 .hero > span {
   display: block;
-  color: #d0e4db;
-  font-size: 11px;
+  color: var(--color-on-primary-muted);
+  font-size: 12px;
+  letter-spacing: 0.3px;
 }
+
 .hero b {
   display: inline-block;
   margin: 4px 4px 2px 0;
   font-size: 42px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -1px;
+  line-height: 1.1;
 }
+
 .hero small,
 .hero p {
-  color: #cedfd8;
-  font-size: 11px;
+  color: var(--color-on-primary-muted);
+  font-size: 12px;
 }
+
 .hero p {
-  margin: 4px 0 0;
+  margin: 6px 0 0;
 }
+
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   margin: 12px 0;
   overflow: hidden;
-  border: 1px solid #e0e7e3;
-  border-radius: 7px;
-  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xs);
 }
+
 .grid div {
   display: grid;
-  gap: 4px;
-  padding: 13px 3px;
+  gap: 5px;
+  padding: 14px 4px;
   text-align: center;
 }
+
 .grid div + div {
-  border-left: 1px solid #e6ece8;
+  border-left: 1px solid var(--color-border-subtle);
 }
+
 .grid b {
-  color: #176b58;
-  font-size: 16px;
+  color: var(--color-primary-dark);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
 }
+
 .grid span {
-  color: #7d8983;
-  font-size: 10px;
+  color: var(--color-text-muted);
+  font-size: 11px;
 }
+
 .section {
   margin-top: 12px;
-  padding: 15px;
-  border: 1px solid #e0e7e3;
-  border-radius: 7px;
-  background: #fff;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-xs);
 }
+
 .sectionHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   margin-bottom: 12px;
 }
+
 .sectionHead h2 {
   margin: 0;
   font-size: 16px;
+  font-weight: 700;
 }
+
 .sectionSub {
-  color: #89958f;
-  font-size: 10px;
+  color: var(--color-text-subtle);
+  font-size: 11px;
 }
+
 .section .sectionHead button {
   display: flex;
-  gap: 3px;
+  gap: 4px;
   align-items: center;
-  color: #176b58;
+  min-height: 32px;
+  padding: 0 10px;
+  color: var(--color-primary);
   border: 0;
+  border-radius: var(--radius-md);
   background: transparent;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
+  transition: background-color var(--duration-fast) var(--ease);
 }
+
 .rateRow {
   display: grid;
-  grid-template-columns: 52px 1fr 32px;
-  gap: 8px;
+  grid-template-columns: 54px 1fr 34px;
+  gap: 10px;
   align-items: center;
   margin-top: 13px;
 }
+
 .rateRow span,
 .rateRow b {
-  font-size: 10px;
+  font-size: 11px;
 }
+
 .rateRow b {
-  color: #176b58;
+  color: var(--color-primary-dark);
+  font-variant-numeric: tabular-nums;
   text-align: right;
 }
+
 .rateRow > div {
-  height: 6px;
+  height: 8px;
   overflow: hidden;
-  border-radius: 4px;
-  background: #e4ece8;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-muted);
 }
+
 .rateRow i {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: #5cad88;
+  background: var(--color-primary-muted);
+  transition: width 0.4s var(--ease);
 }
+
 .rateRow i.low {
-  background: #d98a4f;
+  background: var(--color-rate-low);
 }
+
 .studentsTable {
   margin-top: 9px;
-  border-top: 1px solid #e5ebe7;
+  border-top: 1px solid var(--color-border);
 }
+
 .studentsHeader,
 .studentRow {
   display: grid;
-  grid-template-columns: 1fr 90px 42px;
+  grid-template-columns: minmax(0, 1fr) 84px 46px;
+  gap: 8px;
   align-items: center;
-  padding: 9px 2px;
+  padding: 10px 2px;
+  font-size: 12px;
+}
+
+.studentsHeader {
+  color: var(--color-text-subtle);
   font-size: 11px;
 }
-.studentsHeader {
-  color: #90a099;
-  font-size: 10px;
-}
+
 .studentRow {
-  color: #43514b;
-  border-top: 1px solid #edf1ef;
+  color: var(--color-text-secondary);
+  border-top: 1px solid var(--color-border-subtle);
 }
+
+.studentRow span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .studentRow b {
-  color: #176b58;
+  color: var(--color-primary-dark);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
   text-align: right;
+}
+
+@media (hover: hover) {
+  .section .sectionHead button:hover {
+    background: var(--color-primary-pale);
+  }
 }

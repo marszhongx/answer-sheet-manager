@@ -8,13 +8,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   min-height: 34px;
 }
 
 .title {
   color: var(--color-text);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
+  letter-spacing: -0.2px;
 }
 
 .actions {
@@ -24,8 +26,8 @@
 .table {
   overflow: hidden;
   border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: #fff;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
 }
 
 .header,
@@ -38,20 +40,20 @@
 }
 
 .header {
-  color: #41514a;
+  color: var(--color-text-secondary);
   background: var(--color-primary-pale);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
 }
 
 .row {
-  border-top: 1px solid #edf1ef;
+  border-top: 1px solid var(--color-border-subtle);
 }
 
 .addRowCell {
   padding: 8px 10px;
-  border-top: 1px solid #edf1ef;
-  background: #fff;
+  border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
 }
 
 .addRow {
@@ -62,11 +64,15 @@
   width: 100%;
   min-height: 40px;
   color: var(--color-primary);
-  border: 1px dashed var(--color-border);
-  border-radius: 6px;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
   background: var(--color-primary-pale);
   font-size: 13px;
   font-weight: 600;
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    border-color var(--duration-fast) var(--ease),
+    transform var(--duration-fast) var(--ease);
 }
 
 .remove {
@@ -77,6 +83,25 @@
   justify-self: end;
   color: var(--color-danger);
   border: 0;
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   background: transparent;
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    color var(--duration-fast) var(--ease);
+}
+
+@media (hover: hover) {
+  .addRow:hover {
+    border-color: var(--color-primary-muted);
+    background: var(--color-primary-pale-hover);
+  }
+
+  .remove:hover {
+    color: var(--color-danger-hover);
+    background: var(--color-danger-bg);
+  }
+}
+
+.addRow:active {
+  transform: scale(0.99);
 }

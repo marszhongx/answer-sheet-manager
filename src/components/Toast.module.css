@@ -1,21 +1,35 @@
 .toast {
   position: fixed;
-  z-index: 30;
-  bottom: 81px;
+  z-index: var(--z-toast);
+  bottom: calc(var(--nav-height) + env(safe-area-inset-bottom) + 12px);
   left: 50%;
   display: flex;
   gap: 6px;
   align-items: center;
   width: max-content;
   max-width: calc(100% - 40px);
-  padding: 10px 13px;
-  color: #fff;
+  padding: 11px 15px;
+  color: var(--color-on-primary);
   transform: translateX(-50%);
-  border-radius: 20px;
-  background: #263a34;
-  box-shadow: 0 4px 14px #172a2340;
-  font-size: 12px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-inverse);
+  box-shadow: var(--shadow-md);
+  font-size: 13px;
+  animation: rise 0.22s var(--ease);
 }
+
 .toast svg {
   color: #c8ec8d;
+}
+
+@keyframes rise {
+  from {
+    transform: translate(-50%, 12px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
 }
