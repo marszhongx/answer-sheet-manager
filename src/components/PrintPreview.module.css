@@ -1,0 +1,39 @@
+.preview {
+  max-height: 470px;
+  padding: 14px;
+  overflow: auto;
+  border: 1px solid #e0e8e3;
+  border-radius: 8px;
+  background: #e8eeea;
+}
+
+.preview canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #fff;
+  box-shadow: 0 2px 8px #203f3326;
+}
+
+.error {
+  display: grid;
+  min-height: 180px;
+  place-items: center;
+  padding: 24px;
+  color: #a46723;
+  text-align: center;
+  border: 1px dashed #d9b174;
+  border-radius: 8px;
+  background: #fff8eb;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+@media print {
+  .preview {
+    max-height: none;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+  }
+}

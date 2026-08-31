@@ -1,5 +1,6 @@
 import { ClipboardList, LayoutTemplate, UsersRound } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import styles from "./BottomNav.module.css";
 
 export default function BottomNav() {
   const navigate = useNavigate();
@@ -10,12 +11,12 @@ export default function BottomNav() {
     ["/students", "班级管理", UsersRound],
   ] as const;
   return (
-    <nav className="bottom-nav">
+    <nav className={styles.nav}>
       {items.map(([to, label, Icon]) => (
         <button
           key={to}
           aria-label={label}
-          className={pathname.startsWith(to) ? "active" : ""}
+          className={pathname.startsWith(to) ? styles.active : ""}
           onClick={() => navigate(to)}
         >
           <span>

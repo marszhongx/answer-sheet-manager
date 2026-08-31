@@ -1,6 +1,8 @@
 import AddButton from "../components/AddButton";
+import CardList from "../components/CardList";
 import EmptyState from "../components/EmptyState";
 import ListCard from "../components/ListCard";
+import Page from "../components/Page";
 import PageHeader from "../components/PageHeader";
 import { FileText, LayoutTemplate } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -17,7 +19,7 @@ export default function AnswerSheetsPage() {
         title="答题卡"
         action={<AddButton label="新建答题卡" onClick={() => navigate("/answer-sheets/new")} />}
       />
-      <main className="page answerSheets-page">
+      <Page>
         {templates.length === 0 ? (
           <EmptyState
             icon={<LayoutTemplate size={37} />}
@@ -27,7 +29,7 @@ export default function AnswerSheetsPage() {
             onAction={() => navigate("/answer-sheets/new")}
           />
         ) : (
-          <div className="answer-sheet-list">
+          <CardList>
             {templates.map((answerSheet) => (
               <ListCard
                 key={answerSheet.id}
@@ -38,9 +40,9 @@ export default function AnswerSheetsPage() {
                 onClick={() => navigate(`/answer-sheets/${answerSheet.id}`)}
               />
             ))}
-          </div>
+          </CardList>
         )}
-      </main>
+      </Page>
     </>
   );
 }

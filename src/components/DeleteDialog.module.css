@@ -1,0 +1,84 @@
+.backdrop {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: #16231e7c;
+}
+.sheet {
+  width: 100%;
+  max-width: 600px;
+  max-height: 92vh;
+  padding-bottom: 25px;
+  overflow: auto;
+  border-radius: 15px 15px 0 0;
+  background: #fff;
+  animation: rise 0.18s ease-out;
+}
+.sheet header {
+  display: grid;
+  grid-template-columns: 45px 1fr 45px;
+  align-items: center;
+  height: 57px;
+  border-bottom: 1px solid #e6ece8;
+  text-align: center;
+}
+.sheet header h2 {
+  margin: 0;
+  font-size: 16px;
+}
+.sheet header button {
+  display: grid;
+  place-items: center;
+  color: #56635d;
+  border: 0;
+  background: transparent;
+}
+.sheet > p {
+  margin: 22px 20px;
+  color: #66736d;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.sheet > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 0 20px;
+}
+.sheet > div > button {
+  height: 42px;
+  border: 1px solid #d8e2dc;
+  border-radius: 6px;
+  background: #fff;
+}
+.danger {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  justify-content: center;
+  color: #c53f32;
+  border: 1px solid #efc3bd;
+  border-radius: 6px;
+  background: #fff4f2;
+}
+.sheet > div > .danger {
+  color: #fff;
+  border-color: #c53f32;
+  background: #c53f32;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet {
+    animation: none;
+  }
+}
+@keyframes rise {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}

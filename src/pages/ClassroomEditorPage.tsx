@@ -1,6 +1,7 @@
 import { useState } from "react";
 import FormSection from "../components/FormSection";
 import Input from "../components/Input";
+import Page from "../components/Page";
 import PageHeader from "../components/PageHeader";
 import StudentRosterTable from "../components/StudentRosterTable";
 import SubmitButton from "../components/SubmitButton";
@@ -55,7 +56,7 @@ export default function ClassroomEditorPage() {
         onBack={() => navigate(pathname.startsWith("/exams/") ? `/exams/${id}` : "/students")}
         backLabel="返回"
       />
-      <main className="page">
+      <Page>
         <FormSection>
           <label>
             班级名称
@@ -66,7 +67,7 @@ export default function ClassroomEditorPage() {
         <SubmitButton icon={<Check size={19} />} disabled={!name.trim()} onClick={save}>
           {editing ? "保存班级" : "创建班级"}
         </SubmitButton>
-      </main>
+      </Page>
     </>
   );
 }

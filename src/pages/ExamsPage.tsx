@@ -1,6 +1,8 @@
 import AddButton from "../components/AddButton";
+import CardList from "../components/CardList";
 import EmptyState from "../components/EmptyState";
 import ListCard from "../components/ListCard";
+import Page from "../components/Page";
 import PageHeader from "../components/PageHeader";
 import { ClipboardPlus, ScanLine } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -17,9 +19,9 @@ export default function ExamsPage() {
         title="考试管理"
         action={<AddButton label="新建考试" onClick={() => navigate("/exams/new")} />}
       />
-      <main className="page answerSheets-page">
+      <Page>
         {examList.length ? (
-          <div className="answer-sheet-list">
+          <CardList>
             {examList.map((exam) => (
               <ListCard
                 key={exam.id}
@@ -33,7 +35,7 @@ export default function ExamsPage() {
                 onClick={() => navigate(`/exams/${exam.id}`)}
               />
             ))}
-          </div>
+          </CardList>
         ) : (
           <EmptyState
             icon={<ClipboardPlus size={37} />}
@@ -43,7 +45,7 @@ export default function ExamsPage() {
             onAction={() => navigate("/exams/new")}
           />
         )}
-      </main>
+      </Page>
     </>
   );
 }

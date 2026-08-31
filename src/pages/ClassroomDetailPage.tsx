@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DetailPage from "../components/DetailPage";
 import PageHeader from "../components/PageHeader";
 import StudentTable from "../components/StudentTable";
 import { FilePenLine, Trash2, UsersRound } from "lucide-react";
@@ -27,7 +28,7 @@ export default function ClassroomDetailPage() {
         onBack={() => navigate("/students")}
         backLabel="返回班级管理"
       />
-      <main className="page detail-page">
+      <DetailPage>
         <InfoList scroll>
           <InfoRow label="班级名称">{classroom.name}</InfoRow>
           <InfoRow label="学生人数">{classroom.students.length} 人</InfoRow>
@@ -50,7 +51,7 @@ export default function ClassroomDetailPage() {
             删除班级
           </ActionButton>
         </ActionList>
-      </main>
+      </DetailPage>
       {confirming && (
         <DeleteDialog
           name={classroom.name}

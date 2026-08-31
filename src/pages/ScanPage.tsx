@@ -1,5 +1,6 @@
 import FileUploader from "../components/FileUploader";
 import Note from "../components/Note";
+import Page from "../components/Page";
 import PageHeader from "../components/PageHeader";
 import { useState } from "react";
 import { Camera, ChevronRight, ImagePlus, LayoutTemplate, ScanLine } from "lucide-react";
@@ -8,6 +9,7 @@ import LiveScanner from "../components/LiveScanner";
 import EmptyState from "../components/EmptyState";
 import { AnswerSheet, questionCount, Recognition, recognizeAnswerSheet } from "../lib/omr";
 import { useAppStore } from "../store/appStore";
+import styles from "./ScanPage.module.css";
 
 export default function ScanPage() {
   const { id } = useParams();
@@ -81,11 +83,11 @@ export default function ScanPage() {
         onBack={() => navigate("/exams")}
         backLabel="返回考试详情"
       />
-      <main className="page scan-page">
+      <Page className={styles.scanPage}>
         {answerSheet ? (
           <>
-            <button onClick={() => navigate("/exams")} className="exam-picker">
-              <div className="exam-icon">
+            <button onClick={() => navigate("/exams")} className={styles.picker}>
+              <div className={styles.examIcon}>
                 <LayoutTemplate size={21} />
               </div>
               <div>
@@ -97,8 +99,8 @@ export default function ScanPage() {
               </div>
               <ChevronRight size={19} />
             </button>
-            <section className="scan-zone">
-              <div className="scan-frame">
+            <section className={styles.zone}>
+              <div className={styles.frame}>
                 <span></span>
                 <span></span>
                 <span></span>
@@ -107,17 +109,17 @@ export default function ScanPage() {
               </div>
               <h2>实时扫描答题卡</h2>
               <p>将系统生成答题卡的四个定位方块完整放入画面，系统会实时显示对错浮层。</p>
-              <button onClick={() => setScanner(true)} className="scan-button">
+              <button onClick={() => setScanner(true)} className={styles.scanButton}>
                 <Camera size={20} />
                 打开实时相机
               </button>
-              <FileUploader className="album-button" accept="image/*" onFile={importImage}>
+              <FileUploader className={styles.albumButton} accept="image/*" onFile={importImage}>
                 <ImagePlus size={19} />
                 导入已拍摄答题卡
               </FileUploader>
             </section>
             {processing && (
-              <p className="scan-tip">
+              <p className={styles.tip}>
                 <ScanLine size={15} />
                 正在读取答题卡真实填涂结果
               </p>
@@ -135,7 +137,7 @@ export default function ScanPage() {
             onAction={() => navigate("/exams")}
           />
         )}
-      </main>
+      </Page>
     </>
   );
 }

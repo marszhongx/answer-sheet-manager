@@ -1,0 +1,11 @@
+.detailPage {
+  padding: 16px 18px 0;
+}
+
+@media print {
+  .detailPage {
+    max-width: none;
+    padding: 0;
+    background: #fff;
+  }
+}

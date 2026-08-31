@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import DetailPage from "../components/DetailPage";
 import PageHeader from "../components/PageHeader";
+import PrintPreview from "../components/PrintPreview";
 import { BarChart3, Camera, Download, FilePenLine, Trash2 } from "lucide-react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import DeleteDialog from "../components/DeleteDialog";
@@ -41,14 +43,10 @@ export default function ExamDetailPage() {
   return (
     <>
       <PageHeader title={exam.name} onBack={() => navigate("/exams")} backLabel="返回考试管理" />
-      <main className="page detail-page">
-        {printable ? (
-          <div className="print-preview a4-preview">
-            <canvas ref={ref} />
-          </div>
-        ) : (
-          <div className="print-preview-error">答题卡内容超出 A4 纸张范围，无法预览。</div>
-        )}
+      <DetailPage>
+        <PrintPreview printable={printable} errorText="答题卡内容超出 A4 纸张范围，无法预览。">
+          <canvas ref={ref} />
+        </PrintPreview>
         <InfoList>
           <InfoRow label="考试名称">{exam.name}</InfoRow>
           <InfoRow label="答题卡">{answerSheet.name}</InfoRow>
@@ -90,7 +88,7 @@ export default function ExamDetailPage() {
             删除考试
           </ActionButton>
         </ActionList>
-      </main>
+      </DetailPage>
       {confirming && (
         <DeleteDialog
           name={exam.name}

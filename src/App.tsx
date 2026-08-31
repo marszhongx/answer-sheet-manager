@@ -1,8 +1,10 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import BottomNav from "./components/BottomNav";
 import EmptyState from "./components/EmptyState";
+import Page from "./components/Page";
 import Toast from "./components/Toast";
 import { useAppStore } from "./store/appStore";
+import styles from "./App.module.css";
 import AnalysisPage from "./pages/AnalysisPage";
 import AnswerSheetDetailPage from "./pages/AnswerSheetDetailPage";
 import AnswerSheetPreviewPage from "./pages/AnswerSheetPreviewPage";
@@ -21,14 +23,14 @@ export default function App() {
   const ready = useAppStore((state) => state.ready);
   if (!ready)
     return (
-      <div className="app-shell">
-        <main className="page">
+      <div className={styles.shell}>
+        <Page>
           <EmptyState card title="正在加载数据…" />
-        </main>
+        </Page>
       </div>
     );
   return (
-    <div className="app-shell">
+    <div className={styles.shell}>
       <Routes>
         <Route path="/" element={<Navigate to="/answer-sheets" replace />} />
         <Route path="/answer-sheets" element={<AnswerSheetsPage />} />

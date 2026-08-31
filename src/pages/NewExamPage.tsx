@@ -2,6 +2,7 @@ import { useState } from "react";
 import FormSection from "../components/FormSection";
 import Input from "../components/Input";
 import Note from "../components/Note";
+import Page from "../components/Page";
 import PageHeader from "../components/PageHeader";
 import Select from "../components/Select";
 import SubmitButton from "../components/SubmitButton";
@@ -68,7 +69,7 @@ export default function NewExamPage() {
         onBack={() => navigate("/exams")}
         backLabel="返回考试管理"
       />
-      <main className="page">
+      <Page>
         <FormSection>
           <label>
             考试名称
@@ -146,7 +147,7 @@ export default function NewExamPage() {
         {!editing && (!answerSheets.length || !classrooms.length) && (
           <Note>请先创建答题卡，并在班级管理中创建班级。</Note>
         )}
-      </main>
+      </Page>
     </>
   );
 }

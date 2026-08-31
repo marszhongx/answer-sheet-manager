@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Page from "../components/Page";
 import PageHeader from "../components/PageHeader";
 import SubmitButton from "../components/SubmitButton";
 import { Check, FileImage } from "lucide-react";
@@ -6,6 +7,7 @@ import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { gradeAnswers } from "../lib/grading";
 import { answerOf, OPTION_LABELS, Option } from "../lib/omr";
 import { useAppStore } from "../store/appStore";
+import styles from "./ReviewPage.module.css";
 
 export default function ReviewPage() {
   const { id } = useParams();
@@ -51,26 +53,34 @@ export default function ReviewPage() {
   return (
     <>
       <PageHeader title="确认识别结果" onBack={cancel} backLabel="取消本次识别" />
-      <main className="page review-page">
-        <div className={recognition.markerValid ? "review-status pass" : "review-status warning"}>
+      <Page className={styles.reviewPage}>
+        <div
+          className={
+            recognition.markerValid ? `${styles.status} ${styles.pass}` : `${styles.status} ${styles.warning}`
+          }
+        >
           <Check size={19} />
           <span>
             已识别：{classroom.name} · {student.studentNumber} · {student.name}
           </span>
         </div>
-        <div className={recognition.markerValid ? "review-status pass" : "review-status warning"}>
+        <div
+          className={
+            recognition.markerValid ? `${styles.status} ${styles.pass}` : `${styles.status} ${styles.warning}`
+          }
+        >
           <Check size={19} />
           <span>
             {unresolved ? `${unresolved} 题未识别，请手动选择` : "全部题目已识别，可确认批改"}
           </span>
         </div>
-        <section className="review-grid">
+        <section className={styles.grid}>
           {answers.map((answer, index) => (
             <div
               className={
                 answer === answerOf(answerSheet)[index]
-                  ? "review-question correct"
-                  : "review-question wrong"
+                  ? `${styles.question} ${styles.correct}`
+                  : `${styles.question} ${styles.wrong}`
               }
               key={index}
             >
@@ -87,7 +97,7 @@ export default function ReviewPage() {
                         current.map((value, item) => (item === index ? option : value)),
                       )
                     }
-                    className={answer === option ? "selected" : ""}
+                    className={answer === option ? styles.selected : ""}
                   >
                     {option}
                   </button>
@@ -99,11 +109,11 @@ export default function ReviewPage() {
         <SubmitButton icon={<Check size={19} />} disabled={!canSave} onClick={save}>
           {canSave ? "确认批改并保存" : "请先补全所有题目"}
         </SubmitButton>
-        <small className="file-name">
+        <small className={styles.fileName}>
           <FileImage size={14} />
           {fileName}
         </small>
-      </main>
+      </Page>
     </>
   );
 }

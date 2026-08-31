@@ -1,6 +1,8 @@
 import AddButton from "../components/AddButton";
+import CardList from "../components/CardList";
 import EmptyState from "../components/EmptyState";
 import ListCard from "../components/ListCard";
+import Page from "../components/Page";
 import PageHeader from "../components/PageHeader";
 import { UsersRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -16,9 +18,9 @@ export default function StudentsPage() {
         title="学生管理"
         action={<AddButton label="新建班级" onClick={() => navigate("/students/new")} />}
       />
-      <main className="page answerSheets-page">
+      <Page>
         {templates.length ? (
-          <div className="answer-sheet-list">
+          <CardList>
             {templates.map((classroom) => (
               <ListCard
                 key={classroom.id}
@@ -28,7 +30,7 @@ export default function StudentsPage() {
                 onClick={() => navigate(`/students/${classroom.id}`)}
               />
             ))}
-          </div>
+          </CardList>
         ) : (
           <EmptyState
             icon={<UsersRound size={37} />}
@@ -38,7 +40,7 @@ export default function StudentsPage() {
             onAction={() => navigate("/students/new")}
           />
         )}
-      </main>
+      </Page>
     </>
   );
 }

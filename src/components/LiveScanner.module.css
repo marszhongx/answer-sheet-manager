@@ -1,0 +1,139 @@
+.screen {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  overflow: hidden;
+  color: #fff;
+  background: #07110d;
+}
+.video,
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.overlay {
+  pointer-events: none;
+}
+.header {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: 45px 1fr 45px;
+  align-items: center;
+  padding: 12px;
+  background: linear-gradient(#0009, transparent);
+  text-align: center;
+}
+.header button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: #fff;
+  border: 0;
+  border-radius: 50%;
+  background: #0005;
+}
+.header button:last-child {
+  justify-self: end;
+}
+.header b,
+.header span {
+  display: block;
+}
+.header b {
+  font-size: 14px;
+}
+.header span {
+  margin-top: 3px;
+  color: #d0e7df;
+  font-size: 10px;
+}
+.status {
+  position: absolute;
+  z-index: 2;
+  top: 74px;
+  left: 50%;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  max-width: calc(100% - 40px);
+  padding: 9px 12px;
+  transform: translateX(-50%);
+  border-radius: 18px;
+  background: #000a;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.status.ready {
+  color: #c5f5df;
+}
+.status.error {
+  color: #ffbdaf;
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+.score {
+  position: absolute;
+  z-index: 2;
+  bottom: 105px;
+  left: 20px;
+  padding: 10px 13px;
+  border: 1px solid #ffffff33;
+  border-radius: 8px;
+  background: #0008;
+}
+.score b {
+  display: block;
+  color: #5cf0c6;
+  font-size: 28px;
+  line-height: 1;
+}
+.score span {
+  color: #e3f4ed;
+  font-size: 10px;
+}
+.footer {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 15px 20px 27px;
+  background: linear-gradient(transparent, #000c);
+}
+.capture {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 47px;
+  color: #073c2f;
+  border: 0;
+  border-radius: 7px;
+  background: #ddf39c;
+  font-size: 14px;
+  font-weight: 700;
+}
+.capture:disabled {
+  color: #9aa9a3;
+  background: #d5ddd9;
+}
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

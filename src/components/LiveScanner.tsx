@@ -11,6 +11,7 @@ import {
   recognizeWarpedCard,
 } from "../lib/omr";
 import { getOpenCv } from "../lib/opencv";
+import styles from "./LiveScanner.module.css";
 
 type Props = {
   answerSheet: AnswerSheet;
@@ -158,11 +159,11 @@ export default function LiveScanner({ answerSheet, onConfirm, onClose }: Props) 
   }, [state, answerSheet]);
 
   return (
-    <div className="scanner-screen">
-      <video ref={videoRef} className="scanner-video" playsInline muted />
-      <canvas ref={overlayRef} className="scanner-overlay" />
+    <div className={styles.screen}>
+      <video ref={videoRef} className={styles.video} playsInline muted />
+      <canvas ref={overlayRef} className={styles.overlay} />
       <canvas ref={frameRef} hidden />
-      <header className="scanner-header">
+      <header className={styles.header}>
         <button aria-label="关闭相机" onClick={onClose}>
           <X size={22} />
         </button>
@@ -180,9 +181,17 @@ export default function LiveScanner({ answerSheet, onConfirm, onClose }: Props) 
           <RotateCcw size={20} />
         </button>
       </header>
-      <div className={`scanner-status ${state}`}>
+      <div
+        className={
+          state === "ready"
+            ? `${styles.status} ${styles.ready}`
+            : state === "error"
+              ? `${styles.status} ${styles.error}`
+              : styles.status
+        }
+      >
         {state === "loading" ? (
-          <LoaderCircle className="spin" size={17} />
+          <LoaderCircle className={styles.spin} size={17} />
         ) : state === "ready" ? (
           <Check size={17} />
         ) : (
@@ -191,7 +200,7 @@ export default function LiveScanner({ answerSheet, onConfirm, onClose }: Props) 
         <span>{message}</span>
       </div>
       {recognition && (
-        <div className="scanner-score">
+        <div className={styles.score}>
           <b>
             {recognition.answers.reduce(
               (sum, answer, index) =>
@@ -202,9 +211,9 @@ export default function LiveScanner({ answerSheet, onConfirm, onClose }: Props) 
           <span>/ {totalScore} 分</span>
         </div>
       )}
-      <footer className="scanner-footer">
+      <footer className={styles.footer}>
         <button
-          className="scanner-capture"
+          className={styles.capture}
           disabled={!recognition || !recognition.markerValid}
           onClick={() => recognition && onConfirm(recognition)}
         >

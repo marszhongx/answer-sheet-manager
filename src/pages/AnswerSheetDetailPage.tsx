@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DetailPage from "../components/DetailPage";
 import PageHeader from "../components/PageHeader";
 import { Copy, Download, FilePenLine, Trash2 } from "lucide-react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
@@ -49,7 +50,7 @@ export default function AnswerSheetDetailPage() {
         onBack={() => navigate("/answer-sheets")}
         backLabel="返回答题卡列表"
       />
-      <main className="page detail-page">
+      <DetailPage>
         <InfoList>
           <InfoRow label="答题卡名称">{answerSheet.name}</InfoRow>
           <InfoRow label="科目">{answerSheet.subject}</InfoRow>
@@ -70,7 +71,7 @@ export default function AnswerSheetDetailPage() {
             删除答题卡
           </ActionButton>
         </ActionList>
-      </main>
+      </DetailPage>
       {confirming && (
         <DeleteDialog
           name={answerSheet.name}

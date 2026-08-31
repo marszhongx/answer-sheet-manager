@@ -1,0 +1,139 @@
+.analysisPage {
+  padding-top: 16px;
+}
+.hero {
+  padding: 20px;
+  color: #fff;
+  text-align: center;
+  border-radius: 8px;
+  background: #176b58;
+}
+.hero > span {
+  display: block;
+  color: #d0e4db;
+  font-size: 11px;
+}
+.hero b {
+  display: inline-block;
+  margin: 4px 4px 2px 0;
+  font-size: 42px;
+}
+.hero small,
+.hero p {
+  color: #cedfd8;
+  font-size: 11px;
+}
+.hero p {
+  margin: 4px 0 0;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 12px 0;
+  overflow: hidden;
+  border: 1px solid #e0e7e3;
+  border-radius: 7px;
+  background: #fff;
+}
+.grid div {
+  display: grid;
+  gap: 4px;
+  padding: 13px 3px;
+  text-align: center;
+}
+.grid div + div {
+  border-left: 1px solid #e6ece8;
+}
+.grid b {
+  color: #176b58;
+  font-size: 16px;
+}
+.grid span {
+  color: #7d8983;
+  font-size: 10px;
+}
+.section {
+  margin-top: 12px;
+  padding: 15px;
+  border: 1px solid #e0e7e3;
+  border-radius: 7px;
+  background: #fff;
+}
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.sectionHead h2 {
+  margin: 0;
+  font-size: 16px;
+}
+.sectionSub {
+  color: #89958f;
+  font-size: 10px;
+}
+.section .sectionHead button {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  color: #176b58;
+  border: 0;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
+}
+.rateRow {
+  display: grid;
+  grid-template-columns: 52px 1fr 32px;
+  gap: 8px;
+  align-items: center;
+  margin-top: 13px;
+}
+.rateRow span,
+.rateRow b {
+  font-size: 10px;
+}
+.rateRow b {
+  color: #176b58;
+  text-align: right;
+}
+.rateRow > div {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #e4ece8;
+}
+.rateRow i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #5cad88;
+}
+.rateRow i.low {
+  background: #d98a4f;
+}
+.studentsTable {
+  margin-top: 9px;
+  border-top: 1px solid #e5ebe7;
+}
+.studentsHeader,
+.studentRow {
+  display: grid;
+  grid-template-columns: 1fr 90px 42px;
+  align-items: center;
+  padding: 9px 2px;
+  font-size: 11px;
+}
+.studentsHeader {
+  color: #90a099;
+  font-size: 10px;
+}
+.studentRow {
+  color: #43514b;
+  border-top: 1px solid #edf1ef;
+}
+.studentRow b {
+  color: #176b58;
+  text-align: right;
+}

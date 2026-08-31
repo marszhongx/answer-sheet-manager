@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import FormSection from "../components/FormSection";
 import Input from "../components/Input";
 import NumberInput from "../components/NumberInput";
+import Page from "../components/Page";
 import PageHeader from "../components/PageHeader";
 import Select from "../components/Select";
 import SubmitButton from "../components/SubmitButton";
@@ -146,7 +147,7 @@ export default function NewAnswerSheetPage() {
         onBack={() => navigate(pathname.startsWith("/exams/") ? `/exams/${id}` : "/answer-sheets")}
         backLabel="返回"
       />
-      <main className={`page ${styles.editor}`}>
+      <Page>
         <FormSection>
           <label>
             答题卡名称
@@ -180,7 +181,7 @@ export default function NewAnswerSheetPage() {
             />
           </label>
         </FormSection>
-        <section className="sections-editor">
+        <section className={styles.sectionsEditor}>
           <div className={styles.sectionHead}>
             <h2>题目结构</h2>
             <span>
@@ -294,7 +295,7 @@ export default function NewAnswerSheetPage() {
         <SubmitButton icon={<Check size={19} />} disabled={!name.trim() || !totals.questions} onClick={save}>
           {editing ? "保存答题卡" : "创建答题卡"}
         </SubmitButton>
-      </main>
+      </Page>
     </>
   );
 }

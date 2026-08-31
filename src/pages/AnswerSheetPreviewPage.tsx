@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Download } from "lucide-react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
+import DetailPage from "../components/DetailPage";
 import PageHeader from "../components/PageHeader";
+import PrintPreview from "../components/PrintPreview";
 import SubmitButton from "../components/SubmitButton";
 import { drawA4PrintPage } from "../lib/omr";
 import { useAppStore } from "../store/appStore";
@@ -31,18 +33,14 @@ export default function AnswerSheetPreviewPage() {
         onBack={() => navigate(-1)}
         backLabel="返回答题卡详情"
       />
-      <main className="page detail-page preview-page">
-        {printable ? (
-          <div className="print-preview a4-preview">
-            <canvas ref={ref} />
-          </div>
-        ) : (
-          <div className="print-preview-error">答题卡内容超出 A4 纸张范围，无法预览和下载。</div>
-        )}
+      <DetailPage>
+        <PrintPreview printable={printable} errorText="答题卡内容超出 A4 纸张范围，无法预览和下载。">
+          <canvas ref={ref} />
+        </PrintPreview>
         <SubmitButton icon={<Download size={19} />} disabled={!printable} onClick={download}>
           下载答题卡
         </SubmitButton>
-      </main>
+      </DetailPage>
     </>
   );
 }
