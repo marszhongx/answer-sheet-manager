@@ -1,13 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import DetailPage from "../components/DetailPage";
 import PageHeader from "../components/PageHeader";
-import PrintPreview from "../components/PrintPreview";
-import { BarChart3, Camera, Download, FilePenLine, Trash2 } from "lucide-react";
+import { BarChart3, Camera, FilePenLine, Trash2 } from "lucide-react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import DeleteDialog from "../components/DeleteDialog";
 import ActionButton, { ActionList } from "../components/ActionButton";
 import InfoList, { InfoRow } from "../components/InfoList";
-import { drawA4PrintPage } from "../lib/omr";
 import { useAppStore } from "../store/appStore";
 
 export default function ExamDetailPage() {
@@ -19,20 +17,8 @@ export default function ExamDetailPage() {
   const exam = examMap[id ?? ""];
   const answerSheet = exam ? answerSheetMap[exam.answerSheetId] : undefined;
   const classroom = exam ? classroomMap[exam.classroomId] : undefined;
-  const ref = useRef<HTMLCanvasElement>(null);
-  const [printable, setPrintable] = useState(true);
   const [confirming, setConfirming] = useState(false);
-  useEffect(() => {
-    if (answerSheet && ref.current) setPrintable(drawA4PrintPage(ref.current, answerSheet));
-  }, [answerSheet]);
   if (!exam || !answerSheet || !classroom) return <Navigate to="/exams" replace />;
-  const download = () => {
-    if (!ref.current || !printable) return;
-    const link = document.createElement("a");
-    link.href = ref.current.toDataURL("image/png");
-    link.download = `${exam.name}-答题卡.png`;
-    link.click();
-  };
   const confirmDelete = async () => {
     await useAppStore.getState().deleteExam(exam.id);
     await useAppStore.getState().deleteAnswerSheet(exam.answerSheetId);
@@ -44,9 +30,6 @@ export default function ExamDetailPage() {
     <>
       <PageHeader title={exam.name} onBack={() => navigate("/exams")} backLabel="返回考试管理" />
       <DetailPage>
-        <PrintPreview printable={printable} errorText="答题卡内容超出 A4 纸张范围，无法预览。">
-          <canvas ref={ref} />
-        </PrintPreview>
         <InfoList>
           <InfoRow label="考试名称">{exam.name}</InfoRow>
           <InfoRow label="答题卡">{answerSheet.name}</InfoRow>
@@ -75,10 +58,7 @@ export default function ExamDetailPage() {
           >
             编辑考试班级
           </ActionButton>
-          <ActionButton icon={<Download size={19} />} disabled={!printable} onClick={download}>
-            下载考试答题卡
-          </ActionButton>
-          <ActionButton variant="primary" icon={<Camera size={19} />} onClick={() => navigate(`/exams/${exam.id}/scan`)}>
+          <ActionButton icon={<Camera size={19} />} onClick={() => navigate(`/exams/${exam.id}/scan`)}>
             扫描答题卡
           </ActionButton>
           <ActionButton icon={<BarChart3 size={19} />} onClick={() => navigate(`/exams/${exam.id}/results`)}>
