@@ -31,7 +31,11 @@ export default function AnalysisPage() {
   if (!records.length)
     return (
       <>
-        <PageHeader title="阅卷记录" onBack={() => navigate(`/exams/${id}`)} backLabel="返回考试详情" />
+        <PageHeader
+          title="阅卷记录"
+          onBack={() => navigate(`/exams/${id}`)}
+          backLabel="返回考试详情"
+        />
         <Page className={styles.analysisPage}>
           <EmptyState
             card
@@ -47,7 +51,11 @@ export default function AnalysisPage() {
   const totalScore = totalScoreOf(answerSheet);
   return (
     <>
-      <PageHeader title="阅卷记录" onBack={() => navigate(`/exams/${id}`)} backLabel="返回考试详情" />
+      <PageHeader
+        title="阅卷记录"
+        onBack={() => navigate(`/exams/${id}`)}
+        backLabel="返回考试详情"
+      />
       <Page className={styles.analysisPage}>
         <section className={styles.hero}>
           <span>班级平均分</span>

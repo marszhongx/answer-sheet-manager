@@ -44,10 +44,17 @@ export default function ClassroomDetailPage() {
           )}
         </InfoList>
         <ActionList>
-          <ActionButton icon={<FilePenLine size={19} />} onClick={() => navigate(`/students/${classroom.id}/edit`)}>
+          <ActionButton
+            icon={<FilePenLine size={19} />}
+            onClick={() => navigate(`/students/${classroom.id}/edit`)}
+          >
             编辑班级
           </ActionButton>
-          <ActionButton variant="danger" icon={<Trash2 size={19} />} onClick={() => setConfirming(true)}>
+          <ActionButton
+            variant="danger"
+            icon={<Trash2 size={19} />}
+            onClick={() => setConfirming(true)}
+          >
             删除班级
           </ActionButton>
         </ActionList>

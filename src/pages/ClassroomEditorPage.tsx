@@ -16,8 +16,7 @@ export default function ClassroomEditorPage() {
   const navigate = useNavigate();
   const classroomMap = useAppStore((state) => state.classroomMap);
   const examMap = useAppStore((state) => state.examMap);
-  const classroom =
-    classroomMap[id ?? ""] ?? classroomMap[examMap[id ?? ""]?.classroomId ?? ""];
+  const classroom = classroomMap[id ?? ""] ?? classroomMap[examMap[id ?? ""]?.classroomId ?? ""];
   const [name, setName] = useState(classroom?.name ?? "");
   const [students, setStudents] = useState<Student[]>(
     classroom?.students ?? [{ id: crypto.randomUUID(), name: "", studentNumber: "" }],

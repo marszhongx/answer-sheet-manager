@@ -146,11 +146,16 @@ export default function LiveScanner({ answerSheet, onConfirm, onClose }: Props) 
       frameCtx.drawImage(video, 0, 0, width, height);
       overlayCtx.clearRect(0, 0, width, height);
       processingRef.current = true;
-      void processFrame(frame, overlayCtx, answerSheet, setState, setMessage, setRecognition).finally(
-        () => {
-          processingRef.current = false;
-        },
-      );
+      void processFrame(
+        frame,
+        overlayCtx,
+        answerSheet,
+        setState,
+        setMessage,
+        setRecognition,
+      ).finally(() => {
+        processingRef.current = false;
+      });
     };
     requestRef.current = requestAnimationFrame(tick);
     return () => {

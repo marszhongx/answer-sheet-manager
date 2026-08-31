@@ -28,13 +28,12 @@ export default function AnswerSheetPreviewPage() {
   };
   return (
     <>
-      <PageHeader
-        title="预览答题卡"
-        onBack={() => navigate(-1)}
-        backLabel="返回答题卡详情"
-      />
+      <PageHeader title="预览答题卡" onBack={() => navigate(-1)} backLabel="返回答题卡详情" />
       <DetailPage>
-        <PrintPreview printable={printable} errorText="答题卡内容超出 A4 纸张范围，无法预览和下载。">
+        <PrintPreview
+          printable={printable}
+          errorText="答题卡内容超出 A4 纸张范围，无法预览和下载。"
+        >
           <canvas ref={ref} />
         </PrintPreview>
         <SubmitButton icon={<Download size={19} />} disabled={!printable} onClick={download}>

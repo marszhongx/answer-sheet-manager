@@ -58,13 +58,23 @@ export default function ExamDetailPage() {
           >
             编辑考试班级
           </ActionButton>
-          <ActionButton icon={<Camera size={19} />} onClick={() => navigate(`/exams/${exam.id}/scan`)}>
+          <ActionButton
+            icon={<Camera size={19} />}
+            onClick={() => navigate(`/exams/${exam.id}/scan`)}
+          >
             扫描答题卡
           </ActionButton>
-          <ActionButton icon={<BarChart3 size={19} />} onClick={() => navigate(`/exams/${exam.id}/results`)}>
+          <ActionButton
+            icon={<BarChart3 size={19} />}
+            onClick={() => navigate(`/exams/${exam.id}/results`)}
+          >
             查看成绩
           </ActionButton>
-          <ActionButton variant="danger" icon={<Trash2 size={19} />} onClick={() => setConfirming(true)}>
+          <ActionButton
+            variant="danger"
+            icon={<Trash2 size={19} />}
+            onClick={() => setConfirming(true)}
+          >
             删除考试
           </ActionButton>
         </ActionList>

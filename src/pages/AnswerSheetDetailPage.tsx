@@ -58,16 +58,26 @@ export default function AnswerSheetDetailPage() {
           <InfoRow label="总分">{total} 分</InfoRow>
         </InfoList>
         <ActionList>
-          <ActionButton icon={<FilePenLine size={19} />} onClick={() => navigate(`/answer-sheets/${answerSheet.id}/edit`)}>
+          <ActionButton
+            icon={<FilePenLine size={19} />}
+            onClick={() => navigate(`/answer-sheets/${answerSheet.id}/edit`)}
+          >
             编辑答题卡
           </ActionButton>
           <ActionButton icon={<Copy size={19} />} onClick={copy}>
             复制答题卡
           </ActionButton>
-          <ActionButton icon={<Download size={19} />} onClick={() => navigate(`/answer-sheets/${answerSheet.id}/preview`)}>
+          <ActionButton
+            icon={<Download size={19} />}
+            onClick={() => navigate(`/answer-sheets/${answerSheet.id}/preview`)}
+          >
             预览并下载答题卡
           </ActionButton>
-          <ActionButton variant="danger" icon={<Trash2 size={19} />} onClick={() => setConfirming(true)}>
+          <ActionButton
+            variant="danger"
+            icon={<Trash2 size={19} />}
+            onClick={() => setConfirming(true)}
+          >
             删除答题卡
           </ActionButton>
         </ActionList>

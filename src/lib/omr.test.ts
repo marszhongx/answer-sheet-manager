@@ -77,7 +77,9 @@ describe("OMR marker validation", () => {
       createdAt: "2025-01-01T00:00:00.000Z",
       isTemplate: true,
     };
-    expect(recognizeWarpedCard(imageWithMarkers(false), answerSheet, false).markerValid).toBe(false);
+    expect(recognizeWarpedCard(imageWithMarkers(false), answerSheet, false).markerValid).toBe(
+      false,
+    );
   });
 });
 

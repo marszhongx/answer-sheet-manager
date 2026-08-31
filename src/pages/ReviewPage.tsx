@@ -56,7 +56,9 @@ export default function ReviewPage() {
       <Page className={styles.reviewPage}>
         <div
           className={
-            recognition.markerValid ? `${styles.status} ${styles.pass}` : `${styles.status} ${styles.warning}`
+            recognition.markerValid
+              ? `${styles.status} ${styles.pass}`
+              : `${styles.status} ${styles.warning}`
           }
         >
           <Check size={19} />
@@ -66,7 +68,9 @@ export default function ReviewPage() {
         </div>
         <div
           className={
-            recognition.markerValid ? `${styles.status} ${styles.pass}` : `${styles.status} ${styles.warning}`
+            recognition.markerValid
+              ? `${styles.status} ${styles.pass}`
+              : `${styles.status} ${styles.warning}`
           }
         >
           <Check size={19} />

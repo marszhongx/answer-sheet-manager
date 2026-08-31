@@ -28,11 +28,13 @@ export default function ScanPage() {
       navigate(`/exams/${exam.id}/review`);
       return;
     }
-    useAppStore.getState().notify(
-      !recognition.markerValid || !recognition.studentNumber
-        ? "未识别完整准考证号，请重新扫描"
-        : `未找到学号 ${recognition.studentNumber} 对应的学生`,
-    );
+    useAppStore
+      .getState()
+      .notify(
+        !recognition.markerValid || !recognition.studentNumber
+          ? "未识别完整准考证号，请重新扫描"
+          : `未找到学号 ${recognition.studentNumber} 对应的学生`,
+      );
   };
   const importImage = (file: File) => {
     if (!file || !answerSheet) return;
@@ -78,11 +80,7 @@ export default function ScanPage() {
     );
   return (
     <>
-      <PageHeader
-        title="扫描答卷"
-        onBack={() => navigate("/exams")}
-        backLabel="返回考试详情"
-      />
+      <PageHeader title="扫描答卷" onBack={() => navigate("/exams")} backLabel="返回考试详情" />
       <Page className={styles.scanPage}>
         {answerSheet ? (
           <>
@@ -124,9 +122,7 @@ export default function ScanPage() {
                 正在读取答题卡真实填涂结果
               </p>
             )}
-            <Note>
-              导入图片只适用于正面、完整、未裁切的答题卡。倾斜拍摄请使用实时相机模式。
-            </Note>
+            <Note>导入图片只适用于正面、完整、未裁切的答题卡。倾斜拍摄请使用实时相机模式。</Note>
           </>
         ) : (
           <EmptyState

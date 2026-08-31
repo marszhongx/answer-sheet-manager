@@ -17,10 +17,7 @@ export function gradeAnswers(
   return { studentNumber, fileName, answers, confidence };
 }
 
-export function studentNameOf(
-  classroom: Classroom | undefined,
-  studentNumber: string,
-): string {
+export function studentNameOf(classroom: Classroom | undefined, studentNumber: string): string {
   return (
     classroom?.students.find((student) => student.studentNumber === studentNumber)?.name ??
     "未命名学生"

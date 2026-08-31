@@ -63,9 +63,7 @@ export default function NewAnswerSheetPage() {
     value: string | number,
   ) =>
     setSections((current) =>
-      current.map((section) =>
-        section.id === sectionId ? { ...section, [key]: value } : section,
-      ),
+      current.map((section) => (section.id === sectionId ? { ...section, [key]: value } : section)),
     );
   const setQuestionCount = (sectionId: string, count: number) =>
     setSections((current) =>
@@ -292,7 +290,11 @@ export default function NewAnswerSheetPage() {
             {error}
           </p>
         )}
-        <SubmitButton icon={<Check size={19} />} disabled={!name.trim() || !totals.questions} onClick={save}>
+        <SubmitButton
+          icon={<Check size={19} />}
+          disabled={!name.trim() || !totals.questions}
+          onClick={save}
+        >
           {editing ? "保存答题卡" : "创建答题卡"}
         </SubmitButton>
       </Page>

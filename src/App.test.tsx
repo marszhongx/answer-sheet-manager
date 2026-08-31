@@ -15,7 +15,11 @@ function renderApp() {
 }
 
 async function resetStore() {
-  await Promise.all([dbClear(StoreName.AnswerSheets), dbClear(StoreName.Classrooms), dbClear(StoreName.Exams)]);
+  await Promise.all([
+    dbClear(StoreName.AnswerSheets),
+    dbClear(StoreName.Classrooms),
+    dbClear(StoreName.Exams),
+  ]);
   await useAppStore.getState().initialize();
 }
 
@@ -84,10 +88,10 @@ describe("Answer Sheet Manager H5", () => {
     await user.click(screen.getByRole("button", { name: /单元测验/ }));
     await user.click(screen.getByRole("button", { name: "复制答题卡" }));
 
-    expect(
-      await screen.findByRole("heading", { name: "单元测验 副本" }),
-    ).toBeInTheDocument();
-    const answerSheets = await dbGetAll<{ name: string; records?: unknown }>(StoreName.AnswerSheets);
+    expect(await screen.findByRole("heading", { name: "单元测验 副本" })).toBeInTheDocument();
+    const answerSheets = await dbGetAll<{ name: string; records?: unknown }>(
+      StoreName.AnswerSheets,
+    );
     expect(answerSheets.find((sheet) => sheet.name === "单元测验 副本")?.records).toBeUndefined();
   });
 });
