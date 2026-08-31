@@ -16,16 +16,16 @@ beforeEach(() => {
   window.history.replaceState({}, "", "/answer-sheets");
   localStorage.clear();
   vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
-    arc: vi.fn(),
-    beginPath: vi.fn(),
-    fillRect: vi.fn(),
-    fillText: vi.fn(),
-    drawImage: vi.fn(),
-    setLineDash: vi.fn(),
-    lineTo: vi.fn(),
-    moveTo: vi.fn(),
-    stroke: vi.fn(),
-    strokeRect: vi.fn(),
+    arc: vi.fn<(...args: never[]) => void>(),
+    beginPath: vi.fn<(...args: never[]) => void>(),
+    fillRect: vi.fn<(...args: never[]) => void>(),
+    fillText: vi.fn<(...args: never[]) => void>(),
+    drawImage: vi.fn<(...args: never[]) => void>(),
+    setLineDash: vi.fn<(...args: never[]) => void>(),
+    lineTo: vi.fn<(...args: never[]) => void>(),
+    moveTo: vi.fn<(...args: never[]) => void>(),
+    stroke: vi.fn<(...args: never[]) => void>(),
+    strokeRect: vi.fn<(...args: never[]) => void>(),
   } as unknown as CanvasRenderingContext2D);
 });
 

@@ -407,7 +407,7 @@ export function classifyFillRates(
   const answers: Array<Option | null> = [];
   const confidence: number[] = [];
   fillRates.forEach((rates, question) => {
-    const sorted = rates.map((rate, index) => ({ rate, index })).sort((a, b) => b.rate - a.rate);
+    const sorted = rates.map((rate, index) => ({ rate, index })).toSorted((a, b) => b.rate - a.rate);
     answers.push(
       sorted[0].rate >= 0.18 && sorted[0].rate - sorted[1].rate >= 0.06
         ? options[question][sorted[0].index]
@@ -445,7 +445,7 @@ export function recognizeWarpedCard(
     );
   });
   const digits = studentRates.map((rates) => {
-    const sorted = rates.map((rate, value) => ({ rate, value })).sort((a, b) => b.rate - a.rate);
+    const sorted = rates.map((rate, value) => ({ rate, value })).toSorted((a, b) => b.rate - a.rate);
     return sorted[0].rate >= 0.18 && sorted[0].rate - sorted[1].rate >= 0.06
       ? String(sorted[0].value)
       : null;

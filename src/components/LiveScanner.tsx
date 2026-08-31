@@ -28,7 +28,7 @@ function chooseCorners(points: Point[]): Point[] | null {
   if (points.length < 4) return null;
   const unique = (point: Point, used: Point[]) => !used.some((item) => isClose(point, item));
   const select = (sort: (a: Point, b: Point) => number, used: Point[]) =>
-    [...points].sort(sort).find((point) => unique(point, used));
+    points.toSorted(sort).find((point) => unique(point, used));
   const selected: Point[] = [];
   const topLeft = select((a, b) => a.x + a.y - b.x - b.y, selected);
   if (!topLeft) return null;
