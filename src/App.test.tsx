@@ -3,6 +3,7 @@ import { BrowserRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
+import { dbClear, dbGetAll, dbPut, StoreName } from "./lib/db";
 import { useAppStore } from "./store/appStore";
 
 function renderApp() {
@@ -13,16 +14,14 @@ function renderApp() {
   );
 }
 
-function resetStore() {
-  useAppStore.getState().fetchAnswerSheetList();
-  useAppStore.getState().fetchClassroomList();
-  useAppStore.getState().fetchExamList();
+async function resetStore() {
+  await Promise.all([dbClear(StoreName.AnswerSheets), dbClear(StoreName.Classrooms), dbClear(StoreName.Exams)]);
+  await useAppStore.getState().initialize();
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   window.history.replaceState({}, "", "/answer-sheets");
-  localStorage.clear();
-  resetStore();
+  await resetStore();
   vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
     arc: vi.fn<(...args: never[]) => void>(),
     beginPath: vi.fn<(...args: never[]) => void>(),
@@ -57,41 +56,38 @@ describe("Answer Sheet Manager H5", () => {
 
   it("copies an answer sheet without retaining obsolete score data", async () => {
     const user = userEvent.setup();
-    localStorage.setItem(
-      "answer-sheet-manager.answerSheets",
-      JSON.stringify([
+    await dbPut(StoreName.AnswerSheets, {
+      id: "math-1",
+      name: "单元测验",
+      subject: "数学",
+      candidateNumberLength: 6,
+      isTemplate: true,
+      sections: [
         {
-          id: "math-1",
-          name: "单元测验",
-          subject: "数学",
-          candidateNumberLength: 6,
-          isTemplate: true,
-          sections: [
-            {
-              id: "s1",
-              name: "第一大题",
-              pointsPerQuestion: 5,
-              optionCount: 4,
-              questions: [
-                { id: "q1", answer: "A" },
-                { id: "q2", answer: "B" },
-                { id: "q3", answer: "C" },
-              ],
-            },
+          id: "s1",
+          name: "第一大题",
+          pointsPerQuestion: 5,
+          optionCount: 4,
+          questions: [
+            { id: "q1", answer: "A" },
+            { id: "q2", answer: "B" },
+            { id: "q3", answer: "C" },
           ],
-          records: [{ name: "张同学" }],
-          createdAt: "2025-01-01T00:00:00.000Z",
         },
-      ]),
-    );
-    resetStore();
+      ],
+      records: [{ name: "张同学" }],
+      createdAt: "2025-01-01T00:00:00.000Z",
+    });
+    await useAppStore.getState().fetchAnswerSheetList();
     renderApp();
 
     await user.click(screen.getByRole("button", { name: /单元测验/ }));
     await user.click(screen.getByRole("button", { name: "复制答题卡" }));
 
-    expect(screen.getByRole("heading", { name: "单元测验 副本" })).toBeInTheDocument();
-    const answerSheets = JSON.parse(localStorage.getItem("answer-sheet-manager.answerSheets") ?? "[]");
-    expect(answerSheets[0].records).toBeUndefined();
+    expect(
+      await screen.findByRole("heading", { name: "单元测验 副本" }),
+    ).toBeInTheDocument();
+    const answerSheets = await dbGetAll<{ name: string; records?: unknown }>(StoreName.AnswerSheets);
+    expect(answerSheets.find((sheet) => sheet.name === "单元测验 副本")?.records).toBeUndefined();
   });
 });

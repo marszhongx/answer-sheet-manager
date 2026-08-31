@@ -29,10 +29,10 @@ export default function ExamDetailPage() {
     link.download = `${exam.name}-答题卡.png`;
     link.click();
   };
-  const confirmDelete = () => {
-    useAppStore.getState().deleteExam(exam.id);
-    useAppStore.getState().deleteAnswerSheet(exam.answerSheetId);
-    useAppStore.getState().deleteClassroom(exam.classroomId);
+  const confirmDelete = async () => {
+    await useAppStore.getState().deleteExam(exam.id);
+    await useAppStore.getState().deleteAnswerSheet(exam.answerSheetId);
+    await useAppStore.getState().deleteClassroom(exam.classroomId);
     useAppStore.getState().notify("考试已删除");
     navigate("/exams");
   };

@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import BottomNav from "./components/BottomNav";
 import Toast from "./components/Toast";
+import { useAppStore } from "./store/appStore";
 import AnalysisPage from "./pages/AnalysisPage";
 import AnswerSheetDetailPage from "./pages/AnswerSheetDetailPage";
 import AnswerSheetPreviewPage from "./pages/AnswerSheetPreviewPage";
@@ -16,6 +17,17 @@ import ScanPage from "./pages/ScanPage";
 import StudentsPage from "./pages/StudentsPage";
 
 export default function App() {
+  const ready = useAppStore((state) => state.ready);
+  if (!ready)
+    return (
+      <div className="app-shell">
+        <main className="page">
+          <section className="analysis-empty">
+            <h2>正在加载数据…</h2>
+          </section>
+        </main>
+      </div>
+    );
   return (
     <div className="app-shell">
       <Routes>

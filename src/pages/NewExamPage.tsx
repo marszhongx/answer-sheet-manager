@@ -28,11 +28,11 @@ export default function NewExamPage() {
   const [classroomId, setClassroomId] = useState(exam?.classroomId ?? classrooms[0]?.id ?? "");
   const editing = Boolean(exam);
   const canSave = Boolean(name.trim() && (editing || (answerSheetId && classroomId)));
-  const save = () => {
+  const save = async () => {
     if (!canSave) return;
     const store = useAppStore.getState();
     if (exam) {
-      store.updateExam({
+      await store.updateExam({
         ...exam,
         name: name.trim(),
       });

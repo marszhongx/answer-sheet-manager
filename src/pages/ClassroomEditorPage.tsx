@@ -21,7 +21,7 @@ export default function ClassroomEditorPage() {
     classroom?.students ?? [{ id: crypto.randomUUID(), name: "", studentNumber: "" }],
   );
   const editing = Boolean(classroom);
-  const save = () => {
+  const save = async () => {
     if (!name.trim()) return;
     const next: Classroom = {
       id: classroom?.id ?? crypto.randomUUID(),
@@ -32,16 +32,16 @@ export default function ClassroomEditorPage() {
     const store = useAppStore.getState();
     const examId = pathname.startsWith("/exams/") ? id : undefined;
     if (examId) {
-      store.updateClassroom(next);
+      await store.updateClassroom(next);
       store.notify("考试班级已保存");
       navigate(`/exams/${examId}`);
       return;
     }
     if (store.classroomMap[next.id]) {
-      store.updateClassroom(next);
+      await store.updateClassroom(next);
       store.notify("班级已保存");
     } else {
-      store.createClassroom(next);
+      await store.createClassroom(next);
       store.notify("班级已创建");
     }
     navigate(`/students/${next.id}`);

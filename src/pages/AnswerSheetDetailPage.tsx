@@ -16,7 +16,7 @@ export default function AnswerSheetDetailPage() {
     (sum, section) => sum + section.questions.length * section.pointsPerQuestion,
     0,
   );
-  const copy = () => {
+  const copy = async () => {
     const { records: _omit, ...clean } = answerSheet as typeof answerSheet & {
       records?: unknown;
     };
@@ -31,12 +31,12 @@ export default function AnswerSheetDetailPage() {
       createdAt: new Date().toISOString(),
       isTemplate: true,
     };
-    useAppStore.getState().createAnswerSheet(copied);
+    await useAppStore.getState().createAnswerSheet(copied);
     useAppStore.getState().notify("已复制答题卡");
     navigate(`/answer-sheets/${copied.id}`);
   };
-  const confirmDelete = () => {
-    useAppStore.getState().deleteAnswerSheet(answerSheet.id);
+  const confirmDelete = async () => {
+    await useAppStore.getState().deleteAnswerSheet(answerSheet.id);
     useAppStore.getState().notify("答题卡已删除");
     navigate("/answer-sheets");
   };

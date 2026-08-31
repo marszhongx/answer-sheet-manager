@@ -12,8 +12,8 @@ export default function ClassroomDetailPage() {
   const classroom = useAppStore((state) => state.classroomMap)[id ?? ""];
   const [confirming, setConfirming] = useState(false);
   if (!classroom) return <Navigate to="/students" replace />;
-  const confirmDelete = () => {
-    useAppStore.getState().deleteClassroom(classroom.id);
+  const confirmDelete = async () => {
+    await useAppStore.getState().deleteClassroom(classroom.id);
     useAppStore.getState().notify("班级已删除");
     navigate("/students");
   };

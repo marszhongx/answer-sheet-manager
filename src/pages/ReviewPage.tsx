@@ -30,12 +30,12 @@ export default function ReviewPage() {
     useAppStore.getState().clearReview();
     navigate(`/exams/${exam.id}/scan`);
   };
-  const save = () => {
+  const save = async () => {
     if (!canSave) return;
     const studentNumber = review.recognition.studentNumber ?? "";
     const record = gradeAnswers(review.fileName, answers, recognition.confidence, studentNumber);
     const existing = exam.scanRecords.some((item) => item.studentNumber === studentNumber);
-    useAppStore.getState().updateExam({
+    await useAppStore.getState().updateExam({
       ...exam,
       scanRecords: existing
         ? exam.scanRecords.map((existingRecord) =>

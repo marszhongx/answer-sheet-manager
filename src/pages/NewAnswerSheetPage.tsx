@@ -105,7 +105,7 @@ export default function NewAnswerSheetPage() {
           : section,
       ),
     );
-  const save = () => {
+  const save = async () => {
     const cleanName = name.trim();
     if (!cleanName || !totals.questions) return;
     const candidate: AnswerSheet = {
@@ -124,15 +124,15 @@ export default function NewAnswerSheetPage() {
     const store = useAppStore.getState();
     const examId = pathname.startsWith("/exams/") ? id : undefined;
     if (examId) {
-      store.updateAnswerSheet(candidate);
+      await store.updateAnswerSheet(candidate);
       store.notify("考试答题卡已保存");
       navigate(`/exams/${examId}`);
       return;
     }
     if (store.answerSheetMap[candidate.id]) {
-      store.updateAnswerSheet(candidate);
+      await store.updateAnswerSheet(candidate);
     } else {
-      store.createAnswerSheet(candidate);
+      await store.createAnswerSheet(candidate);
     }
     store.notify("答题卡已保存");
     navigate(`/answer-sheets/${candidate.id}`);
