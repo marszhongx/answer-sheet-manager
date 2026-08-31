@@ -76,7 +76,7 @@
   text-align: left;
   border: 0;
   border-radius: var(--radius-sm);
-  background: var(--color-surface);
+  background: transparent;
   font-size: 13px;
   transition:
     background-color var(--duration-fast) var(--ease),

@@ -1,10 +1,32 @@
+/* 深色扫描界面：独立于全局浅色 token，颜色收敛在本组件作用域内 */
 .screen {
+  --ls-bg: #07110d;
+  --ls-text: #fff;
+  --ls-text-muted: #d0e7df;
+  --ls-text-soft: #e3f4ed;
+  --ls-scrim-top: #0009;
+  --ls-scrim-bottom: #000c;
+  --ls-chip-bg: #000a;
+  --ls-control-bg: #0005;
+  --ls-control-bg-active: #00000099;
+  --ls-panel-bg: #0008;
+  --ls-panel-border: #ffffff33;
+  --ls-ready: #c5f5df;
+  --ls-error: #ffbdaf;
+  --ls-accent: #5cf0c6;
+  --ls-capture-bg: #ddf39c;
+  --ls-capture-bg-active: #cfe98a;
+  --ls-capture-text: #073c2f;
+  --ls-capture-shadow: #ddf39c33;
+  --ls-disabled-bg: #d5ddd9;
+  --ls-disabled-text: #9aa9a3;
+
   position: fixed;
   z-index: var(--z-scanner);
   inset: 0;
   overflow: hidden;
-  color: #fff;
-  background: #07110d;
+  color: var(--ls-text);
+  background: var(--ls-bg);
 }
 .video,
 .overlay {
@@ -28,7 +50,7 @@
   align-items: center;
   padding: calc(12px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 12px
     calc(12px + env(safe-area-inset-left));
-  background: linear-gradient(#0009, transparent);
+  background: linear-gradient(var(--ls-scrim-top), transparent);
   text-align: center;
 }
 .header button {
@@ -36,17 +58,17 @@
   place-items: center;
   width: var(--tap-min);
   height: var(--tap-min);
-  color: #fff;
+  color: var(--ls-text);
   border: 0;
   border-radius: 50%;
-  background: #0005;
+  background: var(--ls-control-bg);
   transition: background-color var(--duration-fast) var(--ease);
 }
 .header button:last-child {
   justify-self: end;
 }
 .header button:active {
-  background: #00000099;
+  background: var(--ls-control-bg-active);
 }
 .header b,
 .header span {
@@ -57,7 +79,7 @@
 }
 .header span {
   margin-top: 3px;
-  color: #d0e7df;
+  color: var(--ls-text-muted);
   font-size: 11px;
 }
 .status {
@@ -72,15 +94,15 @@
   padding: 9px 13px;
   transform: translateX(-50%);
   border-radius: var(--radius-pill);
-  background: #000a;
+  background: var(--ls-chip-bg);
   font-size: 12px;
   white-space: nowrap;
 }
 .status.ready {
-  color: #c5f5df;
+  color: var(--ls-ready);
 }
 .status.error {
-  color: #ffbdaf;
+  color: var(--ls-error);
 }
 .spin {
   animation: spin 1s linear infinite;
@@ -91,19 +113,19 @@
   bottom: 105px;
   left: 20px;
   padding: 10px 14px;
-  border: 1px solid #ffffff33;
+  border: 1px solid var(--ls-panel-border);
   border-radius: var(--radius-lg);
-  background: #0008;
+  background: var(--ls-panel-bg);
 }
 .score b {
   display: block;
-  color: #5cf0c6;
+  color: var(--ls-accent);
   font-size: 28px;
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 .score span {
-  color: #e3f4ed;
+  color: var(--ls-text-soft);
   font-size: 11px;
 }
 .footer {
@@ -113,7 +135,7 @@
   bottom: 0;
   left: 0;
   padding: 15px 20px calc(27px + env(safe-area-inset-bottom));
-  background: linear-gradient(transparent, #000c);
+  background: linear-gradient(transparent, var(--ls-scrim-bottom));
 }
 .capture {
   display: flex;
@@ -122,24 +144,24 @@
   justify-content: center;
   width: 100%;
   height: 50px;
-  color: #073c2f;
+  color: var(--ls-capture-text);
   border: 0;
   border-radius: var(--radius-lg);
-  background: #ddf39c;
+  background: var(--ls-capture-bg);
   font-size: 15px;
   font-weight: 700;
-  box-shadow: 0 4px 18px #ddf39c33;
+  box-shadow: 0 4px 18px var(--ls-capture-shadow);
   transition:
     background-color var(--duration-fast) var(--ease),
     transform var(--duration-fast) var(--ease);
 }
 .capture:disabled {
-  color: #9aa9a3;
-  background: #d5ddd9;
+  color: var(--ls-disabled-text);
+  background: var(--ls-disabled-bg);
   box-shadow: none;
 }
 .capture:not(:disabled):active {
-  background: #cfe98a;
+  background: var(--ls-capture-bg-active);
   transform: scale(0.99);
 }
 @keyframes spin {

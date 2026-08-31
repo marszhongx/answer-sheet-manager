@@ -19,7 +19,7 @@
 }
 
 .toast svg {
-  color: #c8ec8d;
+  color: var(--color-success-bright);
 }
 
 @keyframes rise {

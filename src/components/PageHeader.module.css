@@ -9,7 +9,7 @@
   min-height: 62px;
   padding: 12px var(--page-gutter);
   border-bottom: 1px solid var(--color-border-subtle);
-  background: #fffffffa;
+  background: var(--color-surface-translucent);
   backdrop-filter: blur(12px);
 }
 
