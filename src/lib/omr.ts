@@ -1,12 +1,17 @@
 export const OPTION_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"] as const;
 export type Option = (typeof OPTION_LABELS)[number];
 
+export type Question = {
+  id: string;
+  answer: Option;
+};
+
 export type QuestionSection = {
   id: string;
   name: string;
-  questionCount: number;
   pointsPerQuestion: number;
   optionCount: number;
+  questions: Question[];
 };
 
 export type AnswerSheet = {
@@ -14,9 +19,7 @@ export type AnswerSheet = {
   name: string;
   subject: string;
   candidateNumberLength: number;
-  questionCount: number;
-  sections?: QuestionSection[];
-  answers: Option[];
+  sections: QuestionSection[];
   createdAt: string;
   isTemplate: boolean;
 };
@@ -76,19 +79,44 @@ const DEFAULT_CANDIDATE_LENGTH = 2;
 const A4_PORTRAIT = { width: 1200, height: 1697 };
 const A4_LANDSCAPE = { width: 1697, height: 1200 };
 
-export function defaultSections(questionCount = 20): QuestionSection[] {
+export function defaultSections(): QuestionSection[] {
   return [
-    { id: "section-1", name: "第一大题", questionCount, pointsPerQuestion: 5, optionCount: 4 },
+    {
+      id: "section-1",
+      name: "第一大题",
+      pointsPerQuestion: 5,
+      optionCount: 4,
+      questions: createQuestions(20),
+    },
   ];
 }
 
+export function createQuestions(count: number): Question[] {
+  return Array.from({ length: count }, () => ({
+    id: crypto.randomUUID(),
+    answer: "A" as Option,
+  }));
+}
+
 export function answerSheetSections(answerSheet: AnswerSheet): QuestionSection[] {
-  return answerSheet.sections?.length ? answerSheet.sections : defaultSections(answerSheet.questionCount);
+  return answerSheet.sections.length ? answerSheet.sections : defaultSections();
+}
+
+export function flatQuestions(answerSheet: AnswerSheet): Question[] {
+  return answerSheetSections(answerSheet).flatMap((section) => section.questions);
+}
+
+export function questionCount(answerSheet: AnswerSheet): number {
+  return flatQuestions(answerSheet).length;
+}
+
+export function answerOf(answerSheet: AnswerSheet): Option[] {
+  return flatQuestions(answerSheet).map((question) => question.answer);
 }
 
 export function questionOptions(answerSheet: AnswerSheet): Option[][] {
   return answerSheetSections(answerSheet).flatMap((section) =>
-    Array.from({ length: section.questionCount }, () =>
+    section.questions.map(() =>
       OPTION_LABELS.slice(0, Math.max(2, Math.min(OPTION_LABELS.length, section.optionCount))),
     ),
   );
@@ -96,20 +124,16 @@ export function questionOptions(answerSheet: AnswerSheet): Option[][] {
 
 export function questionPoints(answerSheet: AnswerSheet): number[] {
   return answerSheetSections(answerSheet).flatMap((section) =>
-    Array.from({ length: section.questionCount }, () => section.pointsPerQuestion),
+    section.questions.map(() => section.pointsPerQuestion),
   );
 }
 
-export function createAnswers(questionCount: number): Option[] {
-  return Array.from({ length: questionCount }, () => "A");
-}
-
 export function createLayout(
-  questionCount: number,
+  count: number,
   candidateNumberLength = DEFAULT_CANDIDATE_LENGTH,
-  optionCounts: number[] = Array.from({ length: questionCount }, () => 4),
+  optionCounts: number[] = Array.from({ length: count }, () => 4),
 ): CardLayout {
-  const safeQuestionCount = Math.max(1, questionCount);
+  const safeQuestionCount = Math.max(1, count);
   const safeCandidateLength = Math.max(1, Math.min(10, candidateNumberLength));
   const candidateContentWidth =
     safeCandidateLength * OPTION_CELL_WIDTH + (safeCandidateLength - 1) * OPTION_GAP;
@@ -205,7 +229,7 @@ export function createLayout(
 export function drawAnswerSheet(canvas: HTMLCanvasElement, answerSheet: AnswerSheet) {
   const options = questionOptions(answerSheet);
   const layout = createLayout(
-    answerSheet.questionCount,
+    questionCount(answerSheet),
     answerSheet.candidateNumberLength ?? DEFAULT_CANDIDATE_LENGTH,
     options.map((item) => item.length),
   );
@@ -280,7 +304,7 @@ export function drawAnswerSheet(canvas: HTMLCanvasElement, answerSheet: AnswerSh
 function cardLayout(answerSheet: AnswerSheet): CardLayout {
   const options = questionOptions(answerSheet);
   return createLayout(
-    answerSheet.questionCount,
+    questionCount(answerSheet),
     answerSheet.candidateNumberLength ?? DEFAULT_CANDIDATE_LENGTH,
     options.map((item) => item.length),
   );

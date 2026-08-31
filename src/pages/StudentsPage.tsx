@@ -1,14 +1,11 @@
 import ListCard from "../components/ListCard";
 import PageHeader from "../components/PageHeader";
 import { Plus, UsersRound } from "lucide-react";
-import { Classroom } from "../lib/roster";
+import { useNavigate } from "react-router-dom";
 import { useAppStore } from "../store/appStore";
 
-type Props = {
-  onCreate: () => void;
-  onSelect: (classroom: Classroom) => void;
-};
-export default function StudentsPage({ onCreate, onSelect }: Props) {
+export default function StudentsPage() {
+  const navigate = useNavigate();
   const classroomList = useAppStore((state) => state.classroomList);
   const templates = classroomList.filter((item) => item.isTemplate);
   return (
@@ -16,7 +13,11 @@ export default function StudentsPage({ onCreate, onSelect }: Props) {
       <PageHeader
         title="学生管理"
         action={
-          <button onClick={onCreate} className="create-mini" aria-label="新建班级">
+          <button
+            onClick={() => navigate("/students/new")}
+            className="create-mini"
+            aria-label="新建班级"
+          >
             <Plus size={20} />
           </button>
         }
@@ -30,7 +31,7 @@ export default function StudentsPage({ onCreate, onSelect }: Props) {
                 leading={<UsersRound size={21} />}
                 title={classroom.name}
                 description={`${classroom.students.length} 名学生`}
-                onClick={() => onSelect(classroom)}
+                onClick={() => navigate(`/students/${classroom.id}`)}
               />
             ))}
           </div>
@@ -39,7 +40,7 @@ export default function StudentsPage({ onCreate, onSelect }: Props) {
             <UsersRound size={37} />
             <h2>还没有班级</h2>
             <p>先建立班级和学生学号，扫描准考证号后即可自动关联成绩。</p>
-            <button onClick={onCreate}>
+            <button onClick={() => navigate("/students/new")}>
               <Plus size={18} />
               新建班级
             </button>

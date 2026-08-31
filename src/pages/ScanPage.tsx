@@ -2,21 +2,15 @@ import FileUploader from "../components/FileUploader";
 import PageHeader from "../components/PageHeader";
 import { useState } from "react";
 import { Camera, ChevronRight, ImagePlus, LayoutTemplate, ScanLine } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import LiveScanner from "../components/LiveScanner";
-import { AnswerSheet, Recognition, recognizeAnswerSheet } from "../lib/omr";
-import { Exam } from "../lib/exam";
+import { AnswerSheet, questionCount, Recognition, recognizeAnswerSheet } from "../lib/omr";
 import { useAppStore } from "../store/appStore";
 import EmptyState from "./EmptyState";
 
-type Props = {
-  onBack: () => void;
-  onSelect: () => void;
-  onScanned: (exam: Exam, recognition: Recognition, fileName: string) => void;
-  notify: (text: string) => void;
-};
-export default function ScanPage({ onBack, onSelect, onScanned, notify }: Props) {
+export default function ScanPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const examMap = useAppStore((state) => state.examMap);
   const answerSheetMap = useAppStore((state) => state.answerSheetMap);
   const exam = examMap[id ?? ""];
@@ -25,8 +19,20 @@ export default function ScanPage({ onBack, onSelect, onScanned, notify }: Props)
     : undefined;
   const [processing, setProcessing] = useState(false);
   const [scanner, setScanner] = useState(false);
+  const handleScanned = (recognition: Recognition, fileName: string) => {
+    if (!exam) return;
+    if (useAppStore.getState().startReview(exam.id, recognition, fileName)) {
+      navigate(`/exams/${exam.id}/review`);
+      return;
+    }
+    useAppStore.getState().notify(
+      !recognition.markerValid || !recognition.studentNumber
+        ? "未识别完整准考证号，请重新扫描"
+        : `未找到学号 ${recognition.studentNumber} 对应的学生`,
+    );
+  };
   const importImage = (file: File) => {
-    if (!file || !answerSheet || !exam) return;
+    if (!file || !answerSheet) return;
     setProcessing(true);
     const url = URL.createObjectURL(file);
     const image = new Image();
@@ -34,8 +40,7 @@ export default function ScanPage({ onBack, onSelect, onScanned, notify }: Props)
       "load",
       () => {
         try {
-          onScanned(
-            exam,
+          handleScanned(
             recognizeAnswerSheet(image, image.naturalWidth, image.naturalHeight, answerSheet),
             file.name,
           );
@@ -51,7 +56,7 @@ export default function ScanPage({ onBack, onSelect, onScanned, notify }: Props)
       () => {
         URL.revokeObjectURL(url);
         setProcessing(false);
-        notify("图片无法读取");
+        useAppStore.getState().notify("图片无法读取");
       },
       { once: true },
     );
@@ -64,17 +69,21 @@ export default function ScanPage({ onBack, onSelect, onScanned, notify }: Props)
         onClose={() => setScanner(false)}
         onConfirm={(recognition) => {
           setScanner(false);
-          onScanned(exam, recognition, `camera-${Date.now()}.jpg`);
+          handleScanned(recognition, `camera-${Date.now()}.jpg`);
         }}
       />
     );
   return (
     <>
-      <PageHeader title="扫描答卷" onBack={onBack} backLabel="返回考试详情" />
+      <PageHeader
+        title="扫描答卷"
+        onBack={() => navigate("/exams")}
+        backLabel="返回考试详情"
+      />
       <main className="page scan-page">
         {answerSheet ? (
           <>
-            <button onClick={onSelect} className="exam-picker">
+            <button onClick={() => navigate("/exams")} className="exam-picker">
               <div className="exam-icon">
                 <LayoutTemplate size={21} />
               </div>
@@ -82,7 +91,7 @@ export default function ScanPage({ onBack, onSelect, onScanned, notify }: Props)
                 <small>当前答题卡</small>
                 <b>{answerSheet.name}</b>
                 <span>
-                  {answerSheet.subject} · {answerSheet.questionCount} 道单选题
+                  {answerSheet.subject} · {questionCount(answerSheet)} 道单选题
                 </span>
               </div>
               <ChevronRight size={19} />
@@ -117,7 +126,7 @@ export default function ScanPage({ onBack, onSelect, onScanned, notify }: Props)
             </p>
           </>
         ) : (
-          <EmptyState onCreate={onSelect} />
+          <EmptyState onCreate={() => navigate("/exams")} />
         )}
       </main>
     </>

@@ -5,31 +5,31 @@ import NumberInput from "../components/NumberInput";
 import PageHeader from "../components/PageHeader";
 import Select from "../components/Select";
 import { Check, Plus, Trash2 } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   AnswerSheet,
-  createAnswers,
+  createQuestions,
   defaultSections,
   fitsA4,
+  OPTION_LABELS,
+  Option,
   QuestionSection,
   answerSheetSections,
 } from "../lib/omr";
 import { useAppStore } from "../store/appStore";
 
-type Props = {
-  onSave: (answerSheet: AnswerSheet) => void;
-  onBack: () => void;
-};
 const makeSection = (index: number): QuestionSection => ({
   id: crypto.randomUUID(),
   name: `第${index + 1}大题`,
-  questionCount: 5,
   pointsPerQuestion: 5,
   optionCount: 4,
+  questions: createQuestions(5),
 });
 
-export default function NewAnswerSheetPage({ onSave, onBack }: Props) {
+export default function NewAnswerSheetPage() {
   const { id } = useParams();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
   const answerSheetMap = useAppStore((state) => state.answerSheetMap);
   const examMap = useAppStore((state) => state.examMap);
   const answerSheet =
@@ -46,35 +46,74 @@ export default function NewAnswerSheetPage({ onSave, onBack }: Props) {
   const editing = Boolean(answerSheet);
   const totals = useMemo(
     () => ({
-      questions: sections.reduce((sum, section) => sum + section.questionCount, 0),
+      questions: sections.reduce((sum, section) => sum + section.questions.length, 0),
       score: sections.reduce(
-        (sum, section) => sum + section.questionCount * section.pointsPerQuestion,
+        (sum, section) => sum + section.questions.length * section.pointsPerQuestion,
         0,
       ),
     }),
     [sections],
   );
-  const update = (sectionId: string, key: keyof QuestionSection, value: string | number) =>
+  const updateSection = (
+    sectionId: string,
+    key: "name" | "pointsPerQuestion" | "optionCount",
+    value: string | number,
+  ) =>
     setSections((current) =>
       current.map((section) =>
         section.id === sectionId ? { ...section, [key]: value } : section,
       ),
     );
+  const setQuestionCount = (sectionId: string, count: number) =>
+    setSections((current) =>
+      current.map((section) => {
+        if (section.id !== sectionId) return section;
+        const existing = section.questions;
+        const questions =
+          count < existing.length
+            ? existing.slice(0, count)
+            : [...existing, ...createQuestions(count - existing.length)];
+        return { ...section, questions };
+      }),
+    );
+  const addQuestion = (sectionId: string) =>
+    setSections((current) =>
+      current.map((section) =>
+        section.id === sectionId
+          ? { ...section, questions: [...section.questions, ...createQuestions(1)] }
+          : section,
+      ),
+    );
+  const removeQuestion = (sectionId: string, questionId: string) =>
+    setSections((current) =>
+      current.map((section) =>
+        section.id === sectionId && section.questions.length > 1
+          ? { ...section, questions: section.questions.filter((q) => q.id !== questionId) }
+          : section,
+      ),
+    );
+  const setAnswer = (sectionId: string, questionId: string, answer: Option) =>
+    setSections((current) =>
+      current.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              questions: section.questions.map((question) =>
+                question.id === questionId ? { ...question, answer } : question,
+              ),
+            }
+          : section,
+      ),
+    );
   const save = () => {
     const cleanName = name.trim();
     if (!cleanName || !totals.questions) return;
-    const answers = answerSheet?.answers ?? createAnswers(totals.questions);
     const candidate: AnswerSheet = {
       id: answerSheet?.id ?? crypto.randomUUID(),
       name: cleanName,
       subject,
       candidateNumberLength,
-      questionCount: totals.questions,
       sections,
-      answers: [
-        ...answers.slice(0, totals.questions),
-        ...createAnswers(Math.max(0, totals.questions - answers.length)),
-      ],
       createdAt: answerSheet?.createdAt ?? new Date().toISOString(),
       isTemplate: answerSheet?.isTemplate ?? true,
     };
@@ -82,14 +121,28 @@ export default function NewAnswerSheetPage({ onSave, onBack }: Props) {
       setError("题目过多，答题卡将超出 A4 纸张范围，请减少题目数量或选项数量");
       return;
     }
-    onSave(candidate);
+    const store = useAppStore.getState();
+    const examId = pathname.startsWith("/exams/") ? id : undefined;
+    if (examId) {
+      store.updateAnswerSheet(candidate);
+      store.notify("考试答题卡已保存");
+      navigate(`/exams/${examId}`);
+      return;
+    }
+    if (store.answerSheetMap[candidate.id]) {
+      store.updateAnswerSheet(candidate);
+    } else {
+      store.createAnswerSheet(candidate);
+    }
+    store.notify("答题卡已保存");
+    navigate(`/answer-sheets/${candidate.id}`);
   };
   return (
     <>
       <PageHeader
         title={editing ? "编辑答题卡" : "新建答题卡"}
-        onBack={onBack}
-        backLabel="返回答题卡列表"
+        onBack={() => navigate(pathname.startsWith("/exams/") ? `/exams/${id}` : "/answer-sheets")}
+        backLabel="返回"
       />
       <main className="page answer-sheet-editor">
         <FormSection>
@@ -139,7 +192,7 @@ export default function NewAnswerSheetPage({ onSave, onBack }: Props) {
                   aria-label={`第${index + 1}大题名称`}
                   className="section-name-input"
                   value={section.name}
-                  onChange={(event) => update(section.id, "name", event.target.value)}
+                  onChange={(event) => updateSection(section.id, "name", event.target.value)}
                 />
                 <button
                   className="icon-danger"
@@ -155,11 +208,11 @@ export default function NewAnswerSheetPage({ onSave, onBack }: Props) {
               <label>
                 小题数量
                 <NumberInput
-                  value={section.questionCount}
+                  value={section.questions.length}
                   min={1}
                   max={60}
                   compact
-                  onChange={(value) => update(section.id, "questionCount", value)}
+                  onChange={(value) => setQuestionCount(section.id, value)}
                 />
               </label>
               <label>
@@ -169,7 +222,7 @@ export default function NewAnswerSheetPage({ onSave, onBack }: Props) {
                   min={1}
                   max={100}
                   compact
-                  onChange={(value) => update(section.id, "pointsPerQuestion", value)}
+                  onChange={(value) => updateSection(section.id, "pointsPerQuestion", value)}
                 />
               </label>
               <label>
@@ -179,9 +232,45 @@ export default function NewAnswerSheetPage({ onSave, onBack }: Props) {
                   min={2}
                   max={10}
                   compact
-                  onChange={(value) => update(section.id, "optionCount", value)}
+                  onChange={(value) => updateSection(section.id, "optionCount", value)}
                 />
               </label>
+              <div className="answers-editor">
+                <span className="answers-label">题目答案</span>
+                {section.questions.map((question, questionIndex) => (
+                  <div className="answer-row" key={question.id}>
+                    <b>{questionIndex + 1}</b>
+                    {OPTION_LABELS.slice(0, section.optionCount).map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        className={question.answer === option ? "selected" : ""}
+                        onClick={() => setAnswer(section.id, question.id, option)}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                    <button
+                      className="icon-danger"
+                      aria-label={`删除第${questionIndex + 1}题`}
+                      disabled={section.questions.length === 1}
+                      onClick={() => removeQuestion(section.id, question.id)}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  className="add-question"
+                  onClick={() => {
+                    setError(null);
+                    addQuestion(section.id);
+                  }}
+                >
+                  <Plus size={16} />
+                  添加题目
+                </button>
+              </div>
             </div>
           ))}
           <button

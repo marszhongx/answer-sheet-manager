@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, Check, LoaderCircle, RotateCcw, ScanLine, X } from "lucide-react";
 import {
+  answerOf,
   AnswerSheet,
   createLayout,
+  questionCount,
   questionOptions,
   questionPoints,
   Recognition,
@@ -193,7 +195,7 @@ export default function LiveScanner({ answerSheet, onConfirm, onClose }: Props) 
           <b>
             {recognition.answers.reduce(
               (sum, answer, index) =>
-                answer === answerSheet.answers[index] ? sum + points[index] : sum,
+                answer === answerOf(answerSheet)[index] ? sum + points[index] : sum,
               0,
             )}
           </b>
@@ -269,7 +271,7 @@ async function processFrame(
     }
     const options = questionOptions(answerSheet);
     const layout = createLayout(
-      answerSheet.questionCount,
+      questionCount(answerSheet),
       answerSheet.candidateNumberLength,
       options.map((item) => item.length),
     );
@@ -361,7 +363,7 @@ function drawOverlay(
     const answer = recognition.answers[bubble.question];
     if (answer !== bubble.option) return;
     const point = project({ x: bubble.x, y: bubble.y }, inverse);
-    const correct = answer === answerSheet.answers[bubble.question];
+    const correct = answer === answerOf(answerSheet)[bubble.question];
     overlay.fillStyle = correct ? "rgba(46, 228, 187, .72)" : "rgba(255, 84, 101, .76)";
     overlay.beginPath();
     overlay.arc(point.x, point.y, 9, 0, Math.PI * 2);

@@ -1,55 +1,70 @@
-import { AnswerSheet, Option, questionPoints } from "./omr";
+import { answerOf, AnswerSheet, Option, questionCount, questionPoints } from "./omr";
+import { Classroom } from "./roster";
 
-export type GradedStudent = {
-  name: string;
+export type ScanRecord = {
   studentNumber: string;
-  className: string;
   fileName: string;
   answers: Array<Option | null>;
-  wrong: boolean[];
-  correctCount: number;
-  score: number;
-  totalScore: number;
   confidence: number[];
 };
 
 export function gradeAnswers(
-  answerSheet: AnswerSheet,
-  studentName: string,
   fileName: string,
   answers: Array<Option | null>,
   confidence: number[],
   studentNumber = "",
-  className = "",
-): GradedStudent {
-  const wrong = answers.map((answer, index) => answer !== answerSheet.answers[index]);
-  const correctCount = wrong.filter((value) => !value).length;
-  const points = questionPoints(answerSheet);
-  const score = wrong.reduce((sum, value, index) => sum + (value ? 0 : points[index]), 0);
-  return {
-    name: studentName.trim() || "未命名学生",
-    studentNumber,
-    className,
-    fileName,
-    answers,
-    wrong,
-    confidence,
-    correctCount,
-    score,
-    totalScore: points.reduce((sum, point) => sum + point, 0),
-  };
+): ScanRecord {
+  return { studentNumber, fileName, answers, confidence };
 }
 
-export function questionRates(records: GradedStudent[], questionCount: number): number[] {
-  if (records.length === 0) return Array.from({ length: questionCount }, () => 0);
-  return Array.from({ length: questionCount }, (_, index) =>
-    Math.round((records.filter((record) => !record.wrong[index]).length / records.length) * 100),
+export function studentNameOf(
+  classroom: Classroom | undefined,
+  studentNumber: string,
+): string {
+  return (
+    classroom?.students.find((student) => student.studentNumber === studentNumber)?.name ??
+    "未命名学生"
   );
 }
 
-export function averageScore(records: GradedStudent[]): number {
+export function wrongOf(answerSheet: AnswerSheet, answers: Array<Option | null>): boolean[] {
+  const standard = answerOf(answerSheet);
+  return standard.map((correct, index) => answers[index] !== correct);
+}
+
+export function correctCountOf(answerSheet: AnswerSheet, answers: Array<Option | null>): number {
+  return wrongOf(answerSheet, answers).filter((wrong) => !wrong).length;
+}
+
+export function scoreOf(answerSheet: AnswerSheet, answers: Array<Option | null>): number {
+  const standard = answerOf(answerSheet);
+  return questionPoints(answerSheet).reduce(
+    (sum, point, index) => (answers[index] === standard[index] ? sum + point : sum),
+    0,
+  );
+}
+
+export function totalScoreOf(answerSheet: AnswerSheet): number {
+  return questionPoints(answerSheet).reduce((sum, point) => sum + point, 0);
+}
+
+export function questionRates(answerSheet: AnswerSheet, records: ScanRecord[]): number[] {
+  const count = questionCount(answerSheet);
+  if (records.length === 0) return Array.from({ length: count }, () => 0);
+  const standard = answerOf(answerSheet);
+  return Array.from({ length: count }, (_, index) =>
+    Math.round(
+      (records.filter((record) => record.answers[index] === standard[index]).length /
+        records.length) *
+        100,
+    ),
+  );
+}
+
+export function averageScore(answerSheet: AnswerSheet, records: ScanRecord[]): number {
   return records.length
-    ? records.reduce((sum, record) => sum + record.score, 0) / records.length
+    ? records.reduce((sum, record) => sum + scoreOf(answerSheet, record.answers), 0) /
+        records.length
     : 0;
 }
 
@@ -58,22 +73,27 @@ function escapeCSV(value: string | number): string {
   return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
-export function toCSV(answerSheet: AnswerSheet, records: GradedStudent[]): string {
+export function toCSV(
+  answerSheet: AnswerSheet,
+  records: ScanRecord[],
+  classroom?: Classroom,
+): string {
   const header = [
     "班级",
     "学号",
     "姓名",
-    ...Array.from({ length: answerSheet.questionCount }, (_, index) => `第${index + 1}题`),
+    ...Array.from({ length: questionCount(answerSheet) }, (_, index) => `第${index + 1}题`),
     "得分",
     "总分",
   ];
+  const totalScore = totalScoreOf(answerSheet);
   const rows = records.map((record) => [
-    record.className,
+    classroom?.name ?? "",
     record.studentNumber,
-    record.name,
+    studentNameOf(classroom, record.studentNumber),
     ...record.answers.map((answer) => answer ?? "未识别"),
-    record.score,
-    record.totalScore,
+    scoreOf(answerSheet, record.answers),
+    totalScore,
   ]);
   return `\uFEFF${[header, ...rows].map((row) => row.map(escapeCSV).join(",")).join("\n")}`;
 }

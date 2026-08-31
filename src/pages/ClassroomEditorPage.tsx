@@ -4,17 +4,14 @@ import Input from "../components/Input";
 import PageHeader from "../components/PageHeader";
 import StudentRosterTable from "../components/StudentRosterTable";
 import { Check } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Classroom, Student } from "../lib/roster";
 import { useAppStore } from "../store/appStore";
 
-type Props = {
-  onSave: (classroom: Classroom) => void;
-  onBack: () => void;
-};
-
-export default function ClassroomEditorPage({ onSave, onBack }: Props) {
+export default function ClassroomEditorPage() {
   const { id } = useParams();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
   const classroomMap = useAppStore((state) => state.classroomMap);
   const examMap = useAppStore((state) => state.examMap);
   const classroom =
@@ -26,20 +23,36 @@ export default function ClassroomEditorPage({ onSave, onBack }: Props) {
   const editing = Boolean(classroom);
   const save = () => {
     if (!name.trim()) return;
-    onSave({
+    const next: Classroom = {
       id: classroom?.id ?? crypto.randomUUID(),
       name: name.trim(),
       students: students.filter((student) => student.name.trim() && student.studentNumber),
       isTemplate: classroom?.isTemplate ?? true,
-    });
+    };
+    const store = useAppStore.getState();
+    const examId = pathname.startsWith("/exams/") ? id : undefined;
+    if (examId) {
+      store.updateClassroom(next);
+      store.notify("考试班级已保存");
+      navigate(`/exams/${examId}`);
+      return;
+    }
+    if (store.classroomMap[next.id]) {
+      store.updateClassroom(next);
+      store.notify("班级已保存");
+    } else {
+      store.createClassroom(next);
+      store.notify("班级已创建");
+    }
+    navigate(`/students/${next.id}`);
   };
 
   return (
     <>
       <PageHeader
         title={editing ? "编辑班级" : "新建班级"}
-        onBack={onBack}
-        backLabel="返回班级管理"
+        onBack={() => navigate(pathname.startsWith("/exams/") ? `/exams/${id}` : "/students")}
+        backLabel="返回"
       />
       <main className="page new-answer-sheet-page">
         <FormSection>

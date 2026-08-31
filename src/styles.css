@@ -31,7 +31,7 @@ select {
 button:disabled {
   cursor: not-allowed;
 }
-.mobile-app {
+.app-shell {
   min-height: 100vh;
   max-width: 600px;
   margin: auto;
@@ -568,7 +568,7 @@ button:disabled {
   .bottom-nav {
     display: none;
   }
-  .mobile-app,
+  .app-shell,
   .page {
     max-width: none;
     padding: 0;
@@ -587,25 +587,34 @@ button:disabled {
   font-size: 11px;
   line-height: 1.6;
 }
-.answer-editor {
+.answers-editor {
   display: grid;
-  max-height: 45vh;
   gap: 7px;
-  margin: 13px 20px 0;
-  overflow: auto;
+  margin: 14px 2px 0;
+  padding: 12px;
+  border: 1px dashed #d7e0da;
+  border-radius: 8px;
+  background: #fafcfa;
 }
-.answer-row {
-  display: grid;
-  grid-template-columns: 46px repeat(4, 1fr);
-  gap: 6px;
-  align-items: center;
-}
-.answer-row > span {
+.answers-label {
   color: #68766f;
   font-size: 11px;
   font-weight: 600;
 }
+.answer-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.answer-row > b {
+  width: 24px;
+  color: #68766f;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: right;
+}
 .answer-row button {
+  min-width: 36px;
   height: 34px;
   color: #57645e;
   border: 1px solid #d7e0da;
@@ -614,10 +623,28 @@ button:disabled {
   font-size: 12px;
   font-weight: 600;
 }
-.answer-row button.on {
+.answer-row button.selected {
   color: #fff;
   border-color: #176b58;
   background: #176b58;
+}
+.answer-row .icon-danger {
+  min-width: 32px;
+  height: 32px;
+  margin-left: auto;
+  padding: 0;
+}
+.add-question {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 12px;
+  color: #176b58;
+  border: 1px dashed #8fb8a8;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 12px;
 }
 .scan-page {
   padding-top: 16px;
@@ -1243,7 +1270,7 @@ button:disabled {
   body {
     background: #e5ece7;
   }
-  .mobile-app {
+  .app-shell {
     box-shadow: 0 0 30px #284a3e22;
   }
 }

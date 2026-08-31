@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Download } from "lucide-react";
-import { Navigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
 import { drawA4PrintPage } from "../lib/omr";
 import { useAppStore } from "../store/appStore";
 
-type Props = { onBack: () => void; notify: (text: string) => void };
-
-export default function AnswerSheetPreviewPage({ onBack, notify }: Props) {
+export default function AnswerSheetPreviewPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const answerSheet = useAppStore((state) => state.answerSheetMap)[id ?? ""];
   const ref = useRef<HTMLCanvasElement>(null);
   const [printable, setPrintable] = useState(true);
@@ -22,11 +21,15 @@ export default function AnswerSheetPreviewPage({ onBack, notify }: Props) {
     link.href = ref.current.toDataURL("image/png");
     link.download = `${answerSheet.name.replace(/[\\/:*?"<>|]/g, "_")}.png`;
     link.click();
-    notify("答题卡已下载");
+    useAppStore.getState().notify("答题卡已下载");
   };
   return (
     <>
-      <PageHeader title="预览答题卡" onBack={onBack} backLabel="返回答题卡详情" />
+      <PageHeader
+        title="预览答题卡"
+        onBack={() => navigate(-1)}
+        backLabel="返回答题卡详情"
+      />
       <main className="page detail-page preview-page">
         {printable ? (
           <div className="print-preview a4-preview">

@@ -6,11 +6,18 @@ function answerSheetWith(questionCount: number, optionCount = 4, candidateNumber
     id: "test",
     name: "测试",
     subject: "数学",
-    questionCount,
-    answers: Array.from({ length: questionCount }, (_, index) =>
-      "ABCDEFGHIJ"[index % optionCount],
-    ) as Option[],
-    sections: [{ id: "s", name: "第一大题", questionCount, pointsPerQuestion: 5, optionCount }],
+    sections: [
+      {
+        id: "s",
+        name: "第一大题",
+        pointsPerQuestion: 5,
+        optionCount,
+        questions: Array.from({ length: questionCount }, (_, index) => ({
+          id: `q${index}`,
+          answer: "ABCDEFGHIJ"[index % optionCount] as Option,
+        })),
+      },
+    ],
     candidateNumberLength,
     createdAt: "2025-01-01T00:00:00.000Z",
     isTemplate: true,
@@ -53,9 +60,20 @@ describe("OMR marker validation", () => {
       id: "test",
       name: "测试",
       subject: "数学",
-      questionCount: 3,
-      answers: ["A", "B", "C"] as Option[],
       candidateNumberLength: 6,
+      sections: [
+        {
+          id: "s",
+          name: "第一大题",
+          pointsPerQuestion: 5,
+          optionCount: 4,
+          questions: [
+            { id: "q1", answer: "A" as Option },
+            { id: "q2", answer: "B" as Option },
+            { id: "q3", answer: "C" as Option },
+          ],
+        },
+      ],
       createdAt: "2025-01-01T00:00:00.000Z",
       isTemplate: true,
     };

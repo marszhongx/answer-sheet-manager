@@ -64,10 +64,21 @@ describe("Answer Sheet Manager H5", () => {
           id: "math-1",
           name: "单元测验",
           subject: "数学",
-          questionCount: 3,
-          answers: ["A", "B", "C"],
           candidateNumberLength: 6,
           isTemplate: true,
+          sections: [
+            {
+              id: "s1",
+              name: "第一大题",
+              pointsPerQuestion: 5,
+              optionCount: 4,
+              questions: [
+                { id: "q1", answer: "A" },
+                { id: "q2", answer: "B" },
+                { id: "q3", answer: "C" },
+              ],
+            },
+          ],
           records: [{ name: "张同学" }],
           createdAt: "2025-01-01T00:00:00.000Z",
         },

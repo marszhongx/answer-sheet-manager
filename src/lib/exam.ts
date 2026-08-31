@@ -1,10 +1,10 @@
-import { GradedStudent } from "./grading";
+import { ScanRecord } from "./grading";
 
 export type Exam = {
   id: string;
   name: string;
   answerSheetId: string;
   classroomId: string;
-  records: GradedStudent[];
+  scanRecords: ScanRecord[];
   createdAt: string;
 };

@@ -4,23 +4,13 @@ import Input from "../components/Input";
 import PageHeader from "../components/PageHeader";
 import Select from "../components/Select";
 import { Check } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { Exam } from "../lib/exam";
 import { useAppStore } from "../store/appStore";
 
-export type ExamDraft = {
-  id: string;
-  name: string;
-  answerSheetId: string;
-  classroomId: string;
-  createdAt: string;
-};
-
-type Props = {
-  onSave: (draft: ExamDraft) => void;
-  onBack: () => void;
-};
-export default function NewExamPage({ onSave, onBack }: Props) {
+export default function NewExamPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const examMap = useAppStore((state) => state.examMap);
   const answerSheetList = useAppStore((state) => state.answerSheetList);
   const classroomList = useAppStore((state) => state.classroomList);
@@ -40,19 +30,40 @@ export default function NewExamPage({ onSave, onBack }: Props) {
   const canSave = Boolean(name.trim() && (editing || (answerSheetId && classroomId)));
   const save = () => {
     if (!canSave) return;
-    onSave({
-      id: exam?.id ?? crypto.randomUUID(),
+    const store = useAppStore.getState();
+    if (exam) {
+      store.updateExam({
+        ...exam,
+        name: name.trim(),
+      });
+      store.notify("考试已保存");
+      navigate(`/exams/${exam.id}`);
+      return;
+    }
+    const sourceSheet = answerSheetMap[answerSheetId];
+    const sourceClassroom = classroomMap[classroomId];
+    if (!sourceSheet || !sourceClassroom) return;
+    const sheetCopy = { ...sourceSheet, id: crypto.randomUUID(), isTemplate: false };
+    const classroomCopy = { ...sourceClassroom, id: crypto.randomUUID(), isTemplate: false };
+    store.createAnswerSheet(sheetCopy);
+    store.createClassroom(classroomCopy);
+    const nextExam: Exam = {
+      id: crypto.randomUUID(),
       name: name.trim(),
-      answerSheetId: exam?.answerSheetId ?? answerSheetId,
-      classroomId: exam?.classroomId ?? classroomId,
-      createdAt: exam?.createdAt ?? new Date().toISOString(),
-    });
+      answerSheetId: sheetCopy.id,
+      classroomId: classroomCopy.id,
+      scanRecords: [],
+      createdAt: new Date().toISOString(),
+    };
+    store.createExam(nextExam);
+    store.notify("考试已创建");
+    navigate(`/exams/${nextExam.id}`);
   };
   return (
     <>
       <PageHeader
         title={editing ? "编辑考试" : "新建考试"}
-        onBack={onBack}
+        onBack={() => navigate("/exams")}
         backLabel="返回考试管理"
       />
       <main className="page new-answer-sheet-page">

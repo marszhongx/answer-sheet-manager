@@ -1,23 +1,34 @@
 import PageHeader from "../components/PageHeader";
 import { BarChart3, Download } from "lucide-react";
-import { Navigate, useParams } from "react-router-dom";
-import { averageScore, downloadCSV, questionRates, toCSV } from "../lib/grading";
-import { questionPoints } from "../lib/omr";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
+import {
+  averageScore,
+  correctCountOf,
+  downloadCSV,
+  questionRates,
+  scoreOf,
+  studentNameOf,
+  toCSV,
+  totalScoreOf,
+} from "../lib/grading";
+import { questionCount } from "../lib/omr";
 import { useAppStore } from "../store/appStore";
 
-type Props = { onBack: () => void };
-export default function AnalysisPage({ onBack }: Props) {
+export default function AnalysisPage() {
+  const navigate = useNavigate();
   const { id } = useParams();
   const examMap = useAppStore((state) => state.examMap);
   const answerSheetMap = useAppStore((state) => state.answerSheetMap);
+  const classroomMap = useAppStore((state) => state.classroomMap);
   const exam = examMap[id ?? ""];
   const answerSheet = exam ? answerSheetMap[exam.answerSheetId] : undefined;
   if (!exam || !answerSheet) return <Navigate to="/exams" replace />;
-  const records = exam.records;
+  const records = exam.scanRecords;
+  const classroom = classroomMap[exam.classroomId];
   if (!records.length)
     return (
       <>
-        <PageHeader title="阅卷记录" onBack={onBack} backLabel="返回考试详情" />
+        <PageHeader title="阅卷记录" onBack={() => navigate(`/exams/${id}`)} backLabel="返回考试详情" />
         <main className="page analysis-page">
           <section className="analysis-empty">
             <BarChart3 size={34} />
@@ -27,12 +38,12 @@ export default function AnalysisPage({ onBack }: Props) {
         </main>
       </>
     );
-  const rates = questionRates(records, answerSheet.questionCount);
-  const average = averageScore(records);
-  const totalScore = questionPoints(answerSheet).reduce((sum, point) => sum + point, 0);
+  const rates = questionRates(answerSheet, records);
+  const average = averageScore(answerSheet, records);
+  const totalScore = totalScoreOf(answerSheet);
   return (
     <>
-      <PageHeader title="阅卷记录" onBack={onBack} backLabel="返回考试详情" />
+      <PageHeader title="阅卷记录" onBack={() => navigate(`/exams/${id}`)} backLabel="返回考试详情" />
       <main className="page analysis-page">
         <section className="score-hero">
           <span>班级平均分</span>
@@ -42,11 +53,11 @@ export default function AnalysisPage({ onBack }: Props) {
         </section>
         <section className="analysis-grid">
           <div>
-            <b>{Math.max(...records.map((record) => record.score))}</b>
+            <b>{Math.max(...records.map((record) => scoreOf(answerSheet, record.answers)))}</b>
             <span>最高分</span>
           </div>
           <div>
-            <b>{Math.min(...records.map((record) => record.score))}</b>
+            <b>{Math.min(...records.map((record) => scoreOf(answerSheet, record.answers)))}</b>
             <span>最低分</span>
           </div>
           <div>
@@ -73,7 +84,12 @@ export default function AnalysisPage({ onBack }: Props) {
           <div className="section-head">
             <h2>成绩明细</h2>
             <button
-              onClick={() => downloadCSV(`${answerSheet.name}-成绩表.csv`, toCSV(answerSheet, records))}
+              onClick={() =>
+                downloadCSV(
+                  `${answerSheet.name}-成绩表.csv`,
+                  toCSV(answerSheet, records, classroom),
+                )
+              }
             >
               <Download size={13} />
               导出 CSV
@@ -87,11 +103,11 @@ export default function AnalysisPage({ onBack }: Props) {
             </div>
             {records.map((record) => (
               <div className="student-row" key={record.fileName}>
-                <span>{record.name}</span>
+                <span>{studentNameOf(classroom, record.studentNumber)}</span>
                 <span>
-                  {record.correctCount} / {answerSheet.questionCount}
+                  {correctCountOf(answerSheet, record.answers)} / {questionCount(answerSheet)}
                 </span>
-                <b>{record.score}</b>
+                <b>{scoreOf(answerSheet, record.answers)}</b>
               </div>
             ))}
           </div>

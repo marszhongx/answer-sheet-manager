@@ -1,14 +1,11 @@
 import ListCard from "../components/ListCard";
 import PageHeader from "../components/PageHeader";
 import { ClipboardPlus, Plus, ScanLine } from "lucide-react";
-import { Exam } from "../lib/exam";
+import { useNavigate } from "react-router-dom";
 import { useAppStore } from "../store/appStore";
 
-type Props = {
-  onCreate: () => void;
-  onSelect: (exam: Exam) => void;
-};
-export default function ExamsPage({ onCreate, onSelect }: Props) {
+export default function ExamsPage() {
+  const navigate = useNavigate();
   const examList = useAppStore((state) => state.examList);
   const answerSheetMap = useAppStore((state) => state.answerSheetMap);
   const classroomMap = useAppStore((state) => state.classroomMap);
@@ -17,7 +14,11 @@ export default function ExamsPage({ onCreate, onSelect }: Props) {
       <PageHeader
         title="考试管理"
         action={
-          <button onClick={onCreate} className="create-mini" aria-label="新建考试">
+          <button
+            onClick={() => navigate("/exams/new")}
+            className="create-mini"
+            aria-label="新建考试"
+          >
             <Plus size={20} />
           </button>
         }
@@ -34,8 +35,8 @@ export default function ExamsPage({ onCreate, onSelect }: Props) {
                   answerSheetMap[exam.answerSheetId]?.name ?? "未知答题卡",
                 ]}
                 title={exam.name}
-                description={`已阅 ${exam.records.length} 份`}
-                onClick={() => onSelect(exam)}
+                description={`已阅 ${exam.scanRecords.length} 份`}
+                onClick={() => navigate(`/exams/${exam.id}`)}
               />
             ))}
           </div>
@@ -44,7 +45,7 @@ export default function ExamsPage({ onCreate, onSelect }: Props) {
             <ClipboardPlus size={37} />
             <h2>还没有考试</h2>
             <p>选择答题卡和班级后创建考试，扫描成绩会保存到该考试中。</p>
-            <button onClick={onCreate}>
+            <button onClick={() => navigate("/exams/new")}>
               <Plus size={18} />
               新建考试
             </button>
