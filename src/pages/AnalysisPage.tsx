@@ -1,7 +1,7 @@
 import PageHeader from "../components/PageHeader";
 import { BarChart3, Download } from "lucide-react";
 import { averageScore, downloadCSV, GradedStudent, questionRates, toCSV } from "../lib/grading";
-import { AnswerCardTemplate } from "../lib/omr";
+import { AnswerCardTemplate, questionPoints } from "../lib/omr";
 
 type Props = { template: AnswerCardTemplate | null; records: GradedStudent[]; onBack: () => void };
 export default function AnalysisPage({ template, records, onBack }: Props) {
@@ -20,6 +20,7 @@ export default function AnalysisPage({ template, records, onBack }: Props) {
     );
   const rates = questionRates(records, template.questionCount);
   const average = averageScore(records);
+  const totalScore = questionPoints(template).reduce((sum, point) => sum + point, 0);
   return (
     <>
       <PageHeader title="阅卷记录" onBack={onBack} backLabel="返回考试详情" />
@@ -27,7 +28,7 @@ export default function AnalysisPage({ template, records, onBack }: Props) {
         <section className="score-hero">
           <span>班级平均分</span>
           <b>{average.toFixed(1)}</b>
-          <small>/ {template.questionCount * 5} 分</small>
+          <small>/ {totalScore} 分</small>
           <p>{records.length} 份真实识别答卷</p>
         </section>
         <section className="analysis-grid">

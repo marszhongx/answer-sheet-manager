@@ -4,6 +4,7 @@ import {
   AnswerCardTemplate,
   createLayout,
   questionOptions,
+  questionPoints,
   Recognition,
   recognizeWarpedCard,
 } from "../lib/omr";
@@ -27,7 +28,7 @@ function chooseCorners(points: Point[]): Point[] | null {
   if (points.length < 4) return null;
   const unique = (point: Point, used: Point[]) => !used.some((item) => isClose(point, item));
   const select = (sort: (a: Point, b: Point) => number, used: Point[]) =>
-    points.toSorted(sort).find((point) => unique(point, used));
+    [...points].sort(sort).find((point) => unique(point, used));
   const selected: Point[] = [];
   const topLeft = select((a, b) => a.x + a.y - b.x - b.y, selected);
   if (!topLeft) return null;
@@ -77,6 +78,8 @@ export default function LiveScanner({ template, onConfirm, onClose }: Props) {
   const [state, setState] = useState<ScannerState>("loading");
   const [message, setMessage] = useState("正在启动相机");
   const [recognition, setRecognition] = useState<Recognition | null>(null);
+  const points = questionPoints(template);
+  const totalScore = points.reduce((sum, point) => sum + point, 0);
 
   useEffect(() => {
     let disposed = false;
@@ -188,10 +191,13 @@ export default function LiveScanner({ template, onConfirm, onClose }: Props) {
       {recognition && (
         <div className="scanner-score">
           <b>
-            {recognition.answers.filter((answer, index) => answer === template.answers[index])
-              .length * 5}
+            {recognition.answers.reduce(
+              (sum, answer, index) =>
+                answer === template.answers[index] ? sum + points[index] : sum,
+              0,
+            )}
           </b>
-          <span>/ {template.questionCount * 5} 分</span>
+          <span>/ {totalScore} 分</span>
         </div>
       )}
       <footer className="scanner-footer">
@@ -225,7 +231,6 @@ async function processFrame(
   let targetPoints: any;
   let transform: any;
   let inverse: any;
-  let full: any;
   let warped: any;
   try {
     const cv = await getOpenCv();
@@ -287,10 +292,9 @@ async function processFrame(
     transform = cv.getPerspectiveTransform(sourcePoints, targetPoints);
     inverse = new cv.Mat();
     cv.invert(transform, inverse);
-    full = cv.imread(frame);
     warped = new cv.Mat();
     cv.warpPerspective(
-      full,
+      src,
       warped,
       transform,
       new cv.Size(layout.width, layout.height),
@@ -307,6 +311,7 @@ async function processFrame(
     const recognition = recognizeWarpedCard(
       warpedContext.getImageData(0, 0, layout.width, layout.height),
       template,
+      true,
     );
     const inverseMatrix = Array.from(inverse.data64F as Float64Array);
     drawOverlay(overlay, corners, layout, inverseMatrix, recognition, template);
@@ -332,7 +337,6 @@ async function processFrame(
       targetPoints,
       transform,
       inverse,
-      full,
       warped,
     ].forEach((value) => value?.delete());
   }

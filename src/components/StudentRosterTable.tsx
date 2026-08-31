@@ -8,6 +8,38 @@ import styles from "./StudentRosterTable.module.css";
 
 type Props = { students: Student[]; onChange: (students: Student[]) => void };
 
+function NameCell({ student, onChange }: { student: Student; onChange: (value: string) => void }) {
+  return (
+    <Input size="sm" value={student.name} onChange={(event) => onChange(event.target.value)} />
+  );
+}
+
+function NumberCell({
+  student,
+  onChange,
+}: {
+  student: Student;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <Input
+      size="sm"
+      value={student.studentNumber}
+      inputMode="numeric"
+      placeholder="例如：88"
+      onChange={(event) => onChange(event.target.value.replace(/\D/g, ""))}
+    />
+  );
+}
+
+function renderName(student: Student, onValueChange: (value: string) => void) {
+  return <NameCell student={student} onChange={onValueChange} />;
+}
+
+function renderNumber(student: Student, onValueChange: (value: string) => void) {
+  return <NumberCell student={student} onChange={onValueChange} />;
+}
+
 export default function StudentRosterTable({ students, onChange }: Props) {
   const [error, setError] = useState<string | null>(null);
   const importFile = async (file: File) => {
@@ -36,26 +68,12 @@ export default function StudentRosterTable({ students, onChange }: Props) {
           {
             key: "name",
             label: "学生姓名",
-            render: (student, onValueChange) => (
-              <Input
-                size="sm"
-                value={student.name}
-                onChange={(event) => onValueChange(event.target.value)}
-              />
-            ),
+            render: renderName,
           },
           {
             key: "studentNumber",
             label: "学号",
-            render: (student, onValueChange) => (
-              <Input
-                size="sm"
-                value={student.studentNumber}
-                inputMode="numeric"
-                placeholder="例如：88"
-                onChange={(event) => onValueChange(event.target.value.replace(/\D/g, ""))}
-              />
-            ),
+            render: renderNumber,
           },
         ]}
         title="学生名单"

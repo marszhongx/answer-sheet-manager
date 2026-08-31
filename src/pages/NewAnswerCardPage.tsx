@@ -9,6 +9,7 @@ import {
   AnswerCardTemplate,
   createAnswers,
   defaultSections,
+  fitsA4,
   QuestionSection,
   templateSections,
 } from "../lib/omr";
@@ -35,6 +36,7 @@ export default function NewAnswerCardPage({ template, onSave, onBack }: Props) {
   const [sections, setSections] = useState(() =>
     template ? templateSections(template) : defaultSections(),
   );
+  const [error, setError] = useState<string | null>(null);
   const editing = Boolean(template);
   const totals = useMemo(
     () => ({
@@ -54,7 +56,7 @@ export default function NewAnswerCardPage({ template, onSave, onBack }: Props) {
     const cleanName = name.trim();
     if (!cleanName || !totals.questions) return;
     const answers = template?.answers ?? createAnswers(totals.questions);
-    onSave({
+    const candidate: AnswerCardTemplate = {
       id: template?.id ?? crypto.randomUUID(),
       name: cleanName,
       subject,
@@ -66,7 +68,12 @@ export default function NewAnswerCardPage({ template, onSave, onBack }: Props) {
         ...createAnswers(Math.max(0, totals.questions - answers.length)),
       ],
       createdAt: template?.createdAt ?? new Date().toISOString(),
-    });
+    };
+    if (!fitsA4(candidate)) {
+      setError("题目过多，答题卡将超出 A4 纸张范围，请减少题目数量或选项数量");
+      return;
+    }
+    onSave(candidate);
   };
   return (
     <>
@@ -170,12 +177,20 @@ export default function NewAnswerCardPage({ template, onSave, onBack }: Props) {
           ))}
           <button
             className="add-section"
-            onClick={() => setSections((current) => [...current, makeSection(current.length)])}
+            onClick={() => {
+              setError(null);
+              setSections((current) => [...current, makeSection(current.length)]);
+            }}
           >
             <Plus size={18} />
             添加大题
           </button>
         </section>
+        {error && (
+          <p className="form-error" role="alert">
+            {error}
+          </p>
+        )}
         <button
           className="create-template-button"
           disabled={!name.trim() || !totals.questions}

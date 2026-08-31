@@ -1,4 +1,4 @@
-import ImageUploader from "../components/ImageUploader";
+import FileUploader from "../components/FileUploader";
 import PageHeader from "../components/PageHeader";
 import { useState } from "react";
 import { Camera, ChevronRight, ImagePlus, LayoutTemplate, ScanLine } from "lucide-react";
@@ -91,10 +91,10 @@ export default function ScanPage({ template, onBack, onSelect, onScanned, notify
                 <Camera size={20} />
                 打开实时相机
               </button>
-              <ImageUploader className="album-button" onFile={importImage}>
+              <FileUploader className="album-button" accept="image/*" onFile={importImage}>
                 <ImagePlus size={19} />
                 导入已拍摄答题卡
-              </ImageUploader>
+              </FileUploader>
             </section>
             {processing && (
               <p className="scan-tip">

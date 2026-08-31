@@ -1,7 +1,7 @@
 import ListCard from "../components/ListCard";
 import PageHeader from "../components/PageHeader";
 import { FileText, Plus } from "lucide-react";
-import { AnswerCardTemplate } from "../lib/omr";
+import { AnswerCardTemplate, questionPoints } from "../lib/omr";
 import EmptyState from "./EmptyState";
 
 type Props = {
@@ -31,7 +31,7 @@ export default function TemplatesPage({ templates, onCreate, onSelect }: Props) 
                 leading={<FileText size={22} />}
                 tags={[template.subject]}
                 title={template.name}
-                description={`${template.questionCount} 道单选题 · 每题 5 分`}
+                description={`${template.questionCount} 道单选题 · 共 ${questionPoints(template).reduce((sum, point) => sum + point, 0)} 分`}
                 onClick={() => onSelect(template)}
               />
             ))}

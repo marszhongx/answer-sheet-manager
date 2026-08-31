@@ -1,4 +1,4 @@
-import { InputHTMLAttributes } from "react";
+import { InputHTMLAttributes, useState } from "react";
 import { Minus, Plus } from "lucide-react";
 import styles from "./NumberInput.module.css";
 
@@ -25,7 +25,22 @@ export default function NumberInput({
   className,
   ...props
 }: Props) {
-  const setValue = (next: number) => onChange(Math.min(max, Math.max(min, next)));
+  const [draft, setDraft] = useState(String(value));
+  const [prevValue, setPrevValue] = useState(value);
+  if (prevValue !== value) {
+    setPrevValue(value);
+    setDraft(String(value));
+  }
+  const commit = (raw: string) => {
+    const next = raw === "" ? min : Math.min(max, Math.max(min, Number(raw) || min));
+    setDraft(String(next));
+    if (next !== value) onChange(next);
+  };
+  const step = (next: number) => {
+    const clamped = Math.min(max, Math.max(min, next));
+    setDraft(String(clamped));
+    onChange(clamped);
+  };
   const classes = [
     styles.root,
     styles[size],
@@ -43,7 +58,7 @@ export default function NumberInput({
         type="button"
         aria-label="减少"
         disabled={value <= min}
-        onClick={() => setValue(value - 1)}
+        onClick={() => step(value - 1)}
       >
         <Minus size={15} />
       </button>
@@ -51,10 +66,14 @@ export default function NumberInput({
         {...props}
         className={styles.input}
         type="number"
-        value={value}
+        value={draft}
         min={min}
         max={max}
-        onChange={(event) => setValue(Number(event.target.value) || min)}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={() => commit(draft)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") commit(draft);
+        }}
       />
       {suffix && <span className={styles.suffix}>{suffix}</span>}
       <button
@@ -62,7 +81,7 @@ export default function NumberInput({
         type="button"
         aria-label="增加"
         disabled={value >= max}
-        onClick={() => setValue(value + 1)}
+        onClick={() => step(value + 1)}
       >
         <Plus size={15} />
       </button>

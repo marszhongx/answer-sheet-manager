@@ -44,4 +44,11 @@ describe("真实答案批改", () => {
     expect(csv).toContain("班级,学号,姓名,第1题,第2题,第3题,得分,总分");
     expect(csv).toContain("张同学,A,未识别,C,9,12");
   });
+
+  it("CSV 转义含逗号、引号与换行的字段", () => {
+    const record = gradeAnswers(template, "占位", "paper.jpg", ["A", "B", "C"], [1, 1, 1]);
+    const csv = toCSV(template, [{ ...record, name: '李"四",同学', className: "一班\n二班" }]);
+    expect(csv).toContain('"一班\n二班",,"李""四"",同学",A,B,C,12,12');
+    expect(csv.split("\n").length).toBe(3);
+  });
 });

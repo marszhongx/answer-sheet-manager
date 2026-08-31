@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from "react";
 import PageHeader from "../components/PageHeader";
 import { Copy, Download, FilePenLine, Trash2 } from "lucide-react";
-import { AnswerCardTemplate, drawA4PrintPage, templateSections } from "../lib/omr";
+import { AnswerCardTemplate, templateSections } from "../lib/omr";
 
 type Props = {
   template: AnswerCardTemplate;
@@ -9,8 +8,8 @@ type Props = {
   onBack: () => void;
   onEdit: () => void;
   onCopy: () => void;
+  onPreview: () => void;
   onDelete: () => void;
-  notify: (text: string) => void;
 };
 export default function TemplateDetailPage({
   template,
@@ -18,22 +17,9 @@ export default function TemplateDetailPage({
   onBack,
   onEdit,
   onCopy,
+  onPreview,
   onDelete,
-  notify,
 }: Props) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  const [printable, setPrintable] = useState(true);
-  useEffect(() => {
-    if (ref.current) setPrintable(drawA4PrintPage(ref.current, template));
-  }, [template]);
-  const download = () => {
-    if (!ref.current || !printable) return;
-    const link = document.createElement("a");
-    link.href = ref.current.toDataURL("image/png");
-    link.download = `${template.name.replace(/[\\/:*?"<>|]/g, "_")}.png`;
-    link.click();
-    notify("答题卡已下载");
-  };
   const total = templateSections(template).reduce(
     (sum, section) => sum + section.questionCount * section.pointsPerQuestion,
     0,
@@ -42,13 +28,24 @@ export default function TemplateDetailPage({
     <>
       <PageHeader title={template.name} onBack={onBack} backLabel="返回答题卡列表" />
       <main className="page detail-page">
-        {printable ? (
-          <div className="print-preview a4-preview">
-            <canvas ref={ref} />
+        <section className="exam-summary">
+          <div className="exam-info-row">
+            <span>答题卡名称</span>
+            <b>{template.name}</b>
           </div>
-        ) : (
-          <div className="print-preview-error">答题卡内容超出 A4 纸张范围，无法预览和下载。</div>
-        )}
+          <div className="exam-info-row">
+            <span>科目</span>
+            <b>{template.subject}</b>
+          </div>
+          <div className="exam-info-row">
+            <span>题目数量</span>
+            <b>{template.questionCount} 题</b>
+          </div>
+          <div className="exam-info-row">
+            <span>总分</span>
+            <b>{total} 分</b>
+          </div>
+        </section>
         <section className="detail-actions">
           <button onClick={onEdit} disabled={locked}>
             <FilePenLine size={19} />
@@ -58,9 +55,9 @@ export default function TemplateDetailPage({
             <Copy size={19} />
             复制答题卡
           </button>
-          <button onClick={download} disabled={!printable}>
+          <button onClick={onPreview}>
             <Download size={19} />
-            下载答题卡
+            预览并下载答题卡
           </button>
           <button className="danger-action" onClick={onDelete}>
             <Trash2 size={19} />

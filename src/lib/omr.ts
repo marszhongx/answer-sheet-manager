@@ -1,5 +1,3 @@
-import type { GradedStudent } from "./grading";
-
 export const OPTION_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"] as const;
 export type Option = (typeof OPTION_LABELS)[number];
 
@@ -69,7 +67,6 @@ const OPTION_GAP = 0;
 const COLUMN_GAP = 18;
 const ROW_HEIGHT = 28;
 const TOP_OFFSET = 112;
-const BOTTOM_PADDING = 38;
 const MARKER_SIZE = 28;
 const CANDIDATE_TEXT_HEIGHT = 22;
 const CANDIDATE_DIVIDER_Y = 390;
@@ -127,7 +124,6 @@ export function createLayout(
   const maxOptionCount = Math.max(2, Math.min(OPTION_LABELS.length, Math.max(...optionCounts, 4)));
   const questionCellWidth =
     QUESTION_NUMBER_WIDTH + maxOptionCount * OPTION_CELL_WIDTH + (maxOptionCount - 1) * OPTION_GAP;
-  const columnGap = COLUMN_GAP;
   const answerDividerX = OUTER_PADDING + identityWidth;
   const candidateDividerY = CANDIDATE_DIVIDER_Y;
   const candidateStartY = candidateDividerY + REGION_PADDING + CANDIDATE_TEXT_HEIGHT / 2;
@@ -280,22 +276,40 @@ export function drawAnswerCard(canvas: HTMLCanvasElement, template: AnswerCardTe
   });
 }
 
-export function drawA4PrintPage(canvas: HTMLCanvasElement, template: AnswerCardTemplate): boolean {
+function cardLayout(template: AnswerCardTemplate): CardLayout {
   const options = questionOptions(template);
-  const layout = createLayout(
+  return createLayout(
     template.questionCount,
     template.candidateNumberLength ?? DEFAULT_CANDIDATE_LENGTH,
     options.map((item) => item.length),
   );
+}
+
+export type A4Fit = { portrait: boolean; landscape: boolean };
+
+export function a4Fit(template: AnswerCardTemplate): A4Fit {
+  const layout = cardLayout(template);
+  return {
+    portrait:
+      layout.width <= A4_PORTRAIT.width &&
+      layout.height * 2 + A4_DOUBLE_CARD_GAP <= A4_PORTRAIT.height,
+    landscape: layout.width <= A4_LANDSCAPE.width && layout.height <= A4_LANDSCAPE.height,
+  };
+}
+
+export function fitsA4(template: AnswerCardTemplate): boolean {
+  const fit = a4Fit(template);
+  return fit.portrait || fit.landscape;
+}
+
+export function drawA4PrintPage(canvas: HTMLCanvasElement, template: AnswerCardTemplate): boolean {
+  const layout = cardLayout(template);
+  const fit = a4Fit(template);
+  if (!fit.portrait && !fit.landscape) return false;
   const card = document.createElement("canvas");
   drawAnswerCard(card, template);
-  const portraitFits =
-    layout.width <= A4_PORTRAIT.width &&
-    layout.height * 2 + A4_DOUBLE_CARD_GAP <= A4_PORTRAIT.height;
-  const landscapeFits = layout.width <= A4_LANDSCAPE.width && layout.height <= A4_LANDSCAPE.height;
-  const page = portraitFits ? A4_PORTRAIT : A4_LANDSCAPE;
-  const twoCards = portraitFits;
-  if (!landscapeFits && !portraitFits) return false;
+  const page = fit.portrait ? A4_PORTRAIT : A4_LANDSCAPE;
+  const twoCards = fit.portrait;
   const gap = twoCards ? A4_DOUBLE_CARD_GAP : 0;
   canvas.width = page.width;
   canvas.height = page.height;
@@ -393,9 +407,7 @@ export function classifyFillRates(
   const answers: Array<Option | null> = [];
   const confidence: number[] = [];
   fillRates.forEach((rates, question) => {
-    const sorted = rates
-      .map((rate, index) => ({ rate, index }))
-      .toSorted((a, b) => b.rate - a.rate);
+    const sorted = rates.map((rate, index) => ({ rate, index })).sort((a, b) => b.rate - a.rate);
     answers.push(
       sorted[0].rate >= 0.18 && sorted[0].rate - sorted[1].rate >= 0.06
         ? options[question][sorted[0].index]
@@ -412,11 +424,7 @@ export function recognizeWarpedCard(
   markerValid = true,
 ): Recognition {
   const options = questionOptions(template);
-  const layout = createLayout(
-    template.questionCount,
-    template.candidateNumberLength ?? DEFAULT_CANDIDATE_LENGTH,
-    options.map((item) => item.length),
-  );
+  const layout = cardLayout(template);
   const fillRates = options.map((item) => Array(item.length).fill(0));
   layout.bubbles.forEach((bubble) => {
     fillRates[bubble.question][options[bubble.question].indexOf(bubble.option)] = darkness(
@@ -437,9 +445,7 @@ export function recognizeWarpedCard(
     );
   });
   const digits = studentRates.map((rates) => {
-    const sorted = rates
-      .map((rate, value) => ({ rate, value }))
-      .toSorted((a, b) => b.rate - a.rate);
+    const sorted = rates.map((rate, value) => ({ rate, value })).sort((a, b) => b.rate - a.rate);
     return sorted[0].rate >= 0.18 && sorted[0].rate - sorted[1].rate >= 0.06
       ? String(sorted[0].value)
       : null;
@@ -458,12 +464,7 @@ export function recognizeAnswerCard(
   sourceHeight: number,
   template: AnswerCardTemplate,
 ): Recognition {
-  const options = questionOptions(template);
-  const layout = createLayout(
-    template.questionCount,
-    template.candidateNumberLength ?? DEFAULT_CANDIDATE_LENGTH,
-    options.map((item) => item.length),
-  );
+  const layout = cardLayout(template);
   const imageData = cropAndScale(image, sourceWidth, sourceHeight, layout);
   return recognizeWarpedCard(imageData, template, hasValidMarkers(imageData, layout));
 }

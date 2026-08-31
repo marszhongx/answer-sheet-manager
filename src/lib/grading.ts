@@ -53,6 +53,11 @@ export function averageScore(records: GradedStudent[]): number {
     : 0;
 }
 
+function escapeCSV(value: string | number): string {
+  const text = String(value);
+  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
 export function toCSV(template: AnswerCardTemplate, records: GradedStudent[]): string {
   const header = [
     "班级",
@@ -70,7 +75,7 @@ export function toCSV(template: AnswerCardTemplate, records: GradedStudent[]): s
     record.score,
     record.totalScore,
   ]);
-  return `\uFEFF${[header, ...rows].map((row) => row.join(",")).join("\n")}`;
+  return `\uFEFF${[header, ...rows].map((row) => row.map(escapeCSV).join(",")).join("\n")}`;
 }
 
 export function downloadCSV(fileName: string, csv: string) {
@@ -79,6 +84,8 @@ export function downloadCSV(fileName: string, csv: string) {
   const link = document.createElement("a");
   link.href = url;
   link.download = fileName;
+  document.body.appendChild(link);
   link.click();
-  URL.revokeObjectURL(url);
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

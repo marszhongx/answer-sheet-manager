@@ -1,5 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { createLayout, hasValidMarkers, Option, recognizeWarpedCard } from "./omr";
+import { createLayout, fitsA4, hasValidMarkers, Option, recognizeWarpedCard } from "./omr";
+
+function templateWith(questionCount: number, optionCount = 4, candidateNumberLength = 6) {
+  return {
+    id: "test",
+    name: "测试",
+    subject: "数学",
+    questionCount,
+    answers: Array.from({ length: questionCount }, (_, index) =>
+      "ABCDEFGHIJ"[index % optionCount],
+    ) as Option[],
+    sections: [{ id: "s", name: "第一大题", questionCount, pointsPerQuestion: 5, optionCount }],
+    candidateNumberLength,
+    createdAt: "2025-01-01T00:00:00.000Z",
+  };
+}
 
 function imageWithMarkers(includeLast = true): ImageData {
   const layout = createLayout(3);
@@ -43,5 +58,17 @@ describe("OMR marker validation", () => {
       createdAt: "2025-01-01T00:00:00.000Z",
     };
     expect(recognizeWarpedCard(imageWithMarkers(false), template, false).markerValid).toBe(false);
+  });
+});
+
+describe("A4 可打印性校验", () => {
+  it("常见配置可放入 A4", () => {
+    expect(fitsA4(templateWith(20))).toBe(true);
+    expect(fitsA4(templateWith(50))).toBe(true);
+  });
+
+  it("题目过多时拒绝创建", () => {
+    expect(fitsA4(templateWith(100))).toBe(false);
+    expect(fitsA4(templateWith(60, 10))).toBe(false);
   });
 });

@@ -18,7 +18,14 @@ export default function FileUploader({ children, onFile, className, ...props }: 
       <button type="button" className={className} onClick={() => inputRef.current?.click()}>
         {children}
       </button>
-      <input {...props} ref={inputRef} type="file" onChange={handleChange} hidden />
+      <input
+        {...props}
+        ref={inputRef}
+        type="file"
+        accept={props.accept ?? "image/*"}
+        onChange={handleChange}
+        hidden
+      />
     </>
   );
 }

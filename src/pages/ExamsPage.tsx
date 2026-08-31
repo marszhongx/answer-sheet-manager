@@ -1,6 +1,6 @@
 import ListCard from "../components/ListCard";
 import PageHeader from "../components/PageHeader";
-import { BarChart3, ClipboardPlus, Plus, ScanLine } from "lucide-react";
+import { ClipboardPlus, Plus, ScanLine } from "lucide-react";
 import { Exam } from "../lib/exam";
 
 type Props = {
