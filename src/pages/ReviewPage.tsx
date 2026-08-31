@@ -1,5 +1,6 @@
 import { useState } from "react";
 import PageHeader from "../components/PageHeader";
+import SubmitButton from "../components/SubmitButton";
 import { Check, FileImage } from "lucide-react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { gradeAnswers } from "../lib/grading";
@@ -95,14 +96,9 @@ export default function ReviewPage() {
             </div>
           ))}
         </section>
-        <button
-          onClick={save}
-          disabled={!canSave}
-          className="create-answer-sheet-button"
-        >
-          <Check size={19} />
+        <SubmitButton icon={<Check size={19} />} disabled={!canSave} onClick={save}>
           {canSave ? "确认批改并保存" : "请先补全所有题目"}
-        </button>
+        </SubmitButton>
         <small className="file-name">
           <FileImage size={14} />
           {fileName}

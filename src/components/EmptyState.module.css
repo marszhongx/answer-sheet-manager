@@ -1,0 +1,43 @@
+.empty {
+  display: grid;
+  justify-items: center;
+  padding: 65px 25px;
+  color: #89a09a;
+  text-align: center;
+}
+.empty h2 {
+  margin: 14px 0 7px;
+  color: #485751;
+  font-size: 17px;
+}
+.empty p {
+  max-width: 280px;
+  margin: 0;
+  color: #7c8983;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.empty button {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 21px;
+  padding: 11px 15px;
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  background: #176b58;
+  font-size: 13px;
+  font-weight: 600;
+}
+.card {
+  padding: 60px 22px;
+  border: 1px dashed #ccd8d2;
+  border-radius: 8px;
+  background: #fff;
+}
+.card h2 {
+  margin: 13px 0 7px;
+  color: #4a5952;
+  font-size: 16px;
+}

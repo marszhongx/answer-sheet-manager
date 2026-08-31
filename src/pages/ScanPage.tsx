@@ -1,12 +1,13 @@
 import FileUploader from "../components/FileUploader";
+import Note from "../components/Note";
 import PageHeader from "../components/PageHeader";
 import { useState } from "react";
 import { Camera, ChevronRight, ImagePlus, LayoutTemplate, ScanLine } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import LiveScanner from "../components/LiveScanner";
+import EmptyState from "../components/EmptyState";
 import { AnswerSheet, questionCount, Recognition, recognizeAnswerSheet } from "../lib/omr";
 import { useAppStore } from "../store/appStore";
-import EmptyState from "./EmptyState";
 
 export default function ScanPage() {
   const { id } = useParams();
@@ -121,12 +122,18 @@ export default function ScanPage() {
                 正在读取答题卡真实填涂结果
               </p>
             )}
-            <p className="real-note">
+            <Note>
               导入图片只适用于正面、完整、未裁切的答题卡。倾斜拍摄请使用实时相机模式。
-            </p>
+            </Note>
           </>
         ) : (
-          <EmptyState onCreate={() => navigate("/exams")} />
+          <EmptyState
+            icon={<LayoutTemplate size={37} />}
+            title="还没有答题卡"
+            description="先创建一张标准答题卡，设置答案后即可打印并开始扫描阅卷。"
+            actionLabel="新建答题卡"
+            onAction={() => navigate("/exams")}
+          />
         )}
       </main>
     </>

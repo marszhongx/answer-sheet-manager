@@ -3,6 +3,8 @@ import PageHeader from "../components/PageHeader";
 import { BarChart3, Camera, Download, FilePenLine, Trash2 } from "lucide-react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import DeleteDialog from "../components/DeleteDialog";
+import ActionButton, { ActionList } from "../components/ActionButton";
+import InfoList, { InfoRow } from "../components/InfoList";
 import { drawA4PrintPage } from "../lib/omr";
 import { useAppStore } from "../store/appStore";
 
@@ -47,54 +49,47 @@ export default function ExamDetailPage() {
         ) : (
           <div className="print-preview-error">答题卡内容超出 A4 纸张范围，无法预览。</div>
         )}
-        <section className="exam-summary">
-          <div className="exam-info-row">
-            <span>考试名称</span>
-            <b>{exam.name}</b>
-          </div>
-          <div className="exam-info-row">
-            <span>答题卡</span>
-            <b>{answerSheet.name}</b>
-          </div>
-          <div className="exam-info-row">
-            <span>班级</span>
-            <b>{classroom.name}</b>
-          </div>
-          <div className="exam-info-row">
-            <span>已阅答卷</span>
-            <b>{exam.scanRecords.length} 份</b>
-          </div>
-        </section>
-        <section className="detail-actions">
-          <button onClick={() => navigate(`/exams/${exam.id}/edit`)} disabled={exam.scanRecords.length > 0}>
-            <FilePenLine size={19} />
+        <InfoList>
+          <InfoRow label="考试名称">{exam.name}</InfoRow>
+          <InfoRow label="答题卡">{answerSheet.name}</InfoRow>
+          <InfoRow label="班级">{classroom.name}</InfoRow>
+          <InfoRow label="已阅答卷">{exam.scanRecords.length} 份</InfoRow>
+        </InfoList>
+        <ActionList>
+          <ActionButton
+            icon={<FilePenLine size={19} />}
+            disabled={exam.scanRecords.length > 0}
+            onClick={() => navigate(`/exams/${exam.id}/edit`)}
+          >
             编辑考试
-          </button>
-          <button onClick={() => navigate(`/exams/${exam.id}/answer-sheet/edit`)} disabled={exam.scanRecords.length > 0}>
-            <FilePenLine size={19} />
+          </ActionButton>
+          <ActionButton
+            icon={<FilePenLine size={19} />}
+            disabled={exam.scanRecords.length > 0}
+            onClick={() => navigate(`/exams/${exam.id}/answer-sheet/edit`)}
+          >
             编辑考试答题卡
-          </button>
-          <button onClick={() => navigate(`/exams/${exam.id}/classroom/edit`)} disabled={exam.scanRecords.length > 0}>
-            <FilePenLine size={19} />
+          </ActionButton>
+          <ActionButton
+            icon={<FilePenLine size={19} />}
+            disabled={exam.scanRecords.length > 0}
+            onClick={() => navigate(`/exams/${exam.id}/classroom/edit`)}
+          >
             编辑考试班级
-          </button>
-          <button onClick={download} disabled={!printable}>
-            <Download size={19} />
+          </ActionButton>
+          <ActionButton icon={<Download size={19} />} disabled={!printable} onClick={download}>
             下载考试答题卡
-          </button>
-          <button className="primary-action" onClick={() => navigate(`/exams/${exam.id}/scan`)}>
-            <Camera size={19} />
+          </ActionButton>
+          <ActionButton variant="primary" icon={<Camera size={19} />} onClick={() => navigate(`/exams/${exam.id}/scan`)}>
             扫描答题卡
-          </button>
-          <button onClick={() => navigate(`/exams/${exam.id}/results`)}>
-            <BarChart3 size={19} />
+          </ActionButton>
+          <ActionButton icon={<BarChart3 size={19} />} onClick={() => navigate(`/exams/${exam.id}/results`)}>
             查看成绩
-          </button>
-          <button className="danger-action" onClick={() => setConfirming(true)}>
-            <Trash2 size={19} />
+          </ActionButton>
+          <ActionButton variant="danger" icon={<Trash2 size={19} />} onClick={() => setConfirming(true)}>
             删除考试
-          </button>
-        </section>
+          </ActionButton>
+        </ActionList>
       </main>
       {confirming && (
         <DeleteDialog

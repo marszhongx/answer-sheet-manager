@@ -4,6 +4,7 @@ import Input from "../components/Input";
 import NumberInput from "../components/NumberInput";
 import PageHeader from "../components/PageHeader";
 import Select from "../components/Select";
+import SubmitButton from "../components/SubmitButton";
 import { Check, Plus, Trash2 } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
@@ -290,14 +291,9 @@ export default function NewAnswerSheetPage() {
             {error}
           </p>
         )}
-        <button
-          className={`create-answer-sheet-button ${styles.createButton}`}
-          disabled={!name.trim() || !totals.questions}
-          onClick={save}
-        >
-          <Check size={19} />
+        <SubmitButton icon={<Check size={19} />} disabled={!name.trim() || !totals.questions} onClick={save}>
           {editing ? "保存答题卡" : "创建答题卡"}
-        </button>
+        </SubmitButton>
       </main>
     </>
   );

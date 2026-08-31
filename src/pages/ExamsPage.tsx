@@ -1,6 +1,8 @@
+import AddButton from "../components/AddButton";
+import EmptyState from "../components/EmptyState";
 import ListCard from "../components/ListCard";
 import PageHeader from "../components/PageHeader";
-import { ClipboardPlus, Plus, ScanLine } from "lucide-react";
+import { ClipboardPlus, ScanLine } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppStore } from "../store/appStore";
 
@@ -13,15 +15,7 @@ export default function ExamsPage() {
     <>
       <PageHeader
         title="考试管理"
-        action={
-          <button
-            onClick={() => navigate("/exams/new")}
-            className="create-mini"
-            aria-label="新建考试"
-          >
-            <Plus size={20} />
-          </button>
-        }
+        action={<AddButton label="新建考试" onClick={() => navigate("/exams/new")} />}
       />
       <main className="page answerSheets-page">
         {examList.length ? (
@@ -41,15 +35,13 @@ export default function ExamsPage() {
             ))}
           </div>
         ) : (
-          <section className="empty-state">
-            <ClipboardPlus size={37} />
-            <h2>还没有考试</h2>
-            <p>选择答题卡和班级后创建考试，扫描成绩会保存到该考试中。</p>
-            <button onClick={() => navigate("/exams/new")}>
-              <Plus size={18} />
-              新建考试
-            </button>
-          </section>
+          <EmptyState
+            icon={<ClipboardPlus size={37} />}
+            title="还没有考试"
+            description="选择答题卡和班级后创建考试，扫描成绩会保存到该考试中。"
+            actionLabel="新建考试"
+            onAction={() => navigate("/exams/new")}
+          />
         )}
       </main>
     </>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Download } from "lucide-react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
+import SubmitButton from "../components/SubmitButton";
 import { drawA4PrintPage } from "../lib/omr";
 import { useAppStore } from "../store/appStore";
 
@@ -38,10 +39,9 @@ export default function AnswerSheetPreviewPage() {
         ) : (
           <div className="print-preview-error">答题卡内容超出 A4 纸张范围，无法预览和下载。</div>
         )}
-        <button className="create-answer-sheet-button" onClick={download} disabled={!printable}>
-          <Download size={19} />
+        <SubmitButton icon={<Download size={19} />} disabled={!printable} onClick={download}>
           下载答题卡
-        </button>
+        </SubmitButton>
       </main>
     </>
   );

@@ -1,6 +1,8 @@
+import AddButton from "../components/AddButton";
+import EmptyState from "../components/EmptyState";
 import ListCard from "../components/ListCard";
 import PageHeader from "../components/PageHeader";
-import { Plus, UsersRound } from "lucide-react";
+import { UsersRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppStore } from "../store/appStore";
 
@@ -12,15 +14,7 @@ export default function StudentsPage() {
     <>
       <PageHeader
         title="学生管理"
-        action={
-          <button
-            onClick={() => navigate("/students/new")}
-            className="create-mini"
-            aria-label="新建班级"
-          >
-            <Plus size={20} />
-          </button>
-        }
+        action={<AddButton label="新建班级" onClick={() => navigate("/students/new")} />}
       />
       <main className="page answerSheets-page">
         {templates.length ? (
@@ -36,15 +30,13 @@ export default function StudentsPage() {
             ))}
           </div>
         ) : (
-          <section className="empty-state">
-            <UsersRound size={37} />
-            <h2>还没有班级</h2>
-            <p>先建立班级和学生学号，扫描准考证号后即可自动关联成绩。</p>
-            <button onClick={() => navigate("/students/new")}>
-              <Plus size={18} />
-              新建班级
-            </button>
-          </section>
+          <EmptyState
+            icon={<UsersRound size={37} />}
+            title="还没有班级"
+            description="先建立班级和学生学号，扫描准考证号后即可自动关联成绩。"
+            actionLabel="新建班级"
+            onAction={() => navigate("/students/new")}
+          />
         )}
       </main>
     </>

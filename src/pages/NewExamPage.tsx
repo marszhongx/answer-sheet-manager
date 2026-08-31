@@ -1,8 +1,10 @@
 import { useState } from "react";
 import FormSection from "../components/FormSection";
 import Input from "../components/Input";
+import Note from "../components/Note";
 import PageHeader from "../components/PageHeader";
 import Select from "../components/Select";
+import SubmitButton from "../components/SubmitButton";
 import { Check } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Exam } from "../lib/exam";
@@ -45,8 +47,8 @@ export default function NewExamPage() {
     if (!sourceSheet || !sourceClassroom) return;
     const sheetCopy = { ...sourceSheet, id: crypto.randomUUID(), isTemplate: false };
     const classroomCopy = { ...sourceClassroom, id: crypto.randomUUID(), isTemplate: false };
-    store.createAnswerSheet(sheetCopy);
-    store.createClassroom(classroomCopy);
+    await store.createAnswerSheet(sheetCopy);
+    await store.createClassroom(classroomCopy);
     const nextExam: Exam = {
       id: crypto.randomUUID(),
       name: name.trim(),
@@ -55,7 +57,7 @@ export default function NewExamPage() {
       scanRecords: [],
       createdAt: new Date().toISOString(),
     };
-    store.createExam(nextExam);
+    await store.createExam(nextExam);
     store.notify("考试已创建");
     navigate(`/exams/${nextExam.id}`);
   };
@@ -66,7 +68,7 @@ export default function NewExamPage() {
         onBack={() => navigate("/exams")}
         backLabel="返回考试管理"
       />
-      <main className="page new-answer-sheet-page">
+      <main className="page">
         <FormSection>
           <label>
             考试名称
@@ -107,7 +109,7 @@ export default function NewExamPage() {
                   ariaLabel="班级"
                 />
               </label>
-              <p className="real-note">答题卡与班级在考试详情中编辑，此处仅修改考试名称。</p>
+              <Note>答题卡与班级在考试详情中编辑，此处仅修改考试名称。</Note>
             </>
           ) : (
             <>
@@ -138,12 +140,11 @@ export default function NewExamPage() {
             </>
           )}
         </FormSection>
-        <button className="create-answer-sheet-button" disabled={!canSave} onClick={save}>
-          <Check size={19} />
+        <SubmitButton icon={<Check size={19} />} disabled={!canSave} onClick={save}>
           {editing ? "保存考试" : "创建考试"}
-        </button>
+        </SubmitButton>
         {!editing && (!answerSheets.length || !classrooms.length) && (
-          <p className="real-note">请先创建答题卡，并在班级管理中创建班级。</p>
+          <Note>请先创建答题卡，并在班级管理中创建班级。</Note>
         )}
       </main>
     </>

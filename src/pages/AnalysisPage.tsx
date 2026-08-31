@@ -1,3 +1,4 @@
+import EmptyState from "../components/EmptyState";
 import PageHeader from "../components/PageHeader";
 import { BarChart3, Download } from "lucide-react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
@@ -30,11 +31,12 @@ export default function AnalysisPage() {
       <>
         <PageHeader title="阅卷记录" onBack={() => navigate(`/exams/${id}`)} backLabel="返回考试详情" />
         <main className="page analysis-page">
-          <section className="analysis-empty">
-            <BarChart3 size={34} />
-            <h2>暂无阅卷记录</h2>
-            <p>创建标准答题卡后，通过相机或导入图片完成识别和人工复核。</p>
-          </section>
+          <EmptyState
+            card
+            icon={<BarChart3 size={34} />}
+            title="暂无阅卷记录"
+            description="创建标准答题卡后，通过相机或导入图片完成识别和人工复核。"
+          />
         </main>
       </>
     );

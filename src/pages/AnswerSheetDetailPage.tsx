@@ -3,6 +3,8 @@ import PageHeader from "../components/PageHeader";
 import { Copy, Download, FilePenLine, Trash2 } from "lucide-react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import DeleteDialog from "../components/DeleteDialog";
+import ActionButton, { ActionList } from "../components/ActionButton";
+import InfoList, { InfoRow } from "../components/InfoList";
 import { answerSheetSections, questionCount } from "../lib/omr";
 import { useAppStore } from "../store/appStore";
 
@@ -48,42 +50,26 @@ export default function AnswerSheetDetailPage() {
         backLabel="返回答题卡列表"
       />
       <main className="page detail-page">
-        <section className="exam-summary">
-          <div className="exam-info-row">
-            <span>答题卡名称</span>
-            <b>{answerSheet.name}</b>
-          </div>
-          <div className="exam-info-row">
-            <span>科目</span>
-            <b>{answerSheet.subject}</b>
-          </div>
-          <div className="exam-info-row">
-            <span>题目数量</span>
-            <b>{questionCount(answerSheet)} 题</b>
-          </div>
-          <div className="exam-info-row">
-            <span>总分</span>
-            <b>{total} 分</b>
-          </div>
-        </section>
-        <section className="detail-actions">
-          <button onClick={() => navigate(`/answer-sheets/${answerSheet.id}/edit`)}>
-            <FilePenLine size={19} />
+        <InfoList>
+          <InfoRow label="答题卡名称">{answerSheet.name}</InfoRow>
+          <InfoRow label="科目">{answerSheet.subject}</InfoRow>
+          <InfoRow label="题目数量">{questionCount(answerSheet)} 题</InfoRow>
+          <InfoRow label="总分">{total} 分</InfoRow>
+        </InfoList>
+        <ActionList>
+          <ActionButton icon={<FilePenLine size={19} />} onClick={() => navigate(`/answer-sheets/${answerSheet.id}/edit`)}>
             编辑答题卡
-          </button>
-          <button onClick={copy}>
-            <Copy size={19} />
+          </ActionButton>
+          <ActionButton icon={<Copy size={19} />} onClick={copy}>
             复制答题卡
-          </button>
-          <button onClick={() => navigate(`/answer-sheets/${answerSheet.id}/preview`)}>
-            <Download size={19} />
+          </ActionButton>
+          <ActionButton icon={<Download size={19} />} onClick={() => navigate(`/answer-sheets/${answerSheet.id}/preview`)}>
             预览并下载答题卡
-          </button>
-          <button className="danger-action" onClick={() => setConfirming(true)}>
-            <Trash2 size={19} />
+          </ActionButton>
+          <ActionButton variant="danger" icon={<Trash2 size={19} />} onClick={() => setConfirming(true)}>
             删除答题卡
-          </button>
-        </section>
+          </ActionButton>
+        </ActionList>
       </main>
       {confirming && (
         <DeleteDialog

@@ -3,6 +3,7 @@ import FormSection from "../components/FormSection";
 import Input from "../components/Input";
 import PageHeader from "../components/PageHeader";
 import StudentRosterTable from "../components/StudentRosterTable";
+import SubmitButton from "../components/SubmitButton";
 import { Check } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Classroom, Student } from "../lib/roster";
@@ -54,7 +55,7 @@ export default function ClassroomEditorPage() {
         onBack={() => navigate(pathname.startsWith("/exams/") ? `/exams/${id}` : "/students")}
         backLabel="返回"
       />
-      <main className="page new-answer-sheet-page">
+      <main className="page">
         <FormSection>
           <label>
             班级名称
@@ -62,10 +63,9 @@ export default function ClassroomEditorPage() {
           </label>
         </FormSection>
         <StudentRosterTable students={students} onChange={setStudents} />
-        <button className="create-answer-sheet-button" disabled={!name.trim()} onClick={save}>
-          <Check size={19} />
+        <SubmitButton icon={<Check size={19} />} disabled={!name.trim()} onClick={save}>
           {editing ? "保存班级" : "创建班级"}
-        </button>
+        </SubmitButton>
       </main>
     </>
   );

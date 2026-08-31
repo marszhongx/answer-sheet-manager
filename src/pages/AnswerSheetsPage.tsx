@@ -1,10 +1,11 @@
+import AddButton from "../components/AddButton";
+import EmptyState from "../components/EmptyState";
 import ListCard from "../components/ListCard";
 import PageHeader from "../components/PageHeader";
-import { FileText, Plus } from "lucide-react";
+import { FileText, LayoutTemplate } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { questionCount, questionPoints } from "../lib/omr";
 import { useAppStore } from "../store/appStore";
-import EmptyState from "./EmptyState";
 
 export default function AnswerSheetsPage() {
   const navigate = useNavigate();
@@ -14,19 +15,17 @@ export default function AnswerSheetsPage() {
     <>
       <PageHeader
         title="答题卡"
-        action={
-          <button
-            onClick={() => navigate("/answer-sheets/new")}
-            className="create-mini"
-            aria-label="新建答题卡"
-          >
-            <Plus size={20} />
-          </button>
-        }
+        action={<AddButton label="新建答题卡" onClick={() => navigate("/answer-sheets/new")} />}
       />
       <main className="page answerSheets-page">
         {templates.length === 0 ? (
-          <EmptyState onCreate={() => navigate("/answer-sheets/new")} />
+          <EmptyState
+            icon={<LayoutTemplate size={37} />}
+            title="还没有答题卡"
+            description="先创建一张标准答题卡，设置答案后即可打印并开始扫描阅卷。"
+            actionLabel="新建答题卡"
+            onAction={() => navigate("/answer-sheets/new")}
+          />
         ) : (
           <div className="answer-sheet-list">
             {templates.map((answerSheet) => (

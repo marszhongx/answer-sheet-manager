@@ -1,0 +1,39 @@
+.list {
+  display: grid;
+  gap: 9px;
+  margin-top: 15px;
+}
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  height: 44px;
+  color: #41514a;
+  border: 1px solid #d8e2dc;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+.button:disabled {
+  color: #9ea9a4;
+  border-color: #e0e7e3;
+  background: #e9eeeb;
+}
+.primary {
+  color: #fff;
+  border-color: #176b58;
+  background: #176b58;
+}
+.danger {
+  color: #c53f32;
+  border-color: #efc3bd;
+  background: #fff4f2;
+}
+@media print {
+  .list {
+    display: none;
+  }
+}

@@ -1,0 +1,31 @@
+.list {
+  display: grid;
+  gap: 5px;
+  padding: 18px;
+  border: 1px solid #dfe7e2;
+  border-radius: 8px;
+  background: #fff;
+}
+.scroll {
+  max-height: min(62vh, 620px);
+  overflow-y: auto;
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 38px;
+  padding: 0 2px;
+  border-bottom: 1px solid #edf1ef;
+}
+.row:last-child {
+  border-bottom: 0;
+}
+.row span {
+  color: #74817b;
+  font-size: 11px;
+}
+.row b {
+  font-size: 16px;
+}

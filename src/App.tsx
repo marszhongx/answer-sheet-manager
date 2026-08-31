@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import BottomNav from "./components/BottomNav";
+import EmptyState from "./components/EmptyState";
 import Toast from "./components/Toast";
 import { useAppStore } from "./store/appStore";
 import AnalysisPage from "./pages/AnalysisPage";
@@ -22,9 +23,7 @@ export default function App() {
     return (
       <div className="app-shell">
         <main className="page">
-          <section className="analysis-empty">
-            <h2>正在加载数据…</h2>
-          </section>
+          <EmptyState card title="正在加载数据…" />
         </main>
       </div>
     );
