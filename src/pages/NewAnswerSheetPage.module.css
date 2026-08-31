@@ -1,0 +1,144 @@
+.editor .createButton {
+  margin-top: 24px;
+}
+.sectionsEditor {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+}
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+}
+.sectionHead h2 {
+  margin: 0;
+  font-size: 16px;
+}
+.sectionHead span {
+  color: #477a6b;
+  font-size: 12px;
+}
+.questionSection {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 9px;
+  padding: 13px;
+  border: 1px solid #dfe7e2;
+  border-radius: 8px;
+  background: #fff;
+}
+.questionSectionHeader {
+  display: flex;
+  grid-column: 1 / -1;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sectionNameInput {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  font-weight: 600;
+}
+.questionSection > label {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+  color: #64716b;
+  font-size: 11px;
+  text-align: center;
+}
+.iconDanger {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: #c53f32;
+  border: 1px solid #efc3bd;
+  border-radius: 5px;
+  background: #fff4f2;
+}
+.iconDanger:disabled {
+  opacity: 0.45;
+}
+.addSection {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  color: #176b58;
+  border: 1px dashed #82af9f;
+  border-radius: 6px;
+  background: #f5faf7;
+  font-weight: 600;
+}
+.answersEditor {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 7px;
+  margin: 14px 2px 0;
+  padding: 12px;
+  border: 1px dashed #d7e0da;
+  border-radius: 8px;
+  background: #fafcfa;
+}
+.answersLabel {
+  color: #68766f;
+  font-size: 11px;
+  font-weight: 600;
+}
+.answerRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.answerRow > b {
+  width: 24px;
+  color: #68766f;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: right;
+}
+.answerRow button {
+  min-width: 36px;
+  height: 34px;
+  color: #57645e;
+  border: 1px solid #d7e0da;
+  border-radius: 5px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+.answerRow button.selected {
+  color: #fff;
+  border-color: #176b58;
+  background: #176b58;
+}
+.answerRow .iconDanger {
+  min-width: 32px;
+  height: 32px;
+  margin-left: auto;
+  padding: 0;
+}
+.addQuestion {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 12px;
+  color: #176b58;
+  border: 1px dashed #8fb8a8;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 12px;
+}
+.formError {
+  margin: 15px 4px;
+  color: #b42318;
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
+}

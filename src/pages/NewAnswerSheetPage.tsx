@@ -17,6 +17,7 @@ import {
   answerSheetSections,
 } from "../lib/omr";
 import { useAppStore } from "../store/appStore";
+import styles from "./NewAnswerSheetPage.module.css";
 
 const makeSection = (index: number): QuestionSection => ({
   id: crypto.randomUUID(),
@@ -144,7 +145,7 @@ export default function NewAnswerSheetPage() {
         onBack={() => navigate(pathname.startsWith("/exams/") ? `/exams/${id}` : "/answer-sheets")}
         backLabel="返回"
       />
-      <main className="page answer-sheet-editor">
+      <main className={`page ${styles.editor}`}>
         <FormSection>
           <label>
             答题卡名称
@@ -179,23 +180,23 @@ export default function NewAnswerSheetPage() {
           </label>
         </FormSection>
         <section className="sections-editor">
-          <div className="section-head">
+          <div className={styles.sectionHead}>
             <h2>题目结构</h2>
             <span>
               {totals.questions} 题 / {totals.score} 分
             </span>
           </div>
           {sections.map((section, index) => (
-            <div className="question-section" key={section.id}>
-              <div>
+            <div className={styles.questionSection} key={section.id}>
+              <div className={styles.questionSectionHeader}>
                 <Input
                   aria-label={`第${index + 1}大题名称`}
-                  className="section-name-input"
+                  className={styles.sectionNameInput}
                   value={section.name}
                   onChange={(event) => updateSection(section.id, "name", event.target.value)}
                 />
                 <button
-                  className="icon-danger"
+                  className={styles.iconDanger}
                   aria-label={`删除${section.name}`}
                   disabled={sections.length === 1}
                   onClick={() =>
@@ -235,23 +236,23 @@ export default function NewAnswerSheetPage() {
                   onChange={(value) => updateSection(section.id, "optionCount", value)}
                 />
               </label>
-              <div className="answers-editor">
-                <span className="answers-label">题目答案</span>
+              <div className={styles.answersEditor}>
+                <span className={styles.answersLabel}>题目答案</span>
                 {section.questions.map((question, questionIndex) => (
-                  <div className="answer-row" key={question.id}>
+                  <div className={styles.answerRow} key={question.id}>
                     <b>{questionIndex + 1}</b>
                     {OPTION_LABELS.slice(0, section.optionCount).map((option) => (
                       <button
                         key={option}
                         type="button"
-                        className={question.answer === option ? "selected" : ""}
+                        className={question.answer === option ? styles.selected : ""}
                         onClick={() => setAnswer(section.id, question.id, option)}
                       >
                         {option}
                       </button>
                     ))}
                     <button
-                      className="icon-danger"
+                      className={styles.iconDanger}
                       aria-label={`删除第${questionIndex + 1}题`}
                       disabled={section.questions.length === 1}
                       onClick={() => removeQuestion(section.id, question.id)}
@@ -261,7 +262,7 @@ export default function NewAnswerSheetPage() {
                   </div>
                 ))}
                 <button
-                  className="add-question"
+                  className={styles.addQuestion}
                   onClick={() => {
                     setError(null);
                     addQuestion(section.id);
@@ -274,7 +275,7 @@ export default function NewAnswerSheetPage() {
             </div>
           ))}
           <button
-            className="add-section"
+            className={styles.addSection}
             onClick={() => {
               setError(null);
               setSections((current) => [...current, makeSection(current.length)]);
@@ -285,12 +286,12 @@ export default function NewAnswerSheetPage() {
           </button>
         </section>
         {error && (
-          <p className="form-error" role="alert">
+          <p className={styles.formError} role="alert">
             {error}
           </p>
         )}
         <button
-          className="create-answer-sheet-button"
+          className={`create-answer-sheet-button ${styles.createButton}`}
           disabled={!name.trim() || !totals.questions}
           onClick={save}
         >
