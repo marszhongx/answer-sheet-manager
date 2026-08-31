@@ -1,26 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import PageHeader from "../components/PageHeader";
 import { BarChart3, Camera, Download, FilePenLine, Trash2 } from "lucide-react";
+import { Navigate, useParams } from "react-router-dom";
 import { Exam } from "../lib/exam";
-import { AnswerSheet, drawA4PrintPage } from "../lib/omr";
-import { Classroom } from "../lib/roster";
+import { drawA4PrintPage } from "../lib/omr";
+import { useAppStore } from "../store/appStore";
 
 type Props = {
-  exam: Exam;
-  answerSheet: AnswerSheet;
-  classroom: Classroom;
   onBack: () => void;
-  onEdit: () => void;
-  onEditAnswerSheet: () => void;
-  onEditClassroom: () => void;
-  onScan: () => void;
-  onResults: () => void;
-  onDelete: () => void;
+  onEdit: (exam: Exam) => void;
+  onEditAnswerSheet: (exam: Exam) => void;
+  onEditClassroom: (exam: Exam) => void;
+  onScan: (exam: Exam) => void;
+  onResults: (exam: Exam) => void;
+  onDelete: (exam: Exam) => void;
 };
 export default function ExamDetailPage({
-  exam,
-  answerSheet,
-  classroom,
   onBack,
   onEdit,
   onEditAnswerSheet,
@@ -29,11 +24,19 @@ export default function ExamDetailPage({
   onResults,
   onDelete,
 }: Props) {
+  const { id } = useParams();
+  const examMap = useAppStore((state) => state.examMap);
+  const answerSheetMap = useAppStore((state) => state.answerSheetMap);
+  const classroomMap = useAppStore((state) => state.classroomMap);
+  const exam = examMap[id ?? ""];
+  const answerSheet = exam ? answerSheetMap[exam.answerSheetId] : undefined;
+  const classroom = exam ? classroomMap[exam.classroomId] : undefined;
   const ref = useRef<HTMLCanvasElement>(null);
   const [printable, setPrintable] = useState(true);
   useEffect(() => {
-    if (ref.current) setPrintable(drawA4PrintPage(ref.current, answerSheet));
+    if (answerSheet && ref.current) setPrintable(drawA4PrintPage(ref.current, answerSheet));
   }, [answerSheet]);
+  if (!exam || !answerSheet || !classroom) return <Navigate to="/exams" replace />;
   const download = () => {
     if (!ref.current || !printable) return;
     const link = document.createElement("a");
@@ -71,15 +74,15 @@ export default function ExamDetailPage({
           </div>
         </section>
         <section className="detail-actions">
-          <button onClick={onEdit} disabled={exam.records.length > 0}>
+          <button onClick={() => onEdit(exam)} disabled={exam.records.length > 0}>
             <FilePenLine size={19} />
             编辑考试
           </button>
-          <button onClick={onEditAnswerSheet} disabled={exam.records.length > 0}>
+          <button onClick={() => onEditAnswerSheet(exam)} disabled={exam.records.length > 0}>
             <FilePenLine size={19} />
             编辑考试答题卡
           </button>
-          <button onClick={onEditClassroom} disabled={exam.records.length > 0}>
+          <button onClick={() => onEditClassroom(exam)} disabled={exam.records.length > 0}>
             <FilePenLine size={19} />
             编辑考试班级
           </button>
@@ -87,15 +90,15 @@ export default function ExamDetailPage({
             <Download size={19} />
             下载考试答题卡
           </button>
-          <button className="primary-action" onClick={onScan}>
+          <button className="primary-action" onClick={() => onScan(exam)}>
             <Camera size={19} />
             扫描答题卡
           </button>
-          <button onClick={onResults}>
+          <button onClick={() => onResults(exam)}>
             <BarChart3 size={19} />
             查看成绩
           </button>
-          <button className="danger-action" onClick={onDelete}>
+          <button className="danger-action" onClick={() => onDelete(exam)}>
             <Trash2 size={19} />
             删除考试
           </button>

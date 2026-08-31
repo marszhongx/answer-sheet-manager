@@ -2,13 +2,15 @@ import ListCard from "../components/ListCard";
 import PageHeader from "../components/PageHeader";
 import { Plus, UsersRound } from "lucide-react";
 import { Classroom } from "../lib/roster";
+import { useAppStore } from "../store/appStore";
 
 type Props = {
-  classrooms: Classroom[];
   onCreate: () => void;
   onSelect: (classroom: Classroom) => void;
 };
-export default function StudentsPage({ classrooms, onCreate, onSelect }: Props) {
+export default function StudentsPage({ onCreate, onSelect }: Props) {
+  const classroomList = useAppStore((state) => state.classroomList);
+  const templates = classroomList.filter((item) => item.isTemplate);
   return (
     <>
       <PageHeader
@@ -20,9 +22,9 @@ export default function StudentsPage({ classrooms, onCreate, onSelect }: Props) 
         }
       />
       <main className="page answerSheets-page">
-        {classrooms.length ? (
+        {templates.length ? (
           <div className="answer-sheet-list">
-            {classrooms.map((classroom) => (
+            {templates.map((classroom) => (
               <ListCard
                 key={classroom.id}
                 leading={<UsersRound size={21} />}

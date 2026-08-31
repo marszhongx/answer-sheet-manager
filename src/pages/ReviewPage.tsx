@@ -1,39 +1,43 @@
 import { useState } from "react";
 import PageHeader from "../components/PageHeader";
 import { Check, FileImage } from "lucide-react";
-import { AnswerSheet, OPTION_LABELS, Option, Recognition } from "../lib/omr";
+import { Navigate, useParams } from "react-router-dom";
+import { OPTION_LABELS, Option, Recognition } from "../lib/omr";
+import { Exam } from "../lib/exam";
+import { useAppStore } from "../store/appStore";
 
+type ReviewState = { examId: string; recognition: Recognition; fileName: string };
 type Props = {
-  answerSheet: AnswerSheet;
-  recognition: Recognition;
-  fileName: string;
-  studentName: string;
-  studentNumber: string;
-  className: string;
-  onSave: (answers: Array<Option | null>, confidence: number[]) => void;
-  onCancel: () => void;
+  review: ReviewState | null;
+  onSave: (exam: Exam, answers: Array<Option | null>, confidence: number[]) => void;
+  onCancel: (exam: Exam) => void;
 };
-export default function ReviewPage({
-  answerSheet,
-  recognition,
-  fileName,
-  studentName,
-  studentNumber,
-  className,
-  onSave,
-  onCancel,
-}: Props) {
-  const [answers, setAnswers] = useState(recognition.answers);
+export default function ReviewPage({ review, onSave, onCancel }: Props) {
+  const { id } = useParams();
+  const examMap = useAppStore((state) => state.examMap);
+  const answerSheetMap = useAppStore((state) => state.answerSheetMap);
+  const classroomMap = useAppStore((state) => state.classroomMap);
+  const exam = examMap[id ?? ""];
+  const answerSheet = exam ? answerSheetMap[exam.answerSheetId] : undefined;
+  const classroom = exam ? classroomMap[exam.classroomId] : undefined;
+  const student = classroom?.students.find(
+    (item) => item.studentNumber === review?.recognition.studentNumber,
+  );
+  const recognition = review?.recognition;
+  const fileName = review?.fileName ?? "answer-sheet.jpg";
+  const [answers, setAnswers] = useState<Array<Option | null>>(recognition?.answers ?? []);
+  if (!exam || !answerSheet || !classroom || !student || !recognition || review?.examId !== exam.id)
+    return <Navigate to="/exams" replace />;
   const unresolved = answers.filter((answer) => answer === null).length;
   const canSave = unresolved === 0;
   return (
     <>
-      <PageHeader title="确认识别结果" onBack={onCancel} backLabel="取消本次识别" />
+      <PageHeader title="确认识别结果" onBack={() => onCancel(exam)} backLabel="取消本次识别" />
       <main className="page review-page">
         <div className={recognition.markerValid ? "review-status pass" : "review-status warning"}>
           <Check size={19} />
           <span>
-            已识别：{className} · {studentNumber} · {studentName}
+            已识别：{classroom.name} · {student.studentNumber} · {student.name}
           </span>
         </div>
         <div className={recognition.markerValid ? "review-status pass" : "review-status warning"}>
@@ -75,7 +79,7 @@ export default function ReviewPage({
           ))}
         </section>
         <button
-          onClick={() => canSave && onSave(answers, recognition.confidence)}
+          onClick={() => canSave && onSave(exam, answers, recognition.confidence)}
           disabled={!canSave}
           className="create-answer-sheet-button"
         >

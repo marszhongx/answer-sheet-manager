@@ -1,11 +1,20 @@
 import PageHeader from "../components/PageHeader";
 import { BarChart3, Download } from "lucide-react";
-import { averageScore, downloadCSV, GradedStudent, questionRates, toCSV } from "../lib/grading";
-import { AnswerSheet, questionPoints } from "../lib/omr";
+import { Navigate, useParams } from "react-router-dom";
+import { averageScore, downloadCSV, questionRates, toCSV } from "../lib/grading";
+import { questionPoints } from "../lib/omr";
+import { useAppStore } from "../store/appStore";
 
-type Props = { answerSheet: AnswerSheet | null; records: GradedStudent[]; onBack: () => void };
-export default function AnalysisPage({ answerSheet, records, onBack }: Props) {
-  if (!answerSheet || !records.length)
+type Props = { onBack: () => void };
+export default function AnalysisPage({ onBack }: Props) {
+  const { id } = useParams();
+  const examMap = useAppStore((state) => state.examMap);
+  const answerSheetMap = useAppStore((state) => state.answerSheetMap);
+  const exam = examMap[id ?? ""];
+  const answerSheet = exam ? answerSheetMap[exam.answerSheetId] : undefined;
+  if (!exam || !answerSheet) return <Navigate to="/exams" replace />;
+  const records = exam.records;
+  if (!records.length)
     return (
       <>
         <PageHeader title="阅卷记录" onBack={onBack} backLabel="返回考试详情" />

@@ -2,22 +2,31 @@ import FileUploader from "../components/FileUploader";
 import PageHeader from "../components/PageHeader";
 import { useState } from "react";
 import { Camera, ChevronRight, ImagePlus, LayoutTemplate, ScanLine } from "lucide-react";
+import { useParams } from "react-router-dom";
 import LiveScanner from "../components/LiveScanner";
 import { AnswerSheet, Recognition, recognizeAnswerSheet } from "../lib/omr";
+import { Exam } from "../lib/exam";
+import { useAppStore } from "../store/appStore";
 import EmptyState from "./EmptyState";
 
 type Props = {
-  answerSheet: AnswerSheet | null;
   onBack: () => void;
   onSelect: () => void;
-  onScanned: (recognition: Recognition, fileName: string) => void;
+  onScanned: (exam: Exam, recognition: Recognition, fileName: string) => void;
   notify: (text: string) => void;
 };
-export default function ScanPage({ answerSheet, onBack, onSelect, onScanned, notify }: Props) {
+export default function ScanPage({ onBack, onSelect, onScanned, notify }: Props) {
+  const { id } = useParams();
+  const examMap = useAppStore((state) => state.examMap);
+  const answerSheetMap = useAppStore((state) => state.answerSheetMap);
+  const exam = examMap[id ?? ""];
+  const answerSheet: AnswerSheet | undefined = exam
+    ? answerSheetMap[exam.answerSheetId]
+    : undefined;
   const [processing, setProcessing] = useState(false);
   const [scanner, setScanner] = useState(false);
   const importImage = (file: File) => {
-    if (!file || !answerSheet) return;
+    if (!file || !answerSheet || !exam) return;
     setProcessing(true);
     const url = URL.createObjectURL(file);
     const image = new Image();
@@ -26,6 +35,7 @@ export default function ScanPage({ answerSheet, onBack, onSelect, onScanned, not
       () => {
         try {
           onScanned(
+            exam,
             recognizeAnswerSheet(image, image.naturalWidth, image.naturalHeight, answerSheet),
             file.name,
           );
@@ -47,14 +57,14 @@ export default function ScanPage({ answerSheet, onBack, onSelect, onScanned, not
     );
     image.src = url;
   };
-  if (scanner && answerSheet)
+  if (scanner && answerSheet && exam)
     return (
       <LiveScanner
         answerSheet={answerSheet}
         onClose={() => setScanner(false)}
         onConfirm={(recognition) => {
           setScanner(false);
-          onScanned(recognition, `camera-${Date.now()}.jpg`);
+          onScanned(exam, recognition, `camera-${Date.now()}.jpg`);
         }}
       />
     );

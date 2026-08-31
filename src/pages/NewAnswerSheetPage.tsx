@@ -5,6 +5,7 @@ import NumberInput from "../components/NumberInput";
 import PageHeader from "../components/PageHeader";
 import Select from "../components/Select";
 import { Check, Plus, Trash2 } from "lucide-react";
+import { useParams } from "react-router-dom";
 import {
   AnswerSheet,
   createAnswers,
@@ -13,9 +14,9 @@ import {
   QuestionSection,
   answerSheetSections,
 } from "../lib/omr";
+import { useAppStore } from "../store/appStore";
 
 type Props = {
-  answerSheet?: AnswerSheet;
   onSave: (answerSheet: AnswerSheet) => void;
   onBack: () => void;
 };
@@ -27,7 +28,12 @@ const makeSection = (index: number): QuestionSection => ({
   optionCount: 4,
 });
 
-export default function NewAnswerSheetPage({ answerSheet, onSave, onBack }: Props) {
+export default function NewAnswerSheetPage({ onSave, onBack }: Props) {
+  const { id } = useParams();
+  const answerSheetMap = useAppStore((state) => state.answerSheetMap);
+  const examMap = useAppStore((state) => state.examMap);
+  const answerSheet =
+    answerSheetMap[id ?? ""] ?? answerSheetMap[examMap[id ?? ""]?.answerSheetId ?? ""];
   const [name, setName] = useState(answerSheet?.name ?? "");
   const [subject, setSubject] = useState(answerSheet?.subject ?? "数学");
   const [candidateNumberLength, setCandidateNumberLength] = useState(
@@ -48,9 +54,11 @@ export default function NewAnswerSheetPage({ answerSheet, onSave, onBack }: Prop
     }),
     [sections],
   );
-  const update = (id: string, key: keyof QuestionSection, value: string | number) =>
+  const update = (sectionId: string, key: keyof QuestionSection, value: string | number) =>
     setSections((current) =>
-      current.map((section) => (section.id === id ? { ...section, [key]: value } : section)),
+      current.map((section) =>
+        section.id === sectionId ? { ...section, [key]: value } : section,
+      ),
     );
   const save = () => {
     const cleanName = name.trim();
@@ -68,6 +76,7 @@ export default function NewAnswerSheetPage({ answerSheet, onSave, onBack }: Prop
         ...createAnswers(Math.max(0, totals.questions - answers.length)),
       ],
       createdAt: answerSheet?.createdAt ?? new Date().toISOString(),
+      isTemplate: answerSheet?.isTemplate ?? true,
     };
     if (!fitsA4(candidate)) {
       setError("题目过多，答题卡将超出 A4 纸张范围，请减少题目数量或选项数量");

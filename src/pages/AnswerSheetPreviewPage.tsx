@@ -1,16 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import { Download } from "lucide-react";
+import { Navigate, useParams } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
-import { AnswerSheet, drawA4PrintPage } from "../lib/omr";
+import { drawA4PrintPage } from "../lib/omr";
+import { useAppStore } from "../store/appStore";
 
-type Props = { answerSheet: AnswerSheet; onBack: () => void; notify: (text: string) => void };
+type Props = { onBack: () => void; notify: (text: string) => void };
 
-export default function AnswerSheetPreviewPage({ answerSheet, onBack, notify }: Props) {
+export default function AnswerSheetPreviewPage({ onBack, notify }: Props) {
+  const { id } = useParams();
+  const answerSheet = useAppStore((state) => state.answerSheetMap)[id ?? ""];
   const ref = useRef<HTMLCanvasElement>(null);
   const [printable, setPrintable] = useState(true);
   useEffect(() => {
-    if (ref.current) setPrintable(drawA4PrintPage(ref.current, answerSheet));
+    if (answerSheet && ref.current) setPrintable(drawA4PrintPage(ref.current, answerSheet));
   }, [answerSheet]);
+  if (!answerSheet) return <Navigate to="/answer-sheets" replace />;
   const download = () => {
     if (!ref.current || !printable) return;
     const link = document.createElement("a");

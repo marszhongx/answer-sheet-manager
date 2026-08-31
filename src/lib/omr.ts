@@ -18,6 +18,7 @@ export type AnswerSheet = {
   sections?: QuestionSection[];
   answers: Option[];
   createdAt: string;
+  isTemplate: boolean;
 };
 
 export type Bubble = { question: number; option: Option; x: number; y: number; radius: number };

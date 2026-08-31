@@ -9,9 +9,17 @@ type Props = {
   onChange: (value: string) => void;
   ariaLabel?: string;
   size?: "sm" | "md";
+  disabled?: boolean;
 };
 
-export default function Select({ value, options, onChange, ariaLabel, size = "md" }: Props) {
+export default function Select({
+  value,
+  options,
+  onChange,
+  ariaLabel,
+  size = "md",
+  disabled = false,
+}: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const current = options.find((option) => option.value === value) ?? options[0];
@@ -31,6 +39,7 @@ export default function Select({ value, options, onChange, ariaLabel, size = "md
         className={`${styles.trigger} ${styles[size]}`}
         aria-label={ariaLabel}
         aria-expanded={open}
+        disabled={disabled}
         onClick={() => setOpen((currentOpen) => !currentOpen)}
       >
         <span>{current?.label ?? "请选择"}</span>

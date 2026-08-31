@@ -8,6 +8,7 @@ export type Classroom = {
   id: string;
   name: string;
   students: Student[];
+  isTemplate: boolean;
 };
 
 export function parseStudentCSV(text: string): Array<{ name: string; studentNumber: string }> {

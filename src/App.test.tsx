@@ -3,6 +3,7 @@ import { BrowserRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
+import { useAppStore } from "./store/appStore";
 
 function renderApp() {
   return render(
@@ -12,9 +13,16 @@ function renderApp() {
   );
 }
 
+function resetStore() {
+  useAppStore.getState().fetchAnswerSheetList();
+  useAppStore.getState().fetchClassroomList();
+  useAppStore.getState().fetchExamList();
+}
+
 beforeEach(() => {
   window.history.replaceState({}, "", "/answer-sheets");
   localStorage.clear();
+  resetStore();
   vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
     arc: vi.fn<(...args: never[]) => void>(),
     beginPath: vi.fn<(...args: never[]) => void>(),
@@ -59,11 +67,13 @@ describe("Answer Sheet Manager H5", () => {
           questionCount: 3,
           answers: ["A", "B", "C"],
           candidateNumberLength: 6,
+          isTemplate: true,
           records: [{ name: "张同学" }],
           createdAt: "2025-01-01T00:00:00.000Z",
         },
       ]),
     );
+    resetStore();
     renderApp();
 
     await user.click(screen.getByRole("button", { name: /单元测验/ }));

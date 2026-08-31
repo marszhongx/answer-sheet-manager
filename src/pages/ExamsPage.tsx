@@ -2,13 +2,16 @@ import ListCard from "../components/ListCard";
 import PageHeader from "../components/PageHeader";
 import { ClipboardPlus, Plus, ScanLine } from "lucide-react";
 import { Exam } from "../lib/exam";
+import { useAppStore } from "../store/appStore";
 
 type Props = {
-  exams: Exam[];
   onCreate: () => void;
   onSelect: (exam: Exam) => void;
 };
-export default function ExamsPage({ exams, onCreate, onSelect }: Props) {
+export default function ExamsPage({ onCreate, onSelect }: Props) {
+  const examList = useAppStore((state) => state.examList);
+  const answerSheetMap = useAppStore((state) => state.answerSheetMap);
+  const classroomMap = useAppStore((state) => state.classroomMap);
   return (
     <>
       <PageHeader
@@ -20,13 +23,16 @@ export default function ExamsPage({ exams, onCreate, onSelect }: Props) {
         }
       />
       <main className="page answerSheets-page">
-        {exams.length ? (
+        {examList.length ? (
           <div className="answer-sheet-list">
-            {exams.map((exam) => (
+            {examList.map((exam) => (
               <ListCard
                 key={exam.id}
                 leading={<ScanLine size={21} />}
-                tags={[exam.classroom.name, exam.answerSheet.name]}
+                tags={[
+                  classroomMap[exam.classroomId]?.name ?? "未知班级",
+                  answerSheetMap[exam.answerSheetId]?.name ?? "未知答题卡",
+                ]}
                 title={exam.name}
                 description={`已阅 ${exam.records.length} 份`}
                 onClick={() => onSelect(exam)}

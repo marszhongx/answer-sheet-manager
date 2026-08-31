@@ -32,6 +32,12 @@
   outline-offset: 1px;
 }
 
+.trigger:disabled {
+  color: var(--color-text-tertiary, #9aa6a0);
+  background: #f4f6f4;
+  cursor: not-allowed;
+}
+
 .chevron {
   color: var(--color-primary);
   transition: transform 0.15s ease;

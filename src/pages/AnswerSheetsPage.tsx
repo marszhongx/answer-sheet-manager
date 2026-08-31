@@ -2,14 +2,16 @@ import ListCard from "../components/ListCard";
 import PageHeader from "../components/PageHeader";
 import { FileText, Plus } from "lucide-react";
 import { AnswerSheet, questionPoints } from "../lib/omr";
+import { useAppStore } from "../store/appStore";
 import EmptyState from "./EmptyState";
 
 type Props = {
-  answerSheets: AnswerSheet[];
   onCreate: () => void;
   onSelect: (answerSheet: AnswerSheet) => void;
 };
-export default function AnswerSheetsPage({ answerSheets, onCreate, onSelect }: Props) {
+export default function AnswerSheetsPage({ onCreate, onSelect }: Props) {
+  const answerSheetList = useAppStore((state) => state.answerSheetList);
+  const templates = answerSheetList.filter((item) => item.isTemplate);
   return (
     <>
       <PageHeader
@@ -21,11 +23,11 @@ export default function AnswerSheetsPage({ answerSheets, onCreate, onSelect }: P
         }
       />
       <main className="page answerSheets-page">
-        {answerSheets.length === 0 ? (
+        {templates.length === 0 ? (
           <EmptyState onCreate={onCreate} />
         ) : (
           <div className="answer-sheet-list">
-            {answerSheets.map((answerSheet) => (
+            {templates.map((answerSheet) => (
               <ListCard
                 key={answerSheet.id}
                 leading={<FileText size={22} />}

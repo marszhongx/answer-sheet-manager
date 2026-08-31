@@ -1,17 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Check, ClipboardList, LayoutTemplate, Trash2, UsersRound, X } from "lucide-react";
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
 import { gradeAnswers } from "./lib/grading";
 import { AnswerSheet, Option, Recognition } from "./lib/omr";
 import { Exam } from "./lib/exam";
 import { Classroom } from "./lib/roster";
+import {
+  saveAnswerSheetList,
+  saveClassroomList,
+  saveExamList,
+  useAppStore,
+} from "./store/appStore";
 import AnalysisPage from "./pages/AnalysisPage";
-import ClassDetailPage from "./pages/ClassDetailPage";
-import ClassEditorPage from "./pages/ClassEditorPage";
+import ClassroomDetailPage from "./pages/ClassroomDetailPage";
+import ClassroomEditorPage from "./pages/ClassroomEditorPage";
 import ExamDetailPage from "./pages/ExamDetailPage";
 import ExamsPage from "./pages/ExamsPage";
 import NewAnswerSheetPage from "./pages/NewAnswerSheetPage";
-import NewExamPage from "./pages/NewExamPage";
+import NewExamPage, { ExamDraft } from "./pages/NewExamPage";
 import ReviewPage from "./pages/ReviewPage";
 import ScanPage from "./pages/ScanPage";
 import StudentsPage from "./pages/StudentsPage";
@@ -19,26 +25,8 @@ import AnswerSheetDetailPage from "./pages/AnswerSheetDetailPage";
 import AnswerSheetPreviewPage from "./pages/AnswerSheetPreviewPage";
 import AnswerSheetsPage from "./pages/AnswerSheetsPage";
 
-const ANSWER_SHEETS_KEY = "answer-sheet-manager.answerSheets";
-const EXAMS_KEY = "answer-sheet-manager.exams";
-const CLASSROOMS_KEY = "answer-sheet-manager.classrooms";
 type ReviewState = { examId: string; recognition: Recognition; fileName: string };
 
-function load<T>(key: string, fallback: T): T {
-  try {
-    return JSON.parse(localStorage.getItem(key) ?? "") as T;
-  } catch {
-    return fallback;
-  }
-}
-function persist(key: string, data: unknown): boolean {
-  try {
-    localStorage.setItem(key, JSON.stringify(data));
-    return true;
-  } catch {
-    return false;
-  }
-}
 function stripRecords<T extends object>(answerSheet: T & { records?: unknown }): T {
   const { records: _records, ...rest } = answerSheet;
   return rest as T;
@@ -111,57 +99,124 @@ function DeleteDialog({
   );
 }
 
+function ExamAnswerSheetEditRoute({
+  onSave,
+  onBack,
+}: {
+  onSave: (exam: Exam, answerSheet: AnswerSheet) => void;
+  onBack: () => void;
+}) {
+  const { id } = useParams();
+  const exam = useAppStore((state) => state.examMap)[id ?? ""];
+  if (!exam) return <Navigate to="/exams" replace />;
+  return (
+    <NewAnswerSheetPage
+      onSave={(answerSheet) => onSave(exam, answerSheet)}
+      onBack={onBack}
+    />
+  );
+}
+function ExamClassroomEditRoute({
+  onSave,
+  onBack,
+}: {
+  onSave: (exam: Exam, classroom: Classroom) => void;
+  onBack: () => void;
+}) {
+  const { id } = useParams();
+  const exam = useAppStore((state) => state.examMap)[id ?? ""];
+  if (!exam) return <Navigate to="/exams" replace />;
+  return (
+    <ClassroomEditorPage
+      onSave={(classroom) => onSave(exam, classroom)}
+      onBack={onBack}
+    />
+  );
+}
+
 export default function App() {
-  const [answerSheets, setAnswerSheets] = useState(() => load<AnswerSheet[]>(ANSWER_SHEETS_KEY, []));
-  const [classrooms, setClassrooms] = useState(() => load<Classroom[]>(CLASSROOMS_KEY, []));
-  const [exams, setExams] = useState(() => load<Exam[]>(EXAMS_KEY, []));
   const [review, setReview] = useState<ReviewState | null>(null);
   const [deleteExam, setDeleteExam] = useState<Exam | null>(null);
-  const [deleteClass, setDeleteClass] = useState<Classroom | null>(null);
+  const [deleteClassroom, setDeleteClassroom] = useState<Classroom | null>(null);
   const [deleteAnswerSheet, setDeleteAnswerSheet] = useState<AnswerSheet | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const toastTimer = useRef<number | undefined>(undefined);
   const navigate = useNavigate();
-  useEffect(() => {
-    if (!persist(ANSWER_SHEETS_KEY, answerSheets)) {
-      window.setTimeout(() => setMessage("本地存储空间不足，答题卡数据未能保存"), 0);
-    }
-  }, [answerSheets]);
-  useEffect(() => {
-    if (!persist(EXAMS_KEY, exams)) {
-      window.setTimeout(() => setMessage("本地存储空间不足，考试数据未能保存"), 0);
-    }
-  }, [exams]);
-  useEffect(() => {
-    if (!persist(CLASSROOMS_KEY, classrooms)) {
-      window.setTimeout(() => setMessage("本地存储空间不足，班级数据未能保存"), 0);
-    }
-  }, [classrooms]);
   const notify = (text: string) => {
     setMessage(text);
     window.clearTimeout(toastTimer.current);
     toastTimer.current = window.setTimeout(() => setMessage(null), 2200);
   };
   const saveAnswerSheet = (answerSheet: AnswerSheet) => {
-    setAnswerSheets((current) =>
-      current.some((item) => item.id === answerSheet.id)
-        ? current.map((item) => (item.id === answerSheet.id ? answerSheet : item))
-        : [answerSheet, ...current],
+    const list = useAppStore.getState().answerSheetList;
+    saveAnswerSheetList(
+      list.some((item) => item.id === answerSheet.id)
+        ? list.map((item) => (item.id === answerSheet.id ? answerSheet : item))
+        : [answerSheet, ...list],
     );
     navigate(`/answer-sheets/${answerSheet.id}`);
     notify("答题卡已保存");
   };
-  const saveEditedAnswerSheet = (answerSheet: AnswerSheet) => {
-    setAnswerSheets((current) => current.map((item) => (item.id === answerSheet.id ? answerSheet : item)));
-    navigate(`/answer-sheets/${answerSheet.id}`);
-    notify("答题卡已保存");
+  const createExam = (draft: ExamDraft) => {
+    const { answerSheetMap, classroomMap, answerSheetList, classroomList, examList } =
+      useAppStore.getState();
+    const sourceSheet = answerSheetMap[draft.answerSheetId];
+    const sourceClass = classroomMap[draft.classroomId];
+    if (!sourceSheet || !sourceClass) return;
+    const sheetCopy = { ...sourceSheet, id: crypto.randomUUID(), isTemplate: false };
+    const classCopy = { ...sourceClass, id: crypto.randomUUID(), isTemplate: false };
+    saveAnswerSheetList([sheetCopy, ...answerSheetList]);
+    saveClassroomList([classCopy, ...classroomList]);
+    const exam: Exam = {
+      id: draft.id,
+      name: draft.name,
+      answerSheetId: sheetCopy.id,
+      classroomId: classCopy.id,
+      records: [],
+      createdAt: draft.createdAt,
+    };
+    saveExamList([exam, ...examList]);
+    navigate(`/exams/${exam.id}`);
+    notify("考试已创建");
+  };
+  const updateExam = (draft: ExamDraft) => {
+    const list = useAppStore.getState().examList;
+    saveExamList(
+      list.map((item) =>
+        item.id === draft.id
+          ? {
+              ...item,
+              name: draft.name,
+              answerSheetId: draft.answerSheetId,
+              classroomId: draft.classroomId,
+            }
+          : item,
+      ),
+    );
+    navigate(`/exams/${draft.id}`);
+    notify("考试已保存");
+  };
+  const updateExamAnswerSheet = (exam: Exam, answerSheet: AnswerSheet) => {
+    const list = useAppStore.getState().answerSheetList;
+    saveAnswerSheetList(
+      list.map((item) => (item.id === answerSheet.id ? answerSheet : item)),
+    );
+    navigate(`/exams/${exam.id}`);
+    notify("考试答题卡已保存");
+  };
+  const updateExamClassroom = (exam: Exam, classroom: Classroom) => {
+    const list = useAppStore.getState().classroomList;
+    saveClassroomList(list.map((item) => (item.id === classroom.id ? classroom : item)));
+    navigate(`/exams/${exam.id}`);
+    notify("考试班级已保存");
   };
   const scanned = (exam: Exam, recognition: Recognition, fileName: string) => {
     if (!recognition.markerValid || !recognition.studentNumber) {
       notify("未识别完整准考证号，请重新扫描");
       return;
     }
-    const student = exam.classroom.students.find(
+    const classroom = useAppStore.getState().classroomMap[exam.classroomId];
+    const student = classroom?.students.find(
       (item) => item.studentNumber === recognition.studentNumber,
     );
     if (!student) {
@@ -172,8 +227,13 @@ export default function App() {
     navigate(`/exams/${exam.id}/review`);
   };
   const saveReview = (exam: Exam, answers: Array<Option | null>, confidence: number[]) => {
-    const answerSheet = exam.answerSheet;
-    const classroom = exam.classroom;
+    const { answerSheetMap, classroomMap, examList } = useAppStore.getState();
+    const answerSheet = answerSheetMap[exam.answerSheetId];
+    const classroom = classroomMap[exam.classroomId];
+    if (!answerSheet || !classroom) {
+      notify("考试数据缺失，无法保存成绩");
+      return;
+    }
     const studentNumber = review?.recognition.studentNumber;
     const student = classroom.students.find((item) => item.studentNumber === studentNumber);
     if (!student || answers.some((answer) => answer === null)) {
@@ -190,8 +250,8 @@ export default function App() {
       classroom.name,
     );
     const existing = exam.records.some((item) => item.studentNumber === studentNumber);
-    setExams((current) =>
-      current.map((item) =>
+    saveExamList(
+      examList.map((item) =>
         item.id === exam.id
           ? {
               ...item,
@@ -216,7 +276,6 @@ export default function App() {
           path="/answer-sheets"
           element={
             <AnswerSheetsPage
-              answerSheets={answerSheets}
               onCreate={() => navigate("/answer-sheets/new")}
               onSelect={(answerSheet) => navigate(`/answer-sheets/${answerSheet.id}`)}
             />
@@ -231,19 +290,13 @@ export default function App() {
         <Route
           path="/answer-sheets/:id/preview"
           element={
-            <AnswerSheetPreviewRoute
-              answerSheets={answerSheets}
-              onBack={() => navigate(-1)}
-              notify={notify}
-            />
+            <AnswerSheetPreviewPage onBack={() => navigate(-1)} notify={notify} />
           }
         />
         <Route
           path="/answer-sheets/:id"
           element={
-            <AnswerSheetDetailRoute
-              answerSheets={answerSheets}
-              exams={exams}
+            <AnswerSheetDetailPage
               onBack={() => navigate("/answer-sheets")}
               onEdit={(answerSheet) => navigate(`/answer-sheets/${answerSheet.id}/edit`)}
               onCopy={(answerSheet) => {
@@ -253,8 +306,10 @@ export default function App() {
                   name: `${answerSheet.name} 副本`,
                   answers: [...answerSheet.answers],
                   createdAt: new Date().toISOString(),
+                  isTemplate: true,
                 };
-                setAnswerSheets((current) => [copied, ...current]);
+                const list = useAppStore.getState().answerSheetList;
+                saveAnswerSheetList([copied, ...list]);
                 navigate(`/answer-sheets/${copied.id}`);
                 notify("已复制答题卡");
               }}
@@ -266,14 +321,16 @@ export default function App() {
         <Route
           path="/answer-sheets/:id/edit"
           element={
-            <AnswerSheetEditor answerSheets={answerSheets} exams={exams} onSave={saveEditedAnswerSheet} />
+            <NewAnswerSheetPage
+              onSave={saveAnswerSheet}
+              onBack={() => navigate("/answer-sheets")}
+            />
           }
         />
         <Route
           path="/exams"
           element={
             <ExamsPage
-              exams={exams}
               onCreate={() => navigate("/exams/new")}
               onSelect={(exam) => navigate(`/exams/${exam.id}`)}
             />
@@ -282,69 +339,31 @@ export default function App() {
         <Route
           path="/exams/new"
           element={
-            <NewExamPage
-              answerSheets={answerSheets}
-              classrooms={classrooms}
-              onSave={(exam) => {
-                setExams((current) => [exam, ...current]);
-                navigate(`/exams/${exam.id}`);
-                notify("考试已创建");
-              }}
-              onBack={() => navigate("/exams")}
-            />
+            <NewExamPage onSave={createExam} onBack={() => navigate("/exams")} />
           }
         />
         <Route
           path="/exams/:id/edit"
           element={
-            <ExamEditorRoute
-              exams={exams}
-              answerSheets={answerSheets}
-              classrooms={classrooms}
-              onSave={(exam) => {
-                setExams((current) => current.map((item) => (item.id === exam.id ? exam : item)));
-                navigate(`/exams/${exam.id}`);
-                notify("考试已保存");
-              }}
-              onBack={(exam) => navigate(`/exams/${exam.id}`)}
-            />
+            <NewExamPage onSave={updateExam} onBack={() => navigate("/exams")} />
           }
         />
         <Route
           path="/exams/:id/answer-sheet/edit"
           element={
-            <ExamAnswerSheetEditorRoute
-              exams={exams}
-              onSave={(exam, answerSheet) => {
-                setExams((current) =>
-                  current.map((item) => (item.id === exam.id ? { ...item, answerSheet } : item)),
-                );
-                navigate(`/exams/${exam.id}`);
-                notify("考试答题卡已保存");
-              }}
-            />
+            <ExamAnswerSheetEditRoute onSave={updateExamAnswerSheet} onBack={() => navigate(-1)} />
           }
         />
         <Route
           path="/exams/:id/classroom/edit"
           element={
-            <ExamClassroomEditorRoute
-              exams={exams}
-              onSave={(exam, classroom) => {
-                setExams((current) =>
-                  current.map((item) => (item.id === exam.id ? { ...item, classroom } : item)),
-                );
-                navigate(`/exams/${exam.id}`);
-                notify("考试班级已保存");
-              }}
-            />
+            <ExamClassroomEditRoute onSave={updateExamClassroom} onBack={() => navigate(-1)} />
           }
         />
         <Route
           path="/exams/:id"
           element={
-            <ExamRoute
-              exams={exams}
+            <ExamDetailPage
               onBack={() => navigate("/exams")}
               onEdit={(exam) => navigate(`/exams/${exam.id}/edit`)}
               onEditAnswerSheet={(exam) => navigate(`/exams/${exam.id}/answer-sheet/edit`)}
@@ -358,24 +377,18 @@ export default function App() {
         <Route
           path="/exams/:id/scan"
           element={
-            <ExamAnswerSheetRoute exams={exams}>
-              {(exam, answerSheet) => (
-                <ScanPage
-                  answerSheet={answerSheet}
-                  onBack={() => navigate(`/exams/${exam.id}`)}
-                  onSelect={() => navigate(`/exams/${exam.id}`)}
-                  onScanned={(recognition, fileName) => scanned(exam, recognition, fileName)}
-                  notify={notify}
-                />
-              )}
-            </ExamAnswerSheetRoute>
+            <ScanPage
+              onBack={() => navigate("/exams")}
+              onSelect={() => navigate("/exams")}
+              onScanned={scanned}
+              notify={notify}
+            />
           }
         />
         <Route
           path="/exams/:id/review"
           element={
-            <ReviewRoute
-              exams={exams}
+            <ReviewPage
               review={review}
               onSave={saveReview}
               onCancel={(exam) => {
@@ -388,22 +401,13 @@ export default function App() {
         <Route
           path="/exams/:id/results"
           element={
-            <ExamAnswerSheetRoute exams={exams}>
-              {(exam, answerSheet) => (
-                <AnalysisPage
-                  answerSheet={answerSheet}
-                  records={exam.records}
-                  onBack={() => navigate(`/exams/${exam.id}`)}
-                />
-              )}
-            </ExamAnswerSheetRoute>
+            <AnalysisPage onBack={() => navigate("/exams")} />
           }
         />
         <Route
           path="/students"
           element={
             <StudentsPage
-              classrooms={classrooms}
               onCreate={() => navigate("/students/new")}
               onSelect={(classroom) => navigate(`/students/${classroom.id}`)}
             />
@@ -412,10 +416,11 @@ export default function App() {
         <Route
           path="/students/new"
           element={
-            <ClassEditorPage
+            <ClassroomEditorPage
               onBack={() => navigate("/students")}
               onSave={(classroom) => {
-                setClassrooms((current) => [...current, classroom]);
+                const list = useAppStore.getState().classroomList;
+                saveClassroomList([...list, classroom]);
                 navigate(`/students/${classroom.id}`);
                 notify("班级已创建");
               }}
@@ -425,22 +430,22 @@ export default function App() {
         <Route
           path="/students/:id"
           element={
-            <ClassRoute
-              classrooms={classrooms}
+            <ClassroomDetailPage
               onBack={() => navigate("/students")}
               onEdit={(classroom) => navigate(`/students/${classroom.id}/edit`)}
-              onDelete={setDeleteClass}
+              onDelete={setDeleteClassroom}
             />
           }
         />
         <Route
           path="/students/:id/edit"
           element={
-            <ClassEditorRoute
-              classrooms={classrooms}
+            <ClassroomEditorPage
+              onBack={() => navigate("/students")}
               onSave={(classroom) => {
-                setClassrooms((current) =>
-                  current.map((item) => (item.id === classroom.id ? classroom : item)),
+                const list = useAppStore.getState().classroomList;
+                saveClassroomList(
+                  list.map((item) => (item.id === classroom.id ? classroom : item)),
                 );
                 navigate(`/students/${classroom.id}`);
                 notify("班级已保存");
@@ -457,8 +462,9 @@ export default function App() {
           label="答题卡"
           onCancel={() => setDeleteAnswerSheet(null)}
           onConfirm={() => {
-            setAnswerSheets((current) =>
-              current.filter((answerSheet) => answerSheet.id !== deleteAnswerSheet.id),
+            const list = useAppStore.getState().answerSheetList;
+            saveAnswerSheetList(
+              list.filter((item) => item.id !== deleteAnswerSheet.id),
             );
             setDeleteAnswerSheet(null);
             navigate("/answer-sheets");
@@ -466,14 +472,15 @@ export default function App() {
           }}
         />
       )}
-      {deleteClass && (
+      {deleteClassroom && (
         <DeleteDialog
-          name={deleteClass.name}
+          name={deleteClassroom.name}
           label="班级"
-          onCancel={() => setDeleteClass(null)}
+          onCancel={() => setDeleteClassroom(null)}
           onConfirm={() => {
-            setClassrooms((current) => current.filter((item) => item.id !== deleteClass.id));
-            setDeleteClass(null);
+            const list = useAppStore.getState().classroomList;
+            saveClassroomList(list.filter((item) => item.id !== deleteClassroom.id));
+            setDeleteClassroom(null);
             navigate("/students");
             notify("班级已删除");
           }}
@@ -485,7 +492,14 @@ export default function App() {
           label="考试"
           onCancel={() => setDeleteExam(null)}
           onConfirm={() => {
-            setExams((current) => current.filter((exam) => exam.id !== deleteExam.id));
+            const { examList, answerSheetList, classroomList } = useAppStore.getState();
+            saveExamList(examList.filter((exam) => exam.id !== deleteExam.id));
+            saveAnswerSheetList(
+              answerSheetList.filter((item) => item.id !== deleteExam.answerSheetId),
+            );
+            saveClassroomList(
+              classroomList.filter((item) => item.id !== deleteExam.classroomId),
+            );
             setDeleteExam(null);
             navigate("/exams");
             notify("考试已删除");
@@ -494,271 +508,5 @@ export default function App() {
       )}
       <Toast message={message} />
     </div>
-  );
-}
-function AnswerSheetPreviewRoute({
-  answerSheets,
-  onBack,
-  notify,
-}: {
-  answerSheets: AnswerSheet[];
-  onBack: () => void;
-  notify: (text: string) => void;
-}) {
-  const { id } = useParams();
-  const answerSheet = answerSheets.find((item) => item.id === id);
-  return answerSheet ? (
-    <AnswerSheetPreviewPage answerSheet={answerSheet} onBack={onBack} notify={notify} />
-  ) : (
-    <Navigate to="/answer-sheets" replace />
-  );
-}
-function AnswerSheetDetailRoute({
-  answerSheets,
-  exams,
-  onBack,
-  onEdit,
-  onCopy,
-  onPreview,
-  onDelete,
-}: {
-  answerSheets: AnswerSheet[];
-  exams: Exam[];
-  onBack: () => void;
-  onEdit: (answerSheet: AnswerSheet) => void;
-  onCopy: (answerSheet: AnswerSheet) => void;
-  onPreview: (answerSheet: AnswerSheet) => void;
-  onDelete: (answerSheet: AnswerSheet) => void;
-}) {
-  const { id } = useParams();
-  const answerSheet = answerSheets.find((item) => item.id === id);
-  if (!answerSheet) return <Navigate to="/answer-sheets" replace />;
-  const locked = exams.some((exam) => exam.answerSheet.id === answerSheet.id && exam.records.length > 0);
-  return (
-    <AnswerSheetDetailPage
-      answerSheet={answerSheet}
-      locked={locked}
-      onBack={onBack}
-      onEdit={() => onEdit(answerSheet)}
-      onCopy={() => onCopy(answerSheet)}
-      onPreview={() => onPreview(answerSheet)}
-      onDelete={() => onDelete(answerSheet)}
-    />
-  );
-}
-function AnswerSheetEditor({
-  answerSheets,
-  exams,
-  onSave,
-}: {
-  answerSheets: AnswerSheet[];
-  exams: Exam[];
-  onSave: (answerSheet: AnswerSheet) => void;
-}) {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const answerSheet = answerSheets.find((item) => item.id === id);
-  if (!answerSheet) return <Navigate to="/answer-sheets" replace />;
-  if (exams.some((exam) => exam.answerSheet.id === answerSheet.id && exam.records.length))
-    return <Navigate to={`/answer-sheets/${answerSheet.id}`} replace />;
-  return (
-    <NewAnswerSheetPage
-      answerSheet={answerSheet}
-      onSave={onSave}
-      onBack={() => navigate(`/answer-sheets/${answerSheet.id}`)}
-    />
-  );
-}
-function ExamEditorRoute({
-  exams,
-  answerSheets,
-  classrooms,
-  onSave,
-  onBack,
-}: {
-  exams: Exam[];
-  answerSheets: AnswerSheet[];
-  classrooms: Classroom[];
-  onSave: (exam: Exam) => void;
-  onBack: (exam: Exam) => void;
-}) {
-  const { id } = useParams();
-  const exam = exams.find((item) => item.id === id);
-  if (!exam) return <Navigate to="/exams" replace />;
-  if (exam.records.length) return <Navigate to={`/exams/${exam.id}`} replace />;
-  return (
-    <NewExamPage
-      exam={exam}
-      answerSheets={answerSheets}
-      classrooms={classrooms}
-      onSave={onSave}
-      onBack={() => onBack(exam)}
-    />
-  );
-}
-function ExamAnswerSheetEditorRoute({
-  exams,
-  onSave,
-}: {
-  exams: Exam[];
-  onSave: (exam: Exam, answerSheet: AnswerSheet) => void;
-}) {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const exam = exams.find((item) => item.id === id);
-  if (!exam) return <Navigate to="/exams" replace />;
-  if (exam.records.length) return <Navigate to={`/exams/${exam.id}`} replace />;
-  return (
-    <NewAnswerSheetPage
-      answerSheet={exam.answerSheet}
-      onSave={(answerSheet) => onSave(exam, answerSheet)}
-      onBack={() => navigate(`/exams/${exam.id}`)}
-    />
-  );
-}
-function ExamClassroomEditorRoute({
-  exams,
-  onSave,
-}: {
-  exams: Exam[];
-  onSave: (exam: Exam, classroom: Classroom) => void;
-}) {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const exam = exams.find((item) => item.id === id);
-  if (!exam) return <Navigate to="/exams" replace />;
-  if (exam.records.length) return <Navigate to={`/exams/${exam.id}`} replace />;
-  return (
-    <ClassEditorPage
-      classroom={exam.classroom}
-      onSave={(classroom) => onSave(exam, classroom)}
-      onBack={() => navigate(`/exams/${exam.id}`)}
-    />
-  );
-}
-function ExamRoute({
-  exams,
-  onBack,
-  onEdit,
-  onEditAnswerSheet,
-  onEditClassroom,
-  onScan,
-  onResults,
-  onDelete,
-}: {
-  exams: Exam[];
-  onBack: () => void;
-  onEdit: (exam: Exam) => void;
-  onEditAnswerSheet: (exam: Exam) => void;
-  onEditClassroom: (exam: Exam) => void;
-  onScan: (exam: Exam) => void;
-  onResults: (exam: Exam) => void;
-  onDelete: (exam: Exam) => void;
-}) {
-  const { id } = useParams();
-  const exam = exams.find((item) => item.id === id);
-  return exam ? (
-    <ExamDetailPage
-      exam={exam}
-      answerSheet={exam.answerSheet}
-      classroom={exam.classroom}
-      onBack={onBack}
-      onEdit={() => onEdit(exam)}
-      onEditAnswerSheet={() => onEditAnswerSheet(exam)}
-      onEditClassroom={() => onEditClassroom(exam)}
-      onScan={() => onScan(exam)}
-      onResults={() => onResults(exam)}
-      onDelete={() => onDelete(exam)}
-    />
-  ) : (
-    <Navigate to="/exams" replace />
-  );
-}
-function ExamAnswerSheetRoute({
-  exams,
-  children,
-}: {
-  exams: Exam[];
-  children: (exam: Exam, answerSheet: AnswerSheet) => React.ReactNode;
-}) {
-  const { id } = useParams();
-  const exam = exams.find((item) => item.id === id);
-  return exam ? children(exam, exam.answerSheet) : <Navigate to="/exams" replace />;
-}
-function ReviewRoute({
-  exams,
-  review,
-  onSave,
-  onCancel,
-}: {
-  exams: Exam[];
-  review: ReviewState | null;
-  onSave: (exam: Exam, answers: Array<Option | null>, confidence: number[]) => void;
-  onCancel: (exam: Exam) => void;
-}) {
-  const { id } = useParams();
-  const exam = exams.find((item) => item.id === id);
-  const answerSheet = exam?.answerSheet;
-  const classroom = exam?.classroom;
-  const student = classroom?.students.find(
-    (item) => item.studentNumber === review?.recognition.studentNumber,
-  );
-  return exam && answerSheet && classroom && student && review?.examId === exam.id ? (
-    <ReviewPage
-      answerSheet={answerSheet}
-      recognition={review.recognition}
-      fileName={review.fileName}
-      className={classroom.name}
-      studentNumber={student.studentNumber}
-      studentName={student.name}
-      onSave={(answers, confidence) => onSave(exam, answers, confidence)}
-      onCancel={() => onCancel(exam)}
-    />
-  ) : (
-    <Navigate to="/exams" replace />
-  );
-}
-function ClassRoute({
-  classrooms,
-  onBack,
-  onEdit,
-  onDelete,
-}: {
-  classrooms: Classroom[];
-  onBack: () => void;
-  onEdit: (classroom: Classroom) => void;
-  onDelete: (classroom: Classroom) => void;
-}) {
-  const { id } = useParams();
-  const classroom = classrooms.find((item) => item.id === id);
-  return classroom ? (
-    <ClassDetailPage
-      classroom={classroom}
-      onBack={onBack}
-      onEdit={() => onEdit(classroom)}
-      onDelete={() => onDelete(classroom)}
-    />
-  ) : (
-    <Navigate to="/students" replace />
-  );
-}
-function ClassEditorRoute({
-  classrooms,
-  onSave,
-}: {
-  classrooms: Classroom[];
-  onSave: (classroom: Classroom) => void;
-}) {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const classroom = classrooms.find((item) => item.id === id);
-  return classroom ? (
-    <ClassEditorPage
-      classroom={classroom}
-      onSave={onSave}
-      onBack={() => navigate(`/students/${classroom.id}`)}
-    />
-  ) : (
-    <Navigate to="/students" replace />
   );
 }

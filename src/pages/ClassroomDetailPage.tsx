@@ -1,21 +1,25 @@
 import PageHeader from "../components/PageHeader";
 import StudentTable from "../components/StudentTable";
 import { FilePenLine, Trash2, UsersRound } from "lucide-react";
+import { Navigate, useParams } from "react-router-dom";
 import { Classroom } from "../lib/roster";
+import { useAppStore } from "../store/appStore";
 
 type Props = {
-  classroom: Classroom;
   onBack: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
+  onEdit: (classroom: Classroom) => void;
+  onDelete: (classroom: Classroom) => void;
 };
 
-export default function ClassDetailPage({ classroom, onBack, onEdit, onDelete }: Props) {
+export default function ClassroomDetailPage({ onBack, onEdit, onDelete }: Props) {
+  const { id } = useParams();
+  const classroom = useAppStore((state) => state.classroomMap)[id ?? ""];
+  if (!classroom) return <Navigate to="/students" replace />;
   return (
     <>
       <PageHeader title={classroom.name} onBack={onBack} backLabel="返回班级管理" />
       <main className="page detail-page">
-        <section className="class-info-panel">
+        <section className="classroom-info-panel">
           <div className="exam-info-row">
             <span>班级名称</span>
             <b>{classroom.name}</b>
@@ -35,11 +39,11 @@ export default function ClassDetailPage({ classroom, onBack, onEdit, onDelete }:
           )}
         </section>
         <section className="detail-actions">
-          <button onClick={onEdit}>
+          <button onClick={() => onEdit(classroom)}>
             <FilePenLine size={19} />
             编辑班级
           </button>
-          <button className="danger-action" onClick={onDelete}>
+          <button className="danger-action" onClick={() => onDelete(classroom)}>
             <Trash2 size={19} />
             删除班级
           </button>

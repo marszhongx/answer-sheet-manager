@@ -13,6 +13,7 @@ function answerSheetWith(questionCount: number, optionCount = 4, candidateNumber
     sections: [{ id: "s", name: "第一大题", questionCount, pointsPerQuestion: 5, optionCount }],
     candidateNumberLength,
     createdAt: "2025-01-01T00:00:00.000Z",
+    isTemplate: true,
   };
 }
 
@@ -56,6 +57,7 @@ describe("OMR marker validation", () => {
       answers: ["A", "B", "C"] as Option[],
       candidateNumberLength: 6,
       createdAt: "2025-01-01T00:00:00.000Z",
+      isTemplate: true,
     };
     expect(recognizeWarpedCard(imageWithMarkers(false), answerSheet, false).markerValid).toBe(false);
   });

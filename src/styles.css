@@ -323,7 +323,7 @@ button:disabled {
   background: #c53f32;
 }
 .exam-summary,
-.class-info-panel {
+.classroom-info-panel {
   display: grid;
   gap: 5px;
   padding: 18px;
@@ -332,7 +332,7 @@ button:disabled {
   background: #fff;
 }
 .exam-summary b,
-.class-info-heading b {
+.classroom-info-heading b {
   font-size: 16px;
 }
 .exam-info-row {
@@ -354,21 +354,21 @@ button:disabled {
 .exam-info-row span,
 .exam-summary span,
 .exam-summary small,
-.class-info-heading span {
+.classroom-info-heading span {
   color: #74817b;
   font-size: 11px;
 }
-.class-info-panel {
+.classroom-info-panel {
   max-height: min(62vh, 620px);
   overflow-y: auto;
 }
-.class-info-heading {
+.classroom-info-heading {
   display: grid;
   gap: 5px;
   padding-bottom: 12px;
   border-bottom: 1px solid #edf1ef;
 }
-.class-info-panel .student-list {
+.classroom-info-panel .student-list {
   margin-top: 0;
 }
 .detail-actions + .student-list,

@@ -4,15 +4,21 @@ import Input from "../components/Input";
 import PageHeader from "../components/PageHeader";
 import StudentRosterTable from "../components/StudentRosterTable";
 import { Check } from "lucide-react";
+import { useParams } from "react-router-dom";
 import { Classroom, Student } from "../lib/roster";
+import { useAppStore } from "../store/appStore";
 
 type Props = {
-  classroom?: Classroom;
   onSave: (classroom: Classroom) => void;
   onBack: () => void;
 };
 
-export default function ClassEditorPage({ classroom, onSave, onBack }: Props) {
+export default function ClassroomEditorPage({ onSave, onBack }: Props) {
+  const { id } = useParams();
+  const classroomMap = useAppStore((state) => state.classroomMap);
+  const examMap = useAppStore((state) => state.examMap);
+  const classroom =
+    classroomMap[id ?? ""] ?? classroomMap[examMap[id ?? ""]?.classroomId ?? ""];
   const [name, setName] = useState(classroom?.name ?? "");
   const [students, setStudents] = useState<Student[]>(
     classroom?.students ?? [{ id: crypto.randomUUID(), name: "", studentNumber: "" }],
@@ -24,6 +30,7 @@ export default function ClassEditorPage({ classroom, onSave, onBack }: Props) {
       id: classroom?.id ?? crypto.randomUUID(),
       name: name.trim(),
       students: students.filter((student) => student.name.trim() && student.studentNumber),
+      isTemplate: classroom?.isTemplate ?? true,
     });
   };
 
