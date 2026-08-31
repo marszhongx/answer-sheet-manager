@@ -1,9 +1,9 @@
 import PageHeader from "../components/PageHeader";
 import { Copy, Download, FilePenLine, Trash2 } from "lucide-react";
-import { AnswerCardTemplate, templateSections } from "../lib/omr";
+import { AnswerSheet, answerSheetSections } from "../lib/omr";
 
 type Props = {
-  template: AnswerCardTemplate;
+  answerSheet: AnswerSheet;
   locked: boolean;
   onBack: () => void;
   onEdit: () => void;
@@ -11,8 +11,8 @@ type Props = {
   onPreview: () => void;
   onDelete: () => void;
 };
-export default function TemplateDetailPage({
-  template,
+export default function AnswerSheetDetailPage({
+  answerSheet,
   locked,
   onBack,
   onEdit,
@@ -20,26 +20,26 @@ export default function TemplateDetailPage({
   onPreview,
   onDelete,
 }: Props) {
-  const total = templateSections(template).reduce(
+  const total = answerSheetSections(answerSheet).reduce(
     (sum, section) => sum + section.questionCount * section.pointsPerQuestion,
     0,
   );
   return (
     <>
-      <PageHeader title={template.name} onBack={onBack} backLabel="返回答题卡列表" />
+      <PageHeader title={answerSheet.name} onBack={onBack} backLabel="返回答题卡列表" />
       <main className="page detail-page">
         <section className="exam-summary">
           <div className="exam-info-row">
             <span>答题卡名称</span>
-            <b>{template.name}</b>
+            <b>{answerSheet.name}</b>
           </div>
           <div className="exam-info-row">
             <span>科目</span>
-            <b>{template.subject}</b>
+            <b>{answerSheet.subject}</b>
           </div>
           <div className="exam-info-row">
             <span>题目数量</span>
-            <b>{template.questionCount} 题</b>
+            <b>{answerSheet.questionCount} 题</b>
           </div>
           <div className="exam-info-row">
             <span>总分</span>

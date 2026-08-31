@@ -1,14 +1,14 @@
 import ListCard from "../components/ListCard";
 import PageHeader from "../components/PageHeader";
 import { Plus, UsersRound } from "lucide-react";
-import { ClassRoster } from "../lib/roster";
+import { Classroom } from "../lib/roster";
 
 type Props = {
-  classes: ClassRoster[];
+  classrooms: Classroom[];
   onCreate: () => void;
-  onSelect: (classroom: ClassRoster) => void;
+  onSelect: (classroom: Classroom) => void;
 };
-export default function StudentsPage({ classes, onCreate, onSelect }: Props) {
+export default function StudentsPage({ classrooms, onCreate, onSelect }: Props) {
   return (
     <>
       <PageHeader
@@ -19,10 +19,10 @@ export default function StudentsPage({ classes, onCreate, onSelect }: Props) {
           </button>
         }
       />
-      <main className="page templates-page">
-        {classes.length ? (
-          <div className="template-list">
-            {classes.map((classroom) => (
+      <main className="page answerSheets-page">
+        {classrooms.length ? (
+          <div className="answer-sheet-list">
+            {classrooms.map((classroom) => (
               <ListCard
                 key={classroom.id}
                 leading={<UsersRound size={21} />}

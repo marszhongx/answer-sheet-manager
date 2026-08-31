@@ -1,21 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import { Download } from "lucide-react";
 import PageHeader from "../components/PageHeader";
-import { AnswerCardTemplate, drawA4PrintPage } from "../lib/omr";
+import { AnswerSheet, drawA4PrintPage } from "../lib/omr";
 
-type Props = { template: AnswerCardTemplate; onBack: () => void; notify: (text: string) => void };
+type Props = { answerSheet: AnswerSheet; onBack: () => void; notify: (text: string) => void };
 
-export default function AnswerCardPreviewPage({ template, onBack, notify }: Props) {
+export default function AnswerSheetPreviewPage({ answerSheet, onBack, notify }: Props) {
   const ref = useRef<HTMLCanvasElement>(null);
   const [printable, setPrintable] = useState(true);
   useEffect(() => {
-    if (ref.current) setPrintable(drawA4PrintPage(ref.current, template));
-  }, [template]);
+    if (ref.current) setPrintable(drawA4PrintPage(ref.current, answerSheet));
+  }, [answerSheet]);
   const download = () => {
     if (!ref.current || !printable) return;
     const link = document.createElement("a");
     link.href = ref.current.toDataURL("image/png");
-    link.download = `${template.name.replace(/[\\/:*?"<>|]/g, "_")}.png`;
+    link.download = `${answerSheet.name.replace(/[\\/:*?"<>|]/g, "_")}.png`;
     link.click();
     notify("答题卡已下载");
   };
@@ -30,7 +30,7 @@ export default function AnswerCardPreviewPage({ template, onBack, notify }: Prop
         ) : (
           <div className="print-preview-error">答题卡内容超出 A4 纸张范围，无法预览和下载。</div>
         )}
-        <button className="create-template-button" onClick={download} disabled={!printable}>
+        <button className="create-answer-sheet-button" onClick={download} disabled={!printable}>
           <Download size={19} />
           下载答题卡
         </button>

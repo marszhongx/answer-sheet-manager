@@ -1,4 +1,4 @@
-import { AnswerCardTemplate, Option, questionPoints } from "./omr";
+import { AnswerSheet, Option, questionPoints } from "./omr";
 
 export type GradedStudent = {
   name: string;
@@ -14,7 +14,7 @@ export type GradedStudent = {
 };
 
 export function gradeAnswers(
-  template: AnswerCardTemplate,
+  answerSheet: AnswerSheet,
   studentName: string,
   fileName: string,
   answers: Array<Option | null>,
@@ -22,9 +22,9 @@ export function gradeAnswers(
   studentNumber = "",
   className = "",
 ): GradedStudent {
-  const wrong = answers.map((answer, index) => answer !== template.answers[index]);
+  const wrong = answers.map((answer, index) => answer !== answerSheet.answers[index]);
   const correctCount = wrong.filter((value) => !value).length;
-  const points = questionPoints(template);
+  const points = questionPoints(answerSheet);
   const score = wrong.reduce((sum, value, index) => sum + (value ? 0 : points[index]), 0);
   return {
     name: studentName.trim() || "未命名学生",
@@ -58,12 +58,12 @@ function escapeCSV(value: string | number): string {
   return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
-export function toCSV(template: AnswerCardTemplate, records: GradedStudent[]): string {
+export function toCSV(answerSheet: AnswerSheet, records: GradedStudent[]): string {
   const header = [
     "班级",
     "学号",
     "姓名",
-    ...Array.from({ length: template.questionCount }, (_, index) => `第${index + 1}题`),
+    ...Array.from({ length: answerSheet.questionCount }, (_, index) => `第${index + 1}题`),
     "得分",
     "总分",
   ];

@@ -1,10 +1,10 @@
 import { useState } from "react";
 import PageHeader from "../components/PageHeader";
 import { Check, FileImage } from "lucide-react";
-import { AnswerCardTemplate, OPTION_LABELS, Option, Recognition } from "../lib/omr";
+import { AnswerSheet, OPTION_LABELS, Option, Recognition } from "../lib/omr";
 
 type Props = {
-  template: AnswerCardTemplate;
+  answerSheet: AnswerSheet;
   recognition: Recognition;
   fileName: string;
   studentName: string;
@@ -14,7 +14,7 @@ type Props = {
   onCancel: () => void;
 };
 export default function ReviewPage({
-  template,
+  answerSheet,
   recognition,
   fileName,
   studentName,
@@ -46,7 +46,7 @@ export default function ReviewPage({
           {answers.map((answer, index) => (
             <div
               className={
-                answer === template.answers[index]
+                answer === answerSheet.answers[index]
                   ? "review-question correct"
                   : "review-question wrong"
               }
@@ -54,7 +54,7 @@ export default function ReviewPage({
             >
               <div>
                 <b>第 {index + 1} 题</b>
-                <small>正确：{template.answers[index]}</small>
+                <small>正确：{answerSheet.answers[index]}</small>
               </div>
               <div>
                 {OPTION_LABELS.map((option) => (
@@ -77,7 +77,7 @@ export default function ReviewPage({
         <button
           onClick={() => canSave && onSave(answers, recognition.confidence)}
           disabled={!canSave}
-          className="create-template-button"
+          className="create-answer-sheet-button"
         >
           <Check size={19} />
           {canSave ? "确认批改并保存" : "请先补全所有题目"}

@@ -2,26 +2,26 @@ import { useEffect, useRef, useState } from "react";
 import { Check, ClipboardList, LayoutTemplate, Trash2, UsersRound, X } from "lucide-react";
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
 import { gradeAnswers } from "./lib/grading";
-import { AnswerCardTemplate, Option, Recognition } from "./lib/omr";
+import { AnswerSheet, Option, Recognition } from "./lib/omr";
 import { Exam } from "./lib/exam";
-import { ClassRoster } from "./lib/roster";
+import { Classroom } from "./lib/roster";
 import AnalysisPage from "./pages/AnalysisPage";
 import ClassDetailPage from "./pages/ClassDetailPage";
 import ClassEditorPage from "./pages/ClassEditorPage";
 import ExamDetailPage from "./pages/ExamDetailPage";
 import ExamsPage from "./pages/ExamsPage";
-import NewAnswerCardPage from "./pages/NewAnswerCardPage";
+import NewAnswerSheetPage from "./pages/NewAnswerSheetPage";
 import NewExamPage from "./pages/NewExamPage";
 import ReviewPage from "./pages/ReviewPage";
 import ScanPage from "./pages/ScanPage";
 import StudentsPage from "./pages/StudentsPage";
-import TemplateDetailPage from "./pages/TemplateDetailPage";
-import AnswerCardPreviewPage from "./pages/AnswerCardPreviewPage";
-import TemplatesPage from "./pages/TemplatesPage";
+import AnswerSheetDetailPage from "./pages/AnswerSheetDetailPage";
+import AnswerSheetPreviewPage from "./pages/AnswerSheetPreviewPage";
+import AnswerSheetsPage from "./pages/AnswerSheetsPage";
 
-const TEMPLATES_KEY = "answer-sheet-manager.templates";
+const ANSWER_SHEETS_KEY = "answer-sheet-manager.answerSheets";
 const EXAMS_KEY = "answer-sheet-manager.exams";
-const CLASSES_KEY = "answer-sheet-manager.classes";
+const CLASSROOMS_KEY = "answer-sheet-manager.classrooms";
 type ReviewState = { examId: string; recognition: Recognition; fileName: string };
 
 function load<T>(key: string, fallback: T): T {
@@ -39,8 +39,8 @@ function persist(key: string, data: unknown): boolean {
     return false;
   }
 }
-function stripRecords<T extends object>(template: T & { records?: unknown }): T {
-  const { records: _records, ...rest } = template;
+function stripRecords<T extends object>(answerSheet: T & { records?: unknown }): T {
+  const { records: _records, ...rest } = answerSheet;
   return rest as T;
 }
 function Toast({ message }: { message: string | null }) {
@@ -90,7 +90,7 @@ function DeleteDialog({
 }) {
   return (
     <div className="modal-backdrop">
-      <section className="template-modal delete-modal" role="dialog" aria-modal="true">
+      <section className="answer-sheet-modal delete-modal" role="dialog" aria-modal="true">
         <header>
           <button onClick={onCancel} aria-label="取消删除">
             <X size={21} />
@@ -112,48 +112,48 @@ function DeleteDialog({
 }
 
 export default function App() {
-  const [templates, setTemplates] = useState(() => load<AnswerCardTemplate[]>(TEMPLATES_KEY, []));
-  const [classes, setClasses] = useState(() => load<ClassRoster[]>(CLASSES_KEY, []));
+  const [answerSheets, setAnswerSheets] = useState(() => load<AnswerSheet[]>(ANSWER_SHEETS_KEY, []));
+  const [classrooms, setClassrooms] = useState(() => load<Classroom[]>(CLASSROOMS_KEY, []));
   const [exams, setExams] = useState(() => load<Exam[]>(EXAMS_KEY, []));
   const [review, setReview] = useState<ReviewState | null>(null);
   const [deleteExam, setDeleteExam] = useState<Exam | null>(null);
-  const [deleteClass, setDeleteClass] = useState<ClassRoster | null>(null);
-  const [deleteTemplate, setDeleteTemplate] = useState<AnswerCardTemplate | null>(null);
+  const [deleteClass, setDeleteClass] = useState<Classroom | null>(null);
+  const [deleteAnswerSheet, setDeleteAnswerSheet] = useState<AnswerSheet | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const toastTimer = useRef<number | undefined>(undefined);
   const navigate = useNavigate();
   useEffect(() => {
-    if (!persist(TEMPLATES_KEY, templates)) {
+    if (!persist(ANSWER_SHEETS_KEY, answerSheets)) {
       window.setTimeout(() => setMessage("本地存储空间不足，答题卡数据未能保存"), 0);
     }
-  }, [templates]);
+  }, [answerSheets]);
   useEffect(() => {
     if (!persist(EXAMS_KEY, exams)) {
       window.setTimeout(() => setMessage("本地存储空间不足，考试数据未能保存"), 0);
     }
   }, [exams]);
   useEffect(() => {
-    if (!persist(CLASSES_KEY, classes)) {
+    if (!persist(CLASSROOMS_KEY, classrooms)) {
       window.setTimeout(() => setMessage("本地存储空间不足，班级数据未能保存"), 0);
     }
-  }, [classes]);
+  }, [classrooms]);
   const notify = (text: string) => {
     setMessage(text);
     window.clearTimeout(toastTimer.current);
     toastTimer.current = window.setTimeout(() => setMessage(null), 2200);
   };
-  const saveTemplate = (template: AnswerCardTemplate) => {
-    setTemplates((current) =>
-      current.some((item) => item.id === template.id)
-        ? current.map((item) => (item.id === template.id ? template : item))
-        : [template, ...current],
+  const saveAnswerSheet = (answerSheet: AnswerSheet) => {
+    setAnswerSheets((current) =>
+      current.some((item) => item.id === answerSheet.id)
+        ? current.map((item) => (item.id === answerSheet.id ? answerSheet : item))
+        : [answerSheet, ...current],
     );
-    navigate(`/answer-sheets/${template.id}`);
+    navigate(`/answer-sheets/${answerSheet.id}`);
     notify("答题卡已保存");
   };
-  const saveEditedTemplate = (template: AnswerCardTemplate) => {
-    setTemplates((current) => current.map((item) => (item.id === template.id ? template : item)));
-    navigate(`/answer-sheets/${template.id}`);
+  const saveEditedAnswerSheet = (answerSheet: AnswerSheet) => {
+    setAnswerSheets((current) => current.map((item) => (item.id === answerSheet.id ? answerSheet : item)));
+    navigate(`/answer-sheets/${answerSheet.id}`);
     notify("答题卡已保存");
   };
   const scanned = (exam: Exam, recognition: Recognition, fileName: string) => {
@@ -172,7 +172,7 @@ export default function App() {
     navigate(`/exams/${exam.id}/review`);
   };
   const saveReview = (exam: Exam, answers: Array<Option | null>, confidence: number[]) => {
-    const template = exam.template;
+    const answerSheet = exam.answerSheet;
     const classroom = exam.classroom;
     const studentNumber = review?.recognition.studentNumber;
     const student = classroom.students.find((item) => item.studentNumber === studentNumber);
@@ -181,7 +181,7 @@ export default function App() {
       return;
     }
     const record = gradeAnswers(
-      template,
+      answerSheet,
       student.name,
       review?.fileName ?? "answer-sheet.jpg",
       answers,
@@ -215,24 +215,24 @@ export default function App() {
         <Route
           path="/answer-sheets"
           element={
-            <TemplatesPage
-              templates={templates}
+            <AnswerSheetsPage
+              answerSheets={answerSheets}
               onCreate={() => navigate("/answer-sheets/new")}
-              onSelect={(template) => navigate(`/answer-sheets/${template.id}`)}
+              onSelect={(answerSheet) => navigate(`/answer-sheets/${answerSheet.id}`)}
             />
           }
         />
         <Route
           path="/answer-sheets/new"
           element={
-            <NewAnswerCardPage onSave={saveTemplate} onBack={() => navigate("/answer-sheets")} />
+            <NewAnswerSheetPage onSave={saveAnswerSheet} onBack={() => navigate("/answer-sheets")} />
           }
         />
         <Route
           path="/answer-sheets/:id/preview"
           element={
-            <AnswerCardPreviewRoute
-              templates={templates}
+            <AnswerSheetPreviewRoute
+              answerSheets={answerSheets}
               onBack={() => navigate(-1)}
               notify={notify}
             />
@@ -241,32 +241,32 @@ export default function App() {
         <Route
           path="/answer-sheets/:id"
           element={
-            <TemplateDetailRoute
-              templates={templates}
+            <AnswerSheetDetailRoute
+              answerSheets={answerSheets}
               exams={exams}
               onBack={() => navigate("/answer-sheets")}
-              onEdit={(template) => navigate(`/answer-sheets/${template.id}/edit`)}
-              onCopy={(template) => {
+              onEdit={(answerSheet) => navigate(`/answer-sheets/${answerSheet.id}/edit`)}
+              onCopy={(answerSheet) => {
                 const copied = {
-                  ...stripRecords(template),
+                  ...stripRecords(answerSheet),
                   id: crypto.randomUUID(),
-                  name: `${template.name} 副本`,
-                  answers: [...template.answers],
+                  name: `${answerSheet.name} 副本`,
+                  answers: [...answerSheet.answers],
                   createdAt: new Date().toISOString(),
                 };
-                setTemplates((current) => [copied, ...current]);
+                setAnswerSheets((current) => [copied, ...current]);
                 navigate(`/answer-sheets/${copied.id}`);
                 notify("已复制答题卡");
               }}
-              onPreview={(template) => navigate(`/answer-sheets/${template.id}/preview`)}
-              onDelete={setDeleteTemplate}
+              onPreview={(answerSheet) => navigate(`/answer-sheets/${answerSheet.id}/preview`)}
+              onDelete={setDeleteAnswerSheet}
             />
           }
         />
         <Route
           path="/answer-sheets/:id/edit"
           element={
-            <TemplateEditor templates={templates} exams={exams} onSave={saveEditedTemplate} />
+            <AnswerSheetEditor answerSheets={answerSheets} exams={exams} onSave={saveEditedAnswerSheet} />
           }
         />
         <Route
@@ -283,8 +283,8 @@ export default function App() {
           path="/exams/new"
           element={
             <NewExamPage
-              templates={templates}
-              classes={classes}
+              answerSheets={answerSheets}
+              classrooms={classrooms}
               onSave={(exam) => {
                 setExams((current) => [exam, ...current]);
                 navigate(`/exams/${exam.id}`);
@@ -299,8 +299,8 @@ export default function App() {
           element={
             <ExamEditorRoute
               exams={exams}
-              templates={templates}
-              classes={classes}
+              answerSheets={answerSheets}
+              classrooms={classrooms}
               onSave={(exam) => {
                 setExams((current) => current.map((item) => (item.id === exam.id ? exam : item)));
                 navigate(`/exams/${exam.id}`);
@@ -311,13 +311,13 @@ export default function App() {
           }
         />
         <Route
-          path="/exams/:id/template/edit"
+          path="/exams/:id/answer-sheet/edit"
           element={
-            <ExamTemplateEditorRoute
+            <ExamAnswerSheetEditorRoute
               exams={exams}
-              onSave={(exam, template) => {
+              onSave={(exam, answerSheet) => {
                 setExams((current) =>
-                  current.map((item) => (item.id === exam.id ? { ...item, template } : item)),
+                  current.map((item) => (item.id === exam.id ? { ...item, answerSheet } : item)),
                 );
                 navigate(`/exams/${exam.id}`);
                 notify("考试答题卡已保存");
@@ -347,7 +347,7 @@ export default function App() {
               exams={exams}
               onBack={() => navigate("/exams")}
               onEdit={(exam) => navigate(`/exams/${exam.id}/edit`)}
-              onEditTemplate={(exam) => navigate(`/exams/${exam.id}/template/edit`)}
+              onEditAnswerSheet={(exam) => navigate(`/exams/${exam.id}/answer-sheet/edit`)}
               onEditClassroom={(exam) => navigate(`/exams/${exam.id}/classroom/edit`)}
               onScan={(exam) => navigate(`/exams/${exam.id}/scan`)}
               onResults={(exam) => navigate(`/exams/${exam.id}/results`)}
@@ -358,17 +358,17 @@ export default function App() {
         <Route
           path="/exams/:id/scan"
           element={
-            <ExamTemplateRoute exams={exams}>
-              {(exam, template) => (
+            <ExamAnswerSheetRoute exams={exams}>
+              {(exam, answerSheet) => (
                 <ScanPage
-                  template={template}
+                  answerSheet={answerSheet}
                   onBack={() => navigate(`/exams/${exam.id}`)}
                   onSelect={() => navigate(`/exams/${exam.id}`)}
                   onScanned={(recognition, fileName) => scanned(exam, recognition, fileName)}
                   notify={notify}
                 />
               )}
-            </ExamTemplateRoute>
+            </ExamAnswerSheetRoute>
           }
         />
         <Route
@@ -388,22 +388,22 @@ export default function App() {
         <Route
           path="/exams/:id/results"
           element={
-            <ExamTemplateRoute exams={exams}>
-              {(exam, template) => (
+            <ExamAnswerSheetRoute exams={exams}>
+              {(exam, answerSheet) => (
                 <AnalysisPage
-                  template={template}
+                  answerSheet={answerSheet}
                   records={exam.records}
                   onBack={() => navigate(`/exams/${exam.id}`)}
                 />
               )}
-            </ExamTemplateRoute>
+            </ExamAnswerSheetRoute>
           }
         />
         <Route
           path="/students"
           element={
             <StudentsPage
-              classes={classes}
+              classrooms={classrooms}
               onCreate={() => navigate("/students/new")}
               onSelect={(classroom) => navigate(`/students/${classroom.id}`)}
             />
@@ -415,7 +415,7 @@ export default function App() {
             <ClassEditorPage
               onBack={() => navigate("/students")}
               onSave={(classroom) => {
-                setClasses((current) => [...current, classroom]);
+                setClassrooms((current) => [...current, classroom]);
                 navigate(`/students/${classroom.id}`);
                 notify("班级已创建");
               }}
@@ -426,7 +426,7 @@ export default function App() {
           path="/students/:id"
           element={
             <ClassRoute
-              classes={classes}
+              classrooms={classrooms}
               onBack={() => navigate("/students")}
               onEdit={(classroom) => navigate(`/students/${classroom.id}/edit`)}
               onDelete={setDeleteClass}
@@ -437,9 +437,9 @@ export default function App() {
           path="/students/:id/edit"
           element={
             <ClassEditorRoute
-              classes={classes}
+              classrooms={classrooms}
               onSave={(classroom) => {
-                setClasses((current) =>
+                setClassrooms((current) =>
                   current.map((item) => (item.id === classroom.id ? classroom : item)),
                 );
                 navigate(`/students/${classroom.id}`);
@@ -451,16 +451,16 @@ export default function App() {
         <Route path="*" element={<Navigate to="/answer-sheets" replace />} />
       </Routes>
       <BottomNav />
-      {deleteTemplate && (
+      {deleteAnswerSheet && (
         <DeleteDialog
-          name={deleteTemplate.name}
+          name={deleteAnswerSheet.name}
           label="答题卡"
-          onCancel={() => setDeleteTemplate(null)}
+          onCancel={() => setDeleteAnswerSheet(null)}
           onConfirm={() => {
-            setTemplates((current) =>
-              current.filter((template) => template.id !== deleteTemplate.id),
+            setAnswerSheets((current) =>
+              current.filter((answerSheet) => answerSheet.id !== deleteAnswerSheet.id),
             );
-            setDeleteTemplate(null);
+            setDeleteAnswerSheet(null);
             navigate("/answer-sheets");
             notify("答题卡已删除");
           }}
@@ -472,7 +472,7 @@ export default function App() {
           label="班级"
           onCancel={() => setDeleteClass(null)}
           onConfirm={() => {
-            setClasses((current) => current.filter((item) => item.id !== deleteClass.id));
+            setClassrooms((current) => current.filter((item) => item.id !== deleteClass.id));
             setDeleteClass(null);
             navigate("/students");
             notify("班级已删除");
@@ -496,25 +496,25 @@ export default function App() {
     </div>
   );
 }
-function AnswerCardPreviewRoute({
-  templates,
+function AnswerSheetPreviewRoute({
+  answerSheets,
   onBack,
   notify,
 }: {
-  templates: AnswerCardTemplate[];
+  answerSheets: AnswerSheet[];
   onBack: () => void;
   notify: (text: string) => void;
 }) {
   const { id } = useParams();
-  const template = templates.find((item) => item.id === id);
-  return template ? (
-    <AnswerCardPreviewPage template={template} onBack={onBack} notify={notify} />
+  const answerSheet = answerSheets.find((item) => item.id === id);
+  return answerSheet ? (
+    <AnswerSheetPreviewPage answerSheet={answerSheet} onBack={onBack} notify={notify} />
   ) : (
     <Navigate to="/answer-sheets" replace />
   );
 }
-function TemplateDetailRoute({
-  templates,
+function AnswerSheetDetailRoute({
+  answerSheets,
   exams,
   onBack,
   onEdit,
@@ -522,63 +522,63 @@ function TemplateDetailRoute({
   onPreview,
   onDelete,
 }: {
-  templates: AnswerCardTemplate[];
+  answerSheets: AnswerSheet[];
   exams: Exam[];
   onBack: () => void;
-  onEdit: (template: AnswerCardTemplate) => void;
-  onCopy: (template: AnswerCardTemplate) => void;
-  onPreview: (template: AnswerCardTemplate) => void;
-  onDelete: (template: AnswerCardTemplate) => void;
+  onEdit: (answerSheet: AnswerSheet) => void;
+  onCopy: (answerSheet: AnswerSheet) => void;
+  onPreview: (answerSheet: AnswerSheet) => void;
+  onDelete: (answerSheet: AnswerSheet) => void;
 }) {
   const { id } = useParams();
-  const template = templates.find((item) => item.id === id);
-  if (!template) return <Navigate to="/answer-sheets" replace />;
-  const locked = exams.some((exam) => exam.template.id === template.id && exam.records.length > 0);
+  const answerSheet = answerSheets.find((item) => item.id === id);
+  if (!answerSheet) return <Navigate to="/answer-sheets" replace />;
+  const locked = exams.some((exam) => exam.answerSheet.id === answerSheet.id && exam.records.length > 0);
   return (
-    <TemplateDetailPage
-      template={template}
+    <AnswerSheetDetailPage
+      answerSheet={answerSheet}
       locked={locked}
       onBack={onBack}
-      onEdit={() => onEdit(template)}
-      onCopy={() => onCopy(template)}
-      onPreview={() => onPreview(template)}
-      onDelete={() => onDelete(template)}
+      onEdit={() => onEdit(answerSheet)}
+      onCopy={() => onCopy(answerSheet)}
+      onPreview={() => onPreview(answerSheet)}
+      onDelete={() => onDelete(answerSheet)}
     />
   );
 }
-function TemplateEditor({
-  templates,
+function AnswerSheetEditor({
+  answerSheets,
   exams,
   onSave,
 }: {
-  templates: AnswerCardTemplate[];
+  answerSheets: AnswerSheet[];
   exams: Exam[];
-  onSave: (template: AnswerCardTemplate) => void;
+  onSave: (answerSheet: AnswerSheet) => void;
 }) {
   const { id } = useParams();
   const navigate = useNavigate();
-  const template = templates.find((item) => item.id === id);
-  if (!template) return <Navigate to="/answer-sheets" replace />;
-  if (exams.some((exam) => exam.template.id === template.id && exam.records.length))
-    return <Navigate to={`/answer-sheets/${template.id}`} replace />;
+  const answerSheet = answerSheets.find((item) => item.id === id);
+  if (!answerSheet) return <Navigate to="/answer-sheets" replace />;
+  if (exams.some((exam) => exam.answerSheet.id === answerSheet.id && exam.records.length))
+    return <Navigate to={`/answer-sheets/${answerSheet.id}`} replace />;
   return (
-    <NewAnswerCardPage
-      template={template}
+    <NewAnswerSheetPage
+      answerSheet={answerSheet}
       onSave={onSave}
-      onBack={() => navigate(`/answer-sheets/${template.id}`)}
+      onBack={() => navigate(`/answer-sheets/${answerSheet.id}`)}
     />
   );
 }
 function ExamEditorRoute({
   exams,
-  templates,
-  classes,
+  answerSheets,
+  classrooms,
   onSave,
   onBack,
 }: {
   exams: Exam[];
-  templates: AnswerCardTemplate[];
-  classes: ClassRoster[];
+  answerSheets: AnswerSheet[];
+  classrooms: Classroom[];
   onSave: (exam: Exam) => void;
   onBack: (exam: Exam) => void;
 }) {
@@ -589,19 +589,19 @@ function ExamEditorRoute({
   return (
     <NewExamPage
       exam={exam}
-      templates={templates}
-      classes={classes}
+      answerSheets={answerSheets}
+      classrooms={classrooms}
       onSave={onSave}
       onBack={() => onBack(exam)}
     />
   );
 }
-function ExamTemplateEditorRoute({
+function ExamAnswerSheetEditorRoute({
   exams,
   onSave,
 }: {
   exams: Exam[];
-  onSave: (exam: Exam, template: AnswerCardTemplate) => void;
+  onSave: (exam: Exam, answerSheet: AnswerSheet) => void;
 }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -609,9 +609,9 @@ function ExamTemplateEditorRoute({
   if (!exam) return <Navigate to="/exams" replace />;
   if (exam.records.length) return <Navigate to={`/exams/${exam.id}`} replace />;
   return (
-    <NewAnswerCardPage
-      template={exam.template}
-      onSave={(template) => onSave(exam, template)}
+    <NewAnswerSheetPage
+      answerSheet={exam.answerSheet}
+      onSave={(answerSheet) => onSave(exam, answerSheet)}
       onBack={() => navigate(`/exams/${exam.id}`)}
     />
   );
@@ -621,7 +621,7 @@ function ExamClassroomEditorRoute({
   onSave,
 }: {
   exams: Exam[];
-  onSave: (exam: Exam, classroom: ClassRoster) => void;
+  onSave: (exam: Exam, classroom: Classroom) => void;
 }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -640,7 +640,7 @@ function ExamRoute({
   exams,
   onBack,
   onEdit,
-  onEditTemplate,
+  onEditAnswerSheet,
   onEditClassroom,
   onScan,
   onResults,
@@ -649,7 +649,7 @@ function ExamRoute({
   exams: Exam[];
   onBack: () => void;
   onEdit: (exam: Exam) => void;
-  onEditTemplate: (exam: Exam) => void;
+  onEditAnswerSheet: (exam: Exam) => void;
   onEditClassroom: (exam: Exam) => void;
   onScan: (exam: Exam) => void;
   onResults: (exam: Exam) => void;
@@ -660,11 +660,11 @@ function ExamRoute({
   return exam ? (
     <ExamDetailPage
       exam={exam}
-      template={exam.template}
+      answerSheet={exam.answerSheet}
       classroom={exam.classroom}
       onBack={onBack}
       onEdit={() => onEdit(exam)}
-      onEditTemplate={() => onEditTemplate(exam)}
+      onEditAnswerSheet={() => onEditAnswerSheet(exam)}
       onEditClassroom={() => onEditClassroom(exam)}
       onScan={() => onScan(exam)}
       onResults={() => onResults(exam)}
@@ -674,16 +674,16 @@ function ExamRoute({
     <Navigate to="/exams" replace />
   );
 }
-function ExamTemplateRoute({
+function ExamAnswerSheetRoute({
   exams,
   children,
 }: {
   exams: Exam[];
-  children: (exam: Exam, template: AnswerCardTemplate) => React.ReactNode;
+  children: (exam: Exam, answerSheet: AnswerSheet) => React.ReactNode;
 }) {
   const { id } = useParams();
   const exam = exams.find((item) => item.id === id);
-  return exam ? children(exam, exam.template) : <Navigate to="/exams" replace />;
+  return exam ? children(exam, exam.answerSheet) : <Navigate to="/exams" replace />;
 }
 function ReviewRoute({
   exams,
@@ -698,14 +698,14 @@ function ReviewRoute({
 }) {
   const { id } = useParams();
   const exam = exams.find((item) => item.id === id);
-  const template = exam?.template;
+  const answerSheet = exam?.answerSheet;
   const classroom = exam?.classroom;
   const student = classroom?.students.find(
     (item) => item.studentNumber === review?.recognition.studentNumber,
   );
-  return exam && template && classroom && student && review?.examId === exam.id ? (
+  return exam && answerSheet && classroom && student && review?.examId === exam.id ? (
     <ReviewPage
-      template={template}
+      answerSheet={answerSheet}
       recognition={review.recognition}
       fileName={review.fileName}
       className={classroom.name}
@@ -719,18 +719,18 @@ function ReviewRoute({
   );
 }
 function ClassRoute({
-  classes,
+  classrooms,
   onBack,
   onEdit,
   onDelete,
 }: {
-  classes: ClassRoster[];
+  classrooms: Classroom[];
   onBack: () => void;
-  onEdit: (classroom: ClassRoster) => void;
-  onDelete: (classroom: ClassRoster) => void;
+  onEdit: (classroom: Classroom) => void;
+  onDelete: (classroom: Classroom) => void;
 }) {
   const { id } = useParams();
-  const classroom = classes.find((item) => item.id === id);
+  const classroom = classrooms.find((item) => item.id === id);
   return classroom ? (
     <ClassDetailPage
       classroom={classroom}
@@ -743,15 +743,15 @@ function ClassRoute({
   );
 }
 function ClassEditorRoute({
-  classes,
+  classrooms,
   onSave,
 }: {
-  classes: ClassRoster[];
-  onSave: (classroom: ClassRoster) => void;
+  classrooms: Classroom[];
+  onSave: (classroom: Classroom) => void;
 }) {
   const { id } = useParams();
   const navigate = useNavigate();
-  const classroom = classes.find((item) => item.id === id);
+  const classroom = classrooms.find((item) => item.id === id);
   return classroom ? (
     <ClassEditorPage
       classroom={classroom}

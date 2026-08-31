@@ -19,14 +19,14 @@ export default function ExamsPage({ exams, onCreate, onSelect }: Props) {
           </button>
         }
       />
-      <main className="page templates-page">
+      <main className="page answerSheets-page">
         {exams.length ? (
-          <div className="template-list">
+          <div className="answer-sheet-list">
             {exams.map((exam) => (
               <ListCard
                 key={exam.id}
                 leading={<ScanLine size={21} />}
-                tags={[exam.classroom.name, exam.template.name]}
+                tags={[exam.classroom.name, exam.answerSheet.name]}
                 title={exam.name}
                 description={`已阅 ${exam.records.length} 份`}
                 onClick={() => onSelect(exam)}

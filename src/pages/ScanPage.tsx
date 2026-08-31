@@ -3,21 +3,21 @@ import PageHeader from "../components/PageHeader";
 import { useState } from "react";
 import { Camera, ChevronRight, ImagePlus, LayoutTemplate, ScanLine } from "lucide-react";
 import LiveScanner from "../components/LiveScanner";
-import { AnswerCardTemplate, Recognition, recognizeAnswerCard } from "../lib/omr";
+import { AnswerSheet, Recognition, recognizeAnswerSheet } from "../lib/omr";
 import EmptyState from "./EmptyState";
 
 type Props = {
-  template: AnswerCardTemplate | null;
+  answerSheet: AnswerSheet | null;
   onBack: () => void;
   onSelect: () => void;
   onScanned: (recognition: Recognition, fileName: string) => void;
   notify: (text: string) => void;
 };
-export default function ScanPage({ template, onBack, onSelect, onScanned, notify }: Props) {
+export default function ScanPage({ answerSheet, onBack, onSelect, onScanned, notify }: Props) {
   const [processing, setProcessing] = useState(false);
   const [scanner, setScanner] = useState(false);
   const importImage = (file: File) => {
-    if (!file || !template) return;
+    if (!file || !answerSheet) return;
     setProcessing(true);
     const url = URL.createObjectURL(file);
     const image = new Image();
@@ -26,7 +26,7 @@ export default function ScanPage({ template, onBack, onSelect, onScanned, notify
       () => {
         try {
           onScanned(
-            recognizeAnswerCard(image, image.naturalWidth, image.naturalHeight, template),
+            recognizeAnswerSheet(image, image.naturalWidth, image.naturalHeight, answerSheet),
             file.name,
           );
         } finally {
@@ -47,10 +47,10 @@ export default function ScanPage({ template, onBack, onSelect, onScanned, notify
     );
     image.src = url;
   };
-  if (scanner && template)
+  if (scanner && answerSheet)
     return (
       <LiveScanner
-        template={template}
+        answerSheet={answerSheet}
         onClose={() => setScanner(false)}
         onConfirm={(recognition) => {
           setScanner(false);
@@ -62,7 +62,7 @@ export default function ScanPage({ template, onBack, onSelect, onScanned, notify
     <>
       <PageHeader title="扫描答卷" onBack={onBack} backLabel="返回考试详情" />
       <main className="page scan-page">
-        {template ? (
+        {answerSheet ? (
           <>
             <button onClick={onSelect} className="exam-picker">
               <div className="exam-icon">
@@ -70,9 +70,9 @@ export default function ScanPage({ template, onBack, onSelect, onScanned, notify
               </div>
               <div>
                 <small>当前答题卡</small>
-                <b>{template.name}</b>
+                <b>{answerSheet.name}</b>
                 <span>
-                  {template.subject} · {template.questionCount} 道单选题
+                  {answerSheet.subject} · {answerSheet.questionCount} 道单选题
                 </span>
               </div>
               <ChevronRight size={19} />

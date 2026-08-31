@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, Check, LoaderCircle, RotateCcw, ScanLine, X } from "lucide-react";
 import {
-  AnswerCardTemplate,
+  AnswerSheet,
   createLayout,
   questionOptions,
   questionPoints,
@@ -11,7 +11,7 @@ import {
 import { getOpenCv } from "../lib/opencv";
 
 type Props = {
-  template: AnswerCardTemplate;
+  answerSheet: AnswerSheet;
   onConfirm: (recognition: Recognition) => void;
   onClose: () => void;
 };
@@ -67,7 +67,7 @@ function project(point: Point, matrix: number[]): Point {
   };
 }
 
-export default function LiveScanner({ template, onConfirm, onClose }: Props) {
+export default function LiveScanner({ answerSheet, onConfirm, onClose }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const frameRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLCanvasElement>(null);
@@ -78,7 +78,7 @@ export default function LiveScanner({ template, onConfirm, onClose }: Props) {
   const [state, setState] = useState<ScannerState>("loading");
   const [message, setMessage] = useState("正在启动相机");
   const [recognition, setRecognition] = useState<Recognition | null>(null);
-  const points = questionPoints(template);
+  const points = questionPoints(answerSheet);
   const totalScore = points.reduce((sum, point) => sum + point, 0);
 
   useEffect(() => {
@@ -143,7 +143,7 @@ export default function LiveScanner({ template, onConfirm, onClose }: Props) {
       frameCtx.drawImage(video, 0, 0, width, height);
       overlayCtx.clearRect(0, 0, width, height);
       processingRef.current = true;
-      void processFrame(frame, overlayCtx, template, setState, setMessage, setRecognition).finally(
+      void processFrame(frame, overlayCtx, answerSheet, setState, setMessage, setRecognition).finally(
         () => {
           processingRef.current = false;
         },
@@ -153,7 +153,7 @@ export default function LiveScanner({ template, onConfirm, onClose }: Props) {
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
-  }, [state, template]);
+  }, [state, answerSheet]);
 
   return (
     <div className="scanner-screen">
@@ -193,7 +193,7 @@ export default function LiveScanner({ template, onConfirm, onClose }: Props) {
           <b>
             {recognition.answers.reduce(
               (sum, answer, index) =>
-                answer === template.answers[index] ? sum + points[index] : sum,
+                answer === answerSheet.answers[index] ? sum + points[index] : sum,
               0,
             )}
           </b>
@@ -217,7 +217,7 @@ export default function LiveScanner({ template, onConfirm, onClose }: Props) {
 async function processFrame(
   frame: HTMLCanvasElement,
   overlay: CanvasRenderingContext2D,
-  template: AnswerCardTemplate,
+  answerSheet: AnswerSheet,
   setState: (state: ScannerState) => void,
   setMessage: (message: string) => void,
   setRecognition: (recognition: Recognition | null) => void,
@@ -267,10 +267,10 @@ async function processFrame(
       setMessage("请让四个黑色定位方块完整进入画面");
       return;
     }
-    const options = questionOptions(template);
+    const options = questionOptions(answerSheet);
     const layout = createLayout(
-      template.questionCount,
-      template.candidateNumberLength,
+      answerSheet.questionCount,
+      answerSheet.candidateNumberLength,
       options.map((item) => item.length),
     );
     const destination = layout.markers.map((marker) => ({
@@ -310,11 +310,11 @@ async function processFrame(
     if (!warpedContext) throw new Error("无法读取相机帧");
     const recognition = recognizeWarpedCard(
       warpedContext.getImageData(0, 0, layout.width, layout.height),
-      template,
+      answerSheet,
       true,
     );
     const inverseMatrix = Array.from(inverse.data64F as Float64Array);
-    drawOverlay(overlay, corners, layout, inverseMatrix, recognition, template);
+    drawOverlay(overlay, corners, layout, inverseMatrix, recognition, answerSheet);
     setRecognition(recognition);
     setState("ready");
     setMessage(
@@ -348,7 +348,7 @@ function drawOverlay(
   layout: ReturnType<typeof createLayout>,
   inverse: number[],
   recognition: Recognition,
-  template: AnswerCardTemplate,
+  answerSheet: AnswerSheet,
 ) {
   overlay.lineWidth = 3;
   overlay.strokeStyle = "#36dfbd";
@@ -361,7 +361,7 @@ function drawOverlay(
     const answer = recognition.answers[bubble.question];
     if (answer !== bubble.option) return;
     const point = project({ x: bubble.x, y: bubble.y }, inverse);
-    const correct = answer === template.answers[bubble.question];
+    const correct = answer === answerSheet.answers[bubble.question];
     overlay.fillStyle = correct ? "rgba(46, 228, 187, .72)" : "rgba(255, 84, 101, .76)";
     overlay.beginPath();
     overlay.arc(point.x, point.y, 9, 0, Math.PI * 2);

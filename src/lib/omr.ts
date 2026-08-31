@@ -9,7 +9,7 @@ export type QuestionSection = {
   optionCount: number;
 };
 
-export type AnswerCardTemplate = {
+export type AnswerSheet = {
   id: string;
   name: string;
   subject: string;
@@ -81,20 +81,20 @@ export function defaultSections(questionCount = 20): QuestionSection[] {
   ];
 }
 
-export function templateSections(template: AnswerCardTemplate): QuestionSection[] {
-  return template.sections?.length ? template.sections : defaultSections(template.questionCount);
+export function answerSheetSections(answerSheet: AnswerSheet): QuestionSection[] {
+  return answerSheet.sections?.length ? answerSheet.sections : defaultSections(answerSheet.questionCount);
 }
 
-export function questionOptions(template: AnswerCardTemplate): Option[][] {
-  return templateSections(template).flatMap((section) =>
+export function questionOptions(answerSheet: AnswerSheet): Option[][] {
+  return answerSheetSections(answerSheet).flatMap((section) =>
     Array.from({ length: section.questionCount }, () =>
       OPTION_LABELS.slice(0, Math.max(2, Math.min(OPTION_LABELS.length, section.optionCount))),
     ),
   );
 }
 
-export function questionPoints(template: AnswerCardTemplate): number[] {
-  return templateSections(template).flatMap((section) =>
+export function questionPoints(answerSheet: AnswerSheet): number[] {
+  return answerSheetSections(answerSheet).flatMap((section) =>
     Array.from({ length: section.questionCount }, () => section.pointsPerQuestion),
   );
 }
@@ -201,11 +201,11 @@ export function createLayout(
   };
 }
 
-export function drawAnswerCard(canvas: HTMLCanvasElement, template: AnswerCardTemplate) {
-  const options = questionOptions(template);
+export function drawAnswerSheet(canvas: HTMLCanvasElement, answerSheet: AnswerSheet) {
+  const options = questionOptions(answerSheet);
   const layout = createLayout(
-    template.questionCount,
-    template.candidateNumberLength ?? DEFAULT_CANDIDATE_LENGTH,
+    answerSheet.questionCount,
+    answerSheet.candidateNumberLength ?? DEFAULT_CANDIDATE_LENGTH,
     options.map((item) => item.length),
   );
   canvas.width = layout.width;
@@ -276,19 +276,19 @@ export function drawAnswerCard(canvas: HTMLCanvasElement, template: AnswerCardTe
   });
 }
 
-function cardLayout(template: AnswerCardTemplate): CardLayout {
-  const options = questionOptions(template);
+function cardLayout(answerSheet: AnswerSheet): CardLayout {
+  const options = questionOptions(answerSheet);
   return createLayout(
-    template.questionCount,
-    template.candidateNumberLength ?? DEFAULT_CANDIDATE_LENGTH,
+    answerSheet.questionCount,
+    answerSheet.candidateNumberLength ?? DEFAULT_CANDIDATE_LENGTH,
     options.map((item) => item.length),
   );
 }
 
 export type A4Fit = { portrait: boolean; landscape: boolean };
 
-export function a4Fit(template: AnswerCardTemplate): A4Fit {
-  const layout = cardLayout(template);
+export function a4Fit(answerSheet: AnswerSheet): A4Fit {
+  const layout = cardLayout(answerSheet);
   return {
     portrait:
       layout.width <= A4_PORTRAIT.width &&
@@ -297,17 +297,17 @@ export function a4Fit(template: AnswerCardTemplate): A4Fit {
   };
 }
 
-export function fitsA4(template: AnswerCardTemplate): boolean {
-  const fit = a4Fit(template);
+export function fitsA4(answerSheet: AnswerSheet): boolean {
+  const fit = a4Fit(answerSheet);
   return fit.portrait || fit.landscape;
 }
 
-export function drawA4PrintPage(canvas: HTMLCanvasElement, template: AnswerCardTemplate): boolean {
-  const layout = cardLayout(template);
-  const fit = a4Fit(template);
+export function drawA4PrintPage(canvas: HTMLCanvasElement, answerSheet: AnswerSheet): boolean {
+  const layout = cardLayout(answerSheet);
+  const fit = a4Fit(answerSheet);
   if (!fit.portrait && !fit.landscape) return false;
   const card = document.createElement("canvas");
-  drawAnswerCard(card, template);
+  drawAnswerSheet(card, answerSheet);
   const page = fit.portrait ? A4_PORTRAIT : A4_LANDSCAPE;
   const twoCards = fit.portrait;
   const gap = twoCards ? A4_DOUBLE_CARD_GAP : 0;
@@ -420,11 +420,11 @@ export function classifyFillRates(
 
 export function recognizeWarpedCard(
   imageData: ImageData,
-  template: AnswerCardTemplate,
+  answerSheet: AnswerSheet,
   markerValid = true,
 ): Recognition {
-  const options = questionOptions(template);
-  const layout = cardLayout(template);
+  const options = questionOptions(answerSheet);
+  const layout = cardLayout(answerSheet);
   const fillRates = options.map((item) => Array(item.length).fill(0));
   layout.bubbles.forEach((bubble) => {
     fillRates[bubble.question][options[bubble.question].indexOf(bubble.option)] = darkness(
@@ -434,7 +434,7 @@ export function recognizeWarpedCard(
       bubble.radius * 0.57,
     );
   });
-  const studentLength = template.candidateNumberLength ?? DEFAULT_CANDIDATE_LENGTH;
+  const studentLength = answerSheet.candidateNumberLength ?? DEFAULT_CANDIDATE_LENGTH;
   const studentRates = Array.from({ length: studentLength }, () => Array(10).fill(0));
   layout.studentNumberBubbles.forEach((bubble) => {
     studentRates[bubble.digitIndex][bubble.value] = darkness(
@@ -458,13 +458,13 @@ export function recognizeWarpedCard(
   };
 }
 
-export function recognizeAnswerCard(
+export function recognizeAnswerSheet(
   image: CanvasImageSource,
   sourceWidth: number,
   sourceHeight: number,
-  template: AnswerCardTemplate,
+  answerSheet: AnswerSheet,
 ): Recognition {
-  const layout = cardLayout(template);
+  const layout = cardLayout(answerSheet);
   const imageData = cropAndScale(image, sourceWidth, sourceHeight, layout);
-  return recognizeWarpedCard(imageData, template, hasValidMarkers(imageData, layout));
+  return recognizeWarpedCard(imageData, answerSheet, hasValidMarkers(imageData, layout));
 }

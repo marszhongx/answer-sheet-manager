@@ -2,16 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import PageHeader from "../components/PageHeader";
 import { BarChart3, Camera, Download, FilePenLine, Trash2 } from "lucide-react";
 import { Exam } from "../lib/exam";
-import { AnswerCardTemplate, drawA4PrintPage } from "../lib/omr";
-import { ClassRoster } from "../lib/roster";
+import { AnswerSheet, drawA4PrintPage } from "../lib/omr";
+import { Classroom } from "../lib/roster";
 
 type Props = {
   exam: Exam;
-  template: AnswerCardTemplate;
-  classroom: ClassRoster;
+  answerSheet: AnswerSheet;
+  classroom: Classroom;
   onBack: () => void;
   onEdit: () => void;
-  onEditTemplate: () => void;
+  onEditAnswerSheet: () => void;
   onEditClassroom: () => void;
   onScan: () => void;
   onResults: () => void;
@@ -19,11 +19,11 @@ type Props = {
 };
 export default function ExamDetailPage({
   exam,
-  template,
+  answerSheet,
   classroom,
   onBack,
   onEdit,
-  onEditTemplate,
+  onEditAnswerSheet,
   onEditClassroom,
   onScan,
   onResults,
@@ -32,8 +32,8 @@ export default function ExamDetailPage({
   const ref = useRef<HTMLCanvasElement>(null);
   const [printable, setPrintable] = useState(true);
   useEffect(() => {
-    if (ref.current) setPrintable(drawA4PrintPage(ref.current, template));
-  }, [template]);
+    if (ref.current) setPrintable(drawA4PrintPage(ref.current, answerSheet));
+  }, [answerSheet]);
   const download = () => {
     if (!ref.current || !printable) return;
     const link = document.createElement("a");
@@ -59,7 +59,7 @@ export default function ExamDetailPage({
           </div>
           <div className="exam-info-row">
             <span>答题卡</span>
-            <b>{template.name}</b>
+            <b>{answerSheet.name}</b>
           </div>
           <div className="exam-info-row">
             <span>班级</span>
@@ -75,7 +75,7 @@ export default function ExamDetailPage({
             <FilePenLine size={19} />
             编辑考试
           </button>
-          <button onClick={onEditTemplate} disabled={exam.records.length > 0}>
+          <button onClick={onEditAnswerSheet} disabled={exam.records.length > 0}>
             <FilePenLine size={19} />
             编辑考试答题卡
           </button>

@@ -4,11 +4,11 @@ import Input from "../components/Input";
 import PageHeader from "../components/PageHeader";
 import StudentRosterTable from "../components/StudentRosterTable";
 import { Check } from "lucide-react";
-import { ClassRoster, Student } from "../lib/roster";
+import { Classroom, Student } from "../lib/roster";
 
 type Props = {
-  classroom?: ClassRoster;
-  onSave: (classroom: ClassRoster) => void;
+  classroom?: Classroom;
+  onSave: (classroom: Classroom) => void;
   onBack: () => void;
 };
 
@@ -34,7 +34,7 @@ export default function ClassEditorPage({ classroom, onSave, onBack }: Props) {
         onBack={onBack}
         backLabel="返回班级管理"
       />
-      <main className="page new-answer-card-page">
+      <main className="page new-answer-sheet-page">
         <FormSection>
           <label>
             班级名称
@@ -42,7 +42,7 @@ export default function ClassEditorPage({ classroom, onSave, onBack }: Props) {
           </label>
         </FormSection>
         <StudentRosterTable students={students} onChange={setStudents} />
-        <button className="create-template-button" disabled={!name.trim()} onClick={save}>
+        <button className="create-answer-sheet-button" disabled={!name.trim()} onClick={save}>
           <Check size={19} />
           {editing ? "保存班级" : "创建班级"}
         </button>

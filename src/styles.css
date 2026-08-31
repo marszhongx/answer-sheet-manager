@@ -188,7 +188,7 @@ button:disabled {
   color: #14735d;
   background: #e0f3ea;
 }
-.template {
+.answer-sheet {
   color: #277a61;
   background: #e8f5ee;
 }
@@ -238,10 +238,10 @@ button:disabled {
   border-radius: 50%;
   background: #176b58;
 }
-.templates-page {
+.answer-sheets-page {
   padding-top: 16px;
 }
-.template-list {
+.answer-sheet-list {
   display: grid;
   gap: 12px;
 }
@@ -269,7 +269,7 @@ button:disabled {
   margin-top: 15px;
 }
 .detail-actions button,
-.create-template-button {
+.create-answer-sheet-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -284,7 +284,7 @@ button:disabled {
   font-weight: 600;
 }
 .detail-actions .primary-action,
-.create-template-button {
+.create-answer-sheet-button {
   color: #fff;
   border-color: #176b58;
   background: #176b58;
@@ -398,7 +398,7 @@ button:disabled {
   color: #477a6b;
   font-size: 12px;
 }
-.create-template-button:disabled {
+.create-answer-sheet-button:disabled {
   color: #9ea9a4;
   border-color: #e0e7e3;
   background: #e9eeeb;
@@ -425,7 +425,7 @@ button:disabled {
   justify-content: center;
   background: #16231e7c;
 }
-.template-modal {
+.answer-sheet-modal {
   width: 100%;
   max-width: 600px;
   max-height: 92vh;
@@ -435,7 +435,7 @@ button:disabled {
   background: #fff;
   animation: rise 0.18s ease-out;
 }
-.template-modal header {
+.answer-sheet-modal header {
   display: grid;
   grid-template-columns: 45px 1fr 45px;
   align-items: center;
@@ -443,29 +443,29 @@ button:disabled {
   border-bottom: 1px solid #e6ece8;
   text-align: center;
 }
-.template-modal header h2 {
+.answer-sheet-modal header h2 {
   margin: 0;
   font-size: 16px;
 }
-.template-modal header button {
+.answer-sheet-modal header button {
   display: grid;
   place-items: center;
   color: #56635d;
   border: 0;
   background: transparent;
 }
-.template-modal .modal-save {
+.answer-sheet-modal .modal-save {
   color: #176b58;
   font-size: 13px;
   font-weight: 600;
 }
 
-.template-modal .create-template-button {
+.answer-sheet-modal .create-answer-sheet-button {
   width: calc(100% - 36px);
   margin: 24px 18px 0;
 }
-.new-answer-card-page .create-template-button,
-.answer-card-editor .create-template-button {
+.new-answer-sheet-page .create-answer-sheet-button,
+.answer-sheet-editor .create-answer-sheet-button {
   margin-top: 24px;
 }
 .sections-editor {
@@ -1249,7 +1249,7 @@ button:disabled {
 }
 @media (prefers-reduced-motion: reduce) {
   .spin,
-  .template-modal {
+  .answer-sheet-modal {
     animation: none;
   }
 }

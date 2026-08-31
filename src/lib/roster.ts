@@ -4,7 +4,7 @@ export type Student = {
   studentNumber: string;
 };
 
-export type ClassRoster = {
+export type Classroom = {
   id: string;
   name: string;
   students: Student[];
@@ -32,11 +32,11 @@ export function parseStudentCSV(text: string): Array<{ name: string; studentNumb
 }
 
 export function findStudent(
-  classes: ClassRoster[],
-  classId: string | undefined,
+  classrooms: Classroom[],
+  classroomId: string | undefined,
   studentNumber: string,
 ): Student | undefined {
-  return classes
-    .find((item) => item.id === classId)
+  return classrooms
+    .find((item) => item.id === classroomId)
     ?.students.find((student) => student.studentNumber === studentNumber);
 }

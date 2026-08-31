@@ -4,33 +4,33 @@ import Input from "../components/Input";
 import PageHeader from "../components/PageHeader";
 import Select from "../components/Select";
 import { Check } from "lucide-react";
-import { AnswerCardTemplate } from "../lib/omr";
-import { ClassRoster } from "../lib/roster";
+import { AnswerSheet } from "../lib/omr";
+import { Classroom } from "../lib/roster";
 import { Exam } from "../lib/exam";
 
 type Props = {
   exam?: Exam;
-  templates: AnswerCardTemplate[];
-  classes: ClassRoster[];
+  answerSheets: AnswerSheet[];
+  classrooms: Classroom[];
   onSave: (exam: Exam) => void;
   onBack: () => void;
 };
-export default function NewExamPage({ exam, templates, classes, onSave, onBack }: Props) {
+export default function NewExamPage({ exam, answerSheets, classrooms, onSave, onBack }: Props) {
   const [name, setName] = useState(exam?.name ?? "");
-  const [templateId, setTemplateId] = useState(exam?.template.id ?? templates[0]?.id ?? "");
-  const [classId, setClassId] = useState(exam?.classroom.id ?? classes[0]?.id ?? "");
+  const [answerSheetId, setAnswerSheetId] = useState(exam?.answerSheet.id ?? answerSheets[0]?.id ?? "");
+  const [classroomId, setClassroomId] = useState(exam?.classroom.id ?? classrooms[0]?.id ?? "");
   const editing = Boolean(exam);
-  const selectedTemplate =
-    templates.find((template) => template.id === templateId) ?? exam?.template;
+  const selectedAnswerSheet =
+    answerSheets.find((answerSheet) => answerSheet.id === answerSheetId) ?? exam?.answerSheet;
   const selectedClassroom =
-    classes.find((classroom) => classroom.id === classId) ?? exam?.classroom;
-  const canSave = Boolean(name.trim() && selectedTemplate && selectedClassroom);
+    classrooms.find((classroom) => classroom.id === classroomId) ?? exam?.classroom;
+  const canSave = Boolean(name.trim() && selectedAnswerSheet && selectedClassroom);
   const save = () => {
-    if (!selectedTemplate || !selectedClassroom) return;
+    if (!selectedAnswerSheet || !selectedClassroom) return;
     onSave({
       id: exam?.id ?? crypto.randomUUID(),
       name: name.trim(),
-      template: structuredClone(selectedTemplate),
+      answerSheet: structuredClone(selectedAnswerSheet),
       classroom: structuredClone(selectedClassroom),
       records: exam?.records ?? [],
       createdAt: exam?.createdAt ?? new Date().toISOString(),
@@ -43,7 +43,7 @@ export default function NewExamPage({ exam, templates, classes, onSave, onBack }
         onBack={onBack}
         backLabel="返回考试管理"
       />
-      <main className="page new-answer-card-page">
+      <main className="page new-answer-sheet-page">
         <FormSection>
           <label>
             考试名称
@@ -57,27 +57,27 @@ export default function NewExamPage({ exam, templates, classes, onSave, onBack }
           <label>
             答题卡
             <Select
-              value={templateId}
-              onChange={setTemplateId}
-              options={templates.map((template) => ({ value: template.id, label: template.name }))}
+              value={answerSheetId}
+              onChange={setAnswerSheetId}
+              options={answerSheets.map((answerSheet) => ({ value: answerSheet.id, label: answerSheet.name }))}
               ariaLabel="答题卡"
             />
           </label>
           <label>
             参考班级
             <Select
-              value={classId}
-              onChange={setClassId}
-              options={classes.map((classroom) => ({ value: classroom.id, label: classroom.name }))}
+              value={classroomId}
+              onChange={setClassroomId}
+              options={classrooms.map((classroom) => ({ value: classroom.id, label: classroom.name }))}
               ariaLabel="参考班级"
             />
           </label>
         </FormSection>
-        <button className="create-template-button" disabled={!canSave} onClick={save}>
+        <button className="create-answer-sheet-button" disabled={!canSave} onClick={save}>
           <Check size={19} />
           {editing ? "保存考试" : "创建考试"}
         </button>
-        {(!templates.length || !classes.length) && (
+        {(!answerSheets.length || !classrooms.length) && (
           <p className="real-note">请先创建答题卡，并在班级管理中创建班级。</p>
         )}
       </main>

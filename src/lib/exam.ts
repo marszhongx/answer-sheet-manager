@@ -1,12 +1,12 @@
 import { GradedStudent } from "./grading";
-import { AnswerCardTemplate } from "./omr";
-import { ClassRoster } from "./roster";
+import { AnswerSheet } from "./omr";
+import { Classroom } from "./roster";
 
 export type Exam = {
   id: string;
   name: string;
-  template: AnswerCardTemplate;
-  classroom: ClassRoster;
+  answerSheet: AnswerSheet;
+  classroom: Classroom;
   records: GradedStudent[];
   createdAt: string;
 };

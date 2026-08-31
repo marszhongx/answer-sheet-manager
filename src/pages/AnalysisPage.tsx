@@ -1,11 +1,11 @@
 import PageHeader from "../components/PageHeader";
 import { BarChart3, Download } from "lucide-react";
 import { averageScore, downloadCSV, GradedStudent, questionRates, toCSV } from "../lib/grading";
-import { AnswerCardTemplate, questionPoints } from "../lib/omr";
+import { AnswerSheet, questionPoints } from "../lib/omr";
 
-type Props = { template: AnswerCardTemplate | null; records: GradedStudent[]; onBack: () => void };
-export default function AnalysisPage({ template, records, onBack }: Props) {
-  if (!template || !records.length)
+type Props = { answerSheet: AnswerSheet | null; records: GradedStudent[]; onBack: () => void };
+export default function AnalysisPage({ answerSheet, records, onBack }: Props) {
+  if (!answerSheet || !records.length)
     return (
       <>
         <PageHeader title="阅卷记录" onBack={onBack} backLabel="返回考试详情" />
@@ -18,9 +18,9 @@ export default function AnalysisPage({ template, records, onBack }: Props) {
         </main>
       </>
     );
-  const rates = questionRates(records, template.questionCount);
+  const rates = questionRates(records, answerSheet.questionCount);
   const average = averageScore(records);
-  const totalScore = questionPoints(template).reduce((sum, point) => sum + point, 0);
+  const totalScore = questionPoints(answerSheet).reduce((sum, point) => sum + point, 0);
   return (
     <>
       <PageHeader title="阅卷记录" onBack={onBack} backLabel="返回考试详情" />
@@ -64,7 +64,7 @@ export default function AnalysisPage({ template, records, onBack }: Props) {
           <div className="section-head">
             <h2>成绩明细</h2>
             <button
-              onClick={() => downloadCSV(`${template.name}-成绩表.csv`, toCSV(template, records))}
+              onClick={() => downloadCSV(`${answerSheet.name}-成绩表.csv`, toCSV(answerSheet, records))}
             >
               <Download size={13} />
               导出 CSV
@@ -80,7 +80,7 @@ export default function AnalysisPage({ template, records, onBack }: Props) {
               <div className="student-row" key={record.fileName}>
                 <span>{record.name}</span>
                 <span>
-                  {record.correctCount} / {template.questionCount}
+                  {record.correctCount} / {answerSheet.questionCount}
                 </span>
                 <b>{record.score}</b>
               </div>

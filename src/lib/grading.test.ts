@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { averageScore, gradeAnswers, questionRates, toCSV } from "./grading";
-import { AnswerCardTemplate } from "./omr";
+import { AnswerSheet } from "./omr";
 
-const template: AnswerCardTemplate = {
+const answerSheet: AnswerSheet = {
   id: "test",
   name: "测试答题卡",
   subject: "数学",
@@ -18,36 +18,36 @@ const template: AnswerCardTemplate = {
 
 describe("真实答案批改", () => {
   it("按识别到的真实选项逐题判分", () => {
-    const record = gradeAnswers(template, "张同学", "paper.jpg", ["A", "D", "C"], [1, 0.9, 1]);
+    const record = gradeAnswers(answerSheet, "张同学", "paper.jpg", ["A", "D", "C"], [1, 0.9, 1]);
     expect(record.correctCount).toBe(2);
     expect(record.score).toBe(9);
     expect(record.wrong).toEqual([false, true, false]);
   });
 
   it("未识别的题目不会得分", () => {
-    const record = gradeAnswers(template, "张同学", "paper.jpg", ["A", null, null], [1, 0, 0]);
+    const record = gradeAnswers(answerSheet, "张同学", "paper.jpg", ["A", null, null], [1, 0, 0]);
     expect(record.score).toBe(3);
     expect(record.wrong).toEqual([false, true, true]);
   });
 
   it("从真实批改记录计算正确率与平均分", () => {
-    const first = gradeAnswers(template, "甲", "1.jpg", ["A", "B", "C"], [1, 1, 1]);
-    const second = gradeAnswers(template, "乙", "2.jpg", ["A", "A", "C"], [1, 1, 1]);
+    const first = gradeAnswers(answerSheet, "甲", "1.jpg", ["A", "B", "C"], [1, 1, 1]);
+    const second = gradeAnswers(answerSheet, "乙", "2.jpg", ["A", "A", "C"], [1, 1, 1]);
     expect(questionRates([first, second], 3)).toEqual([100, 50, 100]);
     expect(averageScore([first, second])).toBe(10.5);
   });
 
   it("CSV 包含人工确认后的答案和成绩", () => {
-    const record = gradeAnswers(template, "张同学", "paper.jpg", ["A", null, "C"], [1, 0, 1]);
-    const csv = toCSV(template, [record]);
+    const record = gradeAnswers(answerSheet, "张同学", "paper.jpg", ["A", null, "C"], [1, 0, 1]);
+    const csv = toCSV(answerSheet, [record]);
     expect(csv.startsWith("\uFEFF")).toBe(true);
     expect(csv).toContain("班级,学号,姓名,第1题,第2题,第3题,得分,总分");
     expect(csv).toContain("张同学,A,未识别,C,9,12");
   });
 
   it("CSV 转义含逗号、引号与换行的字段", () => {
-    const record = gradeAnswers(template, "占位", "paper.jpg", ["A", "B", "C"], [1, 1, 1]);
-    const csv = toCSV(template, [{ ...record, name: '李"四",同学', className: "一班\n二班" }]);
+    const record = gradeAnswers(answerSheet, "占位", "paper.jpg", ["A", "B", "C"], [1, 1, 1]);
+    const csv = toCSV(answerSheet, [{ ...record, name: '李"四",同学', className: "一班\n二班" }]);
     expect(csv).toContain('"一班\n二班",,"李""四"",同学",A,B,C,12,12');
     expect(csv.split("\n").length).toBe(3);
   });

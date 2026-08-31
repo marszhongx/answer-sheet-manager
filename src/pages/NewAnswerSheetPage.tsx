@@ -6,17 +6,17 @@ import PageHeader from "../components/PageHeader";
 import Select from "../components/Select";
 import { Check, Plus, Trash2 } from "lucide-react";
 import {
-  AnswerCardTemplate,
+  AnswerSheet,
   createAnswers,
   defaultSections,
   fitsA4,
   QuestionSection,
-  templateSections,
+  answerSheetSections,
 } from "../lib/omr";
 
 type Props = {
-  template?: AnswerCardTemplate;
-  onSave: (template: AnswerCardTemplate) => void;
+  answerSheet?: AnswerSheet;
+  onSave: (answerSheet: AnswerSheet) => void;
   onBack: () => void;
 };
 const makeSection = (index: number): QuestionSection => ({
@@ -27,17 +27,17 @@ const makeSection = (index: number): QuestionSection => ({
   optionCount: 4,
 });
 
-export default function NewAnswerCardPage({ template, onSave, onBack }: Props) {
-  const [name, setName] = useState(template?.name ?? "");
-  const [subject, setSubject] = useState(template?.subject ?? "数学");
+export default function NewAnswerSheetPage({ answerSheet, onSave, onBack }: Props) {
+  const [name, setName] = useState(answerSheet?.name ?? "");
+  const [subject, setSubject] = useState(answerSheet?.subject ?? "数学");
   const [candidateNumberLength, setCandidateNumberLength] = useState(
-    template?.candidateNumberLength ?? 2,
+    answerSheet?.candidateNumberLength ?? 2,
   );
   const [sections, setSections] = useState(() =>
-    template ? templateSections(template) : defaultSections(),
+    answerSheet ? answerSheetSections(answerSheet) : defaultSections(),
   );
   const [error, setError] = useState<string | null>(null);
-  const editing = Boolean(template);
+  const editing = Boolean(answerSheet);
   const totals = useMemo(
     () => ({
       questions: sections.reduce((sum, section) => sum + section.questionCount, 0),
@@ -55,9 +55,9 @@ export default function NewAnswerCardPage({ template, onSave, onBack }: Props) {
   const save = () => {
     const cleanName = name.trim();
     if (!cleanName || !totals.questions) return;
-    const answers = template?.answers ?? createAnswers(totals.questions);
-    const candidate: AnswerCardTemplate = {
-      id: template?.id ?? crypto.randomUUID(),
+    const answers = answerSheet?.answers ?? createAnswers(totals.questions);
+    const candidate: AnswerSheet = {
+      id: answerSheet?.id ?? crypto.randomUUID(),
       name: cleanName,
       subject,
       candidateNumberLength,
@@ -67,7 +67,7 @@ export default function NewAnswerCardPage({ template, onSave, onBack }: Props) {
         ...answers.slice(0, totals.questions),
         ...createAnswers(Math.max(0, totals.questions - answers.length)),
       ],
-      createdAt: template?.createdAt ?? new Date().toISOString(),
+      createdAt: answerSheet?.createdAt ?? new Date().toISOString(),
     };
     if (!fitsA4(candidate)) {
       setError("题目过多，答题卡将超出 A4 纸张范围，请减少题目数量或选项数量");
@@ -82,7 +82,7 @@ export default function NewAnswerCardPage({ template, onSave, onBack }: Props) {
         onBack={onBack}
         backLabel="返回答题卡列表"
       />
-      <main className="page answer-card-editor">
+      <main className="page answer-sheet-editor">
         <FormSection>
           <label>
             答题卡名称
@@ -192,7 +192,7 @@ export default function NewAnswerCardPage({ template, onSave, onBack }: Props) {
           </p>
         )}
         <button
-          className="create-template-button"
+          className="create-answer-sheet-button"
           disabled={!name.trim() || !totals.questions}
           onClick={save}
         >

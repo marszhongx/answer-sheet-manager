@@ -50,7 +50,7 @@ describe("Answer Sheet Manager H5", () => {
   it("copies an answer sheet without retaining obsolete score data", async () => {
     const user = userEvent.setup();
     localStorage.setItem(
-      "answer-sheet-manager.templates",
+      "answer-sheet-manager.answerSheets",
       JSON.stringify([
         {
           id: "math-1",
@@ -70,7 +70,7 @@ describe("Answer Sheet Manager H5", () => {
     await user.click(screen.getByRole("button", { name: "复制答题卡" }));
 
     expect(screen.getByRole("heading", { name: "单元测验 副本" })).toBeInTheDocument();
-    const templates = JSON.parse(localStorage.getItem("answer-sheet-manager.templates") ?? "[]");
-    expect(templates[0].records).toBeUndefined();
+    const answerSheets = JSON.parse(localStorage.getItem("answer-sheet-manager.answerSheets") ?? "[]");
+    expect(answerSheets[0].records).toBeUndefined();
   });
 });

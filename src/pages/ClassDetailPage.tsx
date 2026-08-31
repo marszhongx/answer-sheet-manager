@@ -1,10 +1,10 @@
 import PageHeader from "../components/PageHeader";
 import StudentTable from "../components/StudentTable";
 import { FilePenLine, Trash2, UsersRound } from "lucide-react";
-import { ClassRoster } from "../lib/roster";
+import { Classroom } from "../lib/roster";
 
 type Props = {
-  classroom: ClassRoster;
+  classroom: Classroom;
   onBack: () => void;
   onEdit: () => void;
   onDelete: () => void;
