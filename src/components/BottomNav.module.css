@@ -18,7 +18,6 @@
 }
 
 .nav button {
-  position: relative;
   display: grid;
   grid-template-rows: 30px auto;
   justify-items: center;
@@ -31,37 +30,23 @@
   transition: color var(--duration-fast) var(--ease);
 }
 
-.nav button::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 22px;
-  height: 3px;
-  border-radius: 0 0 var(--radius-pill) var(--radius-pill);
-  background: transparent;
-  transform: translateX(-50%) scaleX(0.4);
-  opacity: 0;
-  transition:
-    transform var(--duration) var(--ease),
-    opacity var(--duration) var(--ease),
-    background-color var(--duration) var(--ease);
-}
-
 .nav button.active {
   color: var(--color-primary);
 }
 
-.nav button.active::before {
-  background: var(--color-primary);
-  transform: translateX(-50%) scaleX(1);
-  opacity: 1;
-}
-
 .nav button > span {
   display: grid;
-  place-items: end center;
-  transition: transform var(--duration-fast) var(--ease);
+  place-items: center;
+  width: 48px;
+  height: 30px;
+  border-radius: var(--radius-pill);
+  transition:
+    background-color var(--duration-fast) var(--ease),
+    transform var(--duration-fast) var(--ease);
+}
+
+.nav button.active > span {
+  background: var(--color-primary-pale);
 }
 
 .nav button:active > span {
@@ -78,5 +63,9 @@
 @media (hover: hover) {
   .nav button:hover {
     color: var(--color-primary-hover);
+  }
+
+  .nav button:not(.active):hover > span {
+    background: var(--color-surface-muted);
   }
 }

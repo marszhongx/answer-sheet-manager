@@ -15,7 +15,7 @@ export default function StudentsPage() {
   return (
     <>
       <PageHeader
-        title="学生管理"
+        title="班级管理"
         action={<AddButton label="新建班级" onClick={() => navigate("/students/new")} />}
       />
       <Page>
