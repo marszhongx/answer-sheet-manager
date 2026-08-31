@@ -2,42 +2,42 @@
   color-scheme: light;
 
   /* 品牌色 */
-  --color-primary: #176b58;
-  --color-primary-hover: #14604f;
-  --color-primary-active: #0f4d3f;
-  --color-primary-dark: #125744;
-  --color-primary-muted: #5cad88;
-  --color-primary-pale: #edf6f1;
-  --color-primary-pale-hover: #e2f0e9;
+  --color-primary: #16705d;
+  --color-primary-hover: #125f50;
+  --color-primary-active: #0d4d41;
+  --color-primary-dark: #0f594b;
+  --color-primary-muted: #70ae98;
+  --color-primary-pale: #e8f4ee;
+  --color-primary-pale-hover: #dceee5;
   --color-on-primary: #ffffff;
-  --color-on-primary-muted: #d3e6de;
+  --color-on-primary-muted: #d8ebe3;
 
   /* 文本层级 */
-  --color-text: #202825;
-  --color-text-secondary: #41514a;
-  --color-text-muted: #66736d;
-  --color-text-subtle: #7d8983;
-  --color-text-disabled: #9ea9a4;
+  --color-text: #20302a;
+  --color-text-secondary: #3e5149;
+  --color-text-muted: #6b7b74;
+  --color-text-subtle: #87958f;
+  --color-text-disabled: #a5b0ab;
 
   /* 表面 */
-  --color-bg: #eef2ef;
-  --color-bg-wide: #e5ece7;
+  --color-bg: #e9f0ec;
+  --color-bg-wide: #dfe9e3;
   --color-surface: #ffffff;
-  --color-surface-sunken: #f6f8f6;
-  --color-surface-muted: #f2f5f3;
-  --color-surface-disabled: #e9eeeb;
-  --color-surface-inverse: #263a34;
+  --color-surface-sunken: #f7faf8;
+  --color-surface-muted: #f0f5f2;
+  --color-surface-disabled: #e9efec;
+  --color-surface-inverse: #263d35;
 
   /* 边框 */
-  --color-border: #dfe7e2;
-  --color-border-control: #d7e1db;
-  --color-border-strong: #c3d2cb;
-  --color-border-subtle: #edf1ef;
-  --color-border-disabled: #e0e7e3;
+  --color-border: #dbe6df;
+  --color-border-control: #d2dfd8;
+  --color-border-strong: #b9cdc2;
+  --color-border-subtle: #edf2ef;
+  --color-border-disabled: #e1e9e5;
 
   /* 状态色 */
-  --color-danger: #c53f32;
-  --color-danger-hover: #b0362b;
+  --color-danger: #c04438;
+  --color-danger-hover: #aa372e;
   --color-danger-soft: #e2745f;
   --color-danger-bg: #fff4f2;
   --color-danger-bg-hover: #fdeae7;
@@ -50,31 +50,31 @@
   --color-warning-border: #d9b174;
   --color-rate-low: #d98a4f;
 
-  /* 圆角 */
-  --radius-sm: 5px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
+  /* 圆角：控件使用轻圆角，交互入口使用胶囊 */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   --radius-pill: 999px;
 
   /* 阴影 */
-  --shadow-xs: 0 1px 2px #1e332a0a;
-  --shadow-sm: 0 1px 3px #1e332a14, 0 1px 2px #1e332a0a;
-  --shadow-md: 0 6px 16px #1e332a12;
-  --shadow-lg: 0 16px 40px #1e332a1f;
-  --shadow-brand: 0 4px 14px #176b5833;
+  --shadow-xs: 0 1px 2px #1e332a08;
+  --shadow-sm: 0 2px 6px #1e332a0b, 0 1px 2px #1e332a08;
+  --shadow-md: 0 8px 22px #1e332a12;
+  --shadow-lg: 0 18px 42px #1e332a18;
+  --shadow-brand: 0 5px 14px #176b5828;
   --shadow-sheet: 0 -8px 32px #16231e2e;
-  --shadow-shell: 0 0 30px #284a3e22;
-  --shadow-nav: 0 -1px 12px #1e332a0f;
+  --shadow-shell: 0 12px 38px #284a3e18;
+  --shadow-nav: 0 -2px 16px #1e332a0d;
 
   /* 浮层 */
-  --color-surface-translucent: #fffffffa;
+  --color-surface-translucent: #ffffffed;
   --color-backdrop: #16231e8c;
   --color-success-bright: #c8ec8d;
 
   /* 焦点环 */
   --ring-width: 3px;
-  --ring-color: #5cad8859;
+  --ring-color: #70ae9859;
   --ring: 0 0 0 var(--ring-width) var(--ring-color);
 
   /* 动效 */
@@ -91,10 +91,10 @@
   --z-scanner: 50;
 
   /* 尺寸 */
-  --nav-height: 68px;
-  --page-gutter: 18px;
-  --tap-min: 36px;
-  --shell-max-width: 600px;
+  --nav-height: 72px;
+  --page-gutter: 20px;
+  --tap-min: 40px;
+  --shell-max-width: 680px;
 
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei",
