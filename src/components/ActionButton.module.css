@@ -32,8 +32,3 @@
   border-color: #efc3bd;
   background: #fff4f2;
 }
-@media print {
-  .list {
-    display: none;
-  }
-}

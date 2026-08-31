@@ -31,11 +31,6 @@ select {
 button:disabled {
   cursor: not-allowed;
 }
-@media print {
-  body {
-    background: #fff;
-  }
-}
 @media (min-width: 601px) {
   body {
     background: #e5ece7;

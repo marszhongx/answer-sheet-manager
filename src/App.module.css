@@ -7,14 +7,6 @@
   background: #f6f8f6;
 }
 
-@media print {
-  .shell {
-    max-width: none;
-    padding: 0;
-    background: #fff;
-  }
-}
-
 @media (min-width: 601px) {
   .shell {
     box-shadow: 0 0 30px #284a3e22;

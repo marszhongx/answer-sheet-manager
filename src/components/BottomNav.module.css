@@ -37,8 +37,3 @@
   font-size: 10px;
   line-height: 1;
 }
-@media print {
-  .nav {
-    display: none;
-  }
-}

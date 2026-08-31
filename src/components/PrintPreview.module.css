@@ -28,12 +28,3 @@
   font-size: 13px;
   line-height: 1.7;
 }
-
-@media print {
-  .preview {
-    max-height: none;
-    padding: 0;
-    overflow: visible;
-    border: 0;
-  }
-}
