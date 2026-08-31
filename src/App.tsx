@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import BottomNav from "./components/BottomNav";
 import EmptyState from "./components/EmptyState";
@@ -16,8 +17,9 @@ import ExamsPage from "./pages/ExamsPage";
 import NewAnswerSheetPage from "./pages/NewAnswerSheetPage";
 import NewExamPage from "./pages/NewExamPage";
 import ReviewPage from "./pages/ReviewPage";
-import ScanPage from "./pages/ScanPage";
 import StudentsPage from "./pages/StudentsPage";
+
+const ScanPage = lazy(() => import("./pages/ScanPage"));
 
 export default function App() {
   const ready = useAppStore((state) => state.ready);
@@ -44,7 +46,14 @@ export default function App() {
         <Route path="/exams/:id/answer-sheet/edit" element={<NewAnswerSheetPage />} />
         <Route path="/exams/:id/classroom/edit" element={<ClassroomEditorPage />} />
         <Route path="/exams/:id" element={<ExamDetailPage />} />
-        <Route path="/exams/:id/scan" element={<ScanPage />} />
+        <Route
+          path="/exams/:id/scan"
+          element={
+            <Suspense fallback={<EmptyState card title="正在加载扫描功能…" />}>
+              <ScanPage />
+            </Suspense>
+          }
+        />
         <Route path="/exams/:id/review" element={<ReviewPage />} />
         <Route path="/exams/:id/results" element={<AnalysisPage />} />
         <Route path="/students" element={<StudentsPage />} />
