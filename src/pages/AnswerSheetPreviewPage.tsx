@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Download } from "lucide-react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import DetailPage from "../components/DetailPage";
 import PageHeader from "../components/PageHeader";
 import PrintPreview from "../components/PrintPreview";
@@ -10,14 +10,19 @@ import { useAppStore } from "../store/appStore";
 
 export default function AnswerSheetPreviewPage() {
   const { id } = useParams();
+  const { pathname } = useLocation();
   const navigate = useNavigate();
-  const answerSheet = useAppStore((state) => state.answerSheetMap)[id ?? ""];
+  const answerSheetMap = useAppStore((state) => state.answerSheetMap);
+  const examMap = useAppStore((state) => state.examMap);
+  const answerSheet =
+    answerSheetMap[id ?? ""] ?? answerSheetMap[examMap[id ?? ""]?.answerSheetId ?? ""];
+  const fromExam = pathname.startsWith("/exams/");
   const ref = useRef<HTMLCanvasElement>(null);
   const [printable, setPrintable] = useState(true);
   useEffect(() => {
     if (answerSheet && ref.current) setPrintable(drawA4PrintPage(ref.current, answerSheet));
   }, [answerSheet]);
-  if (!answerSheet) return <Navigate to="/answer-sheets" replace />;
+  if (!answerSheet) return <Navigate to={fromExam ? "/exams" : "/answer-sheets"} replace />;
   const download = () => {
     if (!ref.current || !printable) return;
     const link = document.createElement("a");
@@ -28,7 +33,11 @@ export default function AnswerSheetPreviewPage() {
   };
   return (
     <>
-      <PageHeader title="预览答题卡" onBack={() => navigate(-1)} backLabel="返回答题卡详情" />
+      <PageHeader
+        title="预览答题卡"
+        onBack={() => (fromExam ? navigate(`/exams/${id}`) : navigate(-1))}
+        backLabel={fromExam ? "返回考试详情" : "返回答题卡详情"}
+      />
       <DetailPage>
         <PrintPreview
           printable={printable}

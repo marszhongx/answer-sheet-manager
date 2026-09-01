@@ -44,6 +44,7 @@ export default function App() {
         <Route path="/exams/new" element={<NewExamPage />} />
         <Route path="/exams/:id/edit" element={<NewExamPage />} />
         <Route path="/exams/:id/answer-sheet/edit" element={<NewAnswerSheetPage />} />
+        <Route path="/exams/:id/answer-sheet/preview" element={<AnswerSheetPreviewPage />} />
         <Route path="/exams/:id/classroom/edit" element={<ClassroomEditorPage />} />
         <Route path="/exams/:id" element={<ExamDetailPage />} />
         <Route

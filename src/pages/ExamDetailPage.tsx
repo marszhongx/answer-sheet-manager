@@ -1,7 +1,7 @@
 import { useState } from "react";
 import DetailPage from "../components/DetailPage";
 import PageHeader from "../components/PageHeader";
-import { BarChart3, Camera, FilePenLine, Trash2 } from "lucide-react";
+import { BarChart3, Camera, Download, FilePenLine, Trash2 } from "lucide-react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import DeleteDialog from "../components/DeleteDialog";
 import ActionButton, { ActionList } from "../components/ActionButton";
@@ -57,6 +57,12 @@ export default function ExamDetailPage() {
             onClick={() => navigate(`/exams/${exam.id}/classroom/edit`)}
           >
             编辑考试班级
+          </ActionButton>
+          <ActionButton
+            icon={<Download size={19} />}
+            onClick={() => navigate(`/exams/${exam.id}/answer-sheet/preview`)}
+          >
+            下载答题卡
           </ActionButton>
           <ActionButton
             icon={<Camera size={19} />}

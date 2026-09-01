@@ -94,4 +94,48 @@ describe("Answer Sheet Manager H5", () => {
     );
     expect(answerSheets.find((sheet) => sheet.name === "单元测验 副本")?.records).toBeUndefined();
   });
+
+  it("opens the answer sheet preview from the exam detail page", async () => {
+    const user = userEvent.setup();
+    await dbPut(StoreName.AnswerSheets, {
+      id: "sheet-1",
+      name: "期中测验答题卡",
+      subject: "数学",
+      candidateNumberLength: 4,
+      isTemplate: false,
+      sections: [
+        {
+          id: "s1",
+          name: "第一大题",
+          pointsPerQuestion: 5,
+          optionCount: 4,
+          questions: [{ id: "q1", answer: "A" }],
+        },
+      ],
+      createdAt: "2025-01-01T00:00:00.000Z",
+    });
+    await dbPut(StoreName.Classrooms, {
+      id: "class-1",
+      name: "三年级二班",
+      students: [{ id: "stu-1", name: "张同学", studentNumber: "1" }],
+      isTemplate: false,
+    });
+    await dbPut(StoreName.Exams, {
+      id: "exam-1",
+      name: "期中测验",
+      answerSheetId: "sheet-1",
+      classroomId: "class-1",
+      scanRecords: [],
+      createdAt: "2025-01-01T00:00:00.000Z",
+    });
+    await useAppStore.getState().initialize();
+    window.history.replaceState({}, "", "/exams/exam-1");
+    renderApp();
+
+    await user.click(screen.getByRole("button", { name: "下载答题卡" }));
+
+    expect(window.location.pathname).toBe("/exams/exam-1/answer-sheet/preview");
+    expect(screen.getByRole("heading", { name: "预览答题卡" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "下载答题卡" })).toBeInTheDocument();
+  });
 });
