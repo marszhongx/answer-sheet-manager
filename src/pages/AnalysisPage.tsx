@@ -114,7 +114,7 @@ export default function AnalysisPage() {
               <span>得分</span>
             </div>
             {records.map((record) => (
-              <div className={styles.studentRow} key={record.fileName}>
+              <div className={styles.studentRow} key={record.studentNumber}>
                 <span>{studentNameOf(classroom, record.studentNumber)}</span>
                 <span>
                   {correctCountOf(answerSheet, record.answers)} / {questionCount(answerSheet)}

@@ -1,6 +1,7 @@
 import { FileUp } from "lucide-react";
 import { useState } from "react";
 import { parseStudentCSV, Student } from "../lib/roster";
+import { newId } from "../lib/id";
 import EditableTable from "./EditableTable";
 import FileUploader from "./FileUploader";
 import Input from "./Input";
@@ -49,12 +50,12 @@ export default function StudentRosterTable({ students, onChange }: Props) {
       return;
     }
     const existing = new Set(students.map((student) => student.studentNumber));
-    onChange([
-      ...students,
-      ...imported
-        .filter((student) => !existing.has(student.studentNumber))
-        .map((student) => ({ id: crypto.randomUUID(), ...student })),
-    ]);
+    const deduped = imported.filter((student) => {
+      if (existing.has(student.studentNumber)) return false;
+      existing.add(student.studentNumber);
+      return true;
+    });
+    onChange([...students, ...deduped.map((student) => ({ id: newId(), ...student }))]);
     setError(null);
   };
 
@@ -63,7 +64,7 @@ export default function StudentRosterTable({ students, onChange }: Props) {
       <EditableTable
         rows={students}
         onChange={onChange}
-        createRow={() => ({ id: crypto.randomUUID(), name: "", studentNumber: "" })}
+        createRow={() => ({ id: newId(), name: "", studentNumber: "" })}
         columns={[
           {
             key: "name",

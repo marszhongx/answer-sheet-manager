@@ -18,11 +18,12 @@ import {
   QuestionSection,
   answerSheetSections,
 } from "../lib/omr";
+import { newId } from "../lib/id";
 import { useAppStore } from "../store/appStore";
 import styles from "./NewAnswerSheetPage.module.css";
 
 const makeSection = (index: number): QuestionSection => ({
-  id: crypto.randomUUID(),
+  id: newId(),
   name: `第${index + 1}大题`,
   pointsPerQuestion: 5,
   optionCount: 4,
@@ -110,7 +111,7 @@ export default function NewAnswerSheetPage() {
     const cleanName = name.trim();
     if (!cleanName || !totals.questions) return;
     const candidate: AnswerSheet = {
-      id: answerSheet?.id ?? crypto.randomUUID(),
+      id: answerSheet?.id ?? newId(),
       name: cleanName,
       subject,
       candidateNumberLength,
@@ -124,16 +125,21 @@ export default function NewAnswerSheetPage() {
     }
     const store = useAppStore.getState();
     const examId = pathname.startsWith("/exams/") ? id : undefined;
-    if (examId) {
-      await store.updateAnswerSheet(candidate);
-      store.notify("考试答题卡已保存");
-      navigate(`/exams/${examId}`);
+    try {
+      if (examId) {
+        await store.updateAnswerSheet(candidate);
+        store.notify("考试答题卡已保存");
+        navigate(`/exams/${examId}`);
+        return;
+      }
+      if (store.answerSheetMap[candidate.id]) {
+        await store.updateAnswerSheet(candidate);
+      } else {
+        await store.createAnswerSheet(candidate);
+      }
+    } catch (cause) {
+      store.notify(cause instanceof Error ? `保存失败：${cause.message}` : "保存失败，请重试");
       return;
-    }
-    if (store.answerSheetMap[candidate.id]) {
-      await store.updateAnswerSheet(candidate);
-    } else {
-      await store.createAnswerSheet(candidate);
     }
     store.notify("答题卡已保存");
     navigate(`/answer-sheets/${candidate.id}`);

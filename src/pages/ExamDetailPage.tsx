@@ -20,9 +20,16 @@ export default function ExamDetailPage() {
   const [confirming, setConfirming] = useState(false);
   if (!exam || !answerSheet || !classroom) return <Navigate to="/exams" replace />;
   const confirmDelete = async () => {
-    await useAppStore.getState().deleteExam(exam.id);
-    await useAppStore.getState().deleteAnswerSheet(exam.answerSheetId);
-    await useAppStore.getState().deleteClassroom(exam.classroomId);
+    try {
+      await useAppStore.getState().deleteExam(exam.id);
+      await useAppStore.getState().deleteAnswerSheet(exam.answerSheetId);
+      await useAppStore.getState().deleteClassroom(exam.classroomId);
+    } catch (error) {
+      useAppStore
+        .getState()
+        .notify(error instanceof Error ? `删除失败：${error.message}` : "删除失败，请重试");
+      return;
+    }
     useAppStore.getState().notify("考试已删除");
     navigate("/exams");
   };

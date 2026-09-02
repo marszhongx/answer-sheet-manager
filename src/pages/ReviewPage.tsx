@@ -29,6 +29,7 @@ export default function ReviewPage() {
     return <Navigate to="/exams" replace />;
   const unresolved = answers.filter((answer) => answer === null).length;
   const canSave = unresolved === 0;
+  const standard = answerOf(answerSheet);
   const cancel = () => {
     useAppStore.getState().clearReview();
     navigate(`/exams/${exam.id}/scan`);
@@ -38,14 +39,21 @@ export default function ReviewPage() {
     const studentNumber = review.recognition.studentNumber ?? "";
     const record = gradeAnswers(review.fileName, answers, recognition.confidence, studentNumber);
     const existing = exam.scanRecords.some((item) => item.studentNumber === studentNumber);
-    await useAppStore.getState().updateExam({
-      ...exam,
-      scanRecords: existing
-        ? exam.scanRecords.map((existingRecord) =>
-            existingRecord.studentNumber === studentNumber ? record : existingRecord,
-          )
-        : [...exam.scanRecords, record],
-    });
+    try {
+      await useAppStore.getState().updateExam({
+        ...exam,
+        scanRecords: existing
+          ? exam.scanRecords.map((existingRecord) =>
+              existingRecord.studentNumber === studentNumber ? record : existingRecord,
+            )
+          : [...exam.scanRecords, record],
+      });
+    } catch (error) {
+      useAppStore
+        .getState()
+        .notify(error instanceof Error ? `保存失败：${error.message}` : "保存失败，请重试");
+      return;
+    }
     useAppStore.getState().clearReview();
     useAppStore.getState().notify(existing ? "已更新该学生成绩" : "成绩已保存");
     navigate(`/exams/${exam.id}/results`);
@@ -82,7 +90,7 @@ export default function ReviewPage() {
           {answers.map((answer, index) => (
             <div
               className={
-                answer === answerOf(answerSheet)[index]
+                answer === standard[index]
                   ? `${styles.question} ${styles.correct}`
                   : `${styles.question} ${styles.wrong}`
               }
@@ -90,7 +98,7 @@ export default function ReviewPage() {
             >
               <div>
                 <b>第 {index + 1} 题</b>
-                <small>正确：{answerOf(answerSheet)[index]}</small>
+                <small>正确：{standard[index]}</small>
               </div>
               <div>
                 {OPTION_LABELS.map((option) => (

@@ -22,7 +22,10 @@ function openDB(): Promise<IDBDatabase> {
       }
     };
     request.addEventListener("success", () => resolve(request.result));
-    request.addEventListener("error", () => reject(request.error));
+    request.addEventListener("error", () => {
+      dbPromise = undefined;
+      reject(request.error);
+    });
   });
   return dbPromise;
 }
@@ -39,6 +42,10 @@ function withStore<T>(
         const request = run(transaction.objectStore(storeName));
         request.addEventListener("success", () => resolve(request.result));
         request.addEventListener("error", () => reject(request.error));
+        transaction.addEventListener("abort", () => {
+          dbPromise = undefined;
+          reject(transaction.error ?? new Error("数据库事务中断，请重试"));
+        });
       }),
   );
 }

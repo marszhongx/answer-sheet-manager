@@ -33,6 +33,7 @@ function toMap<T extends { id: string }>(list: T[]): Record<string, T> {
 
 type AppStore = {
   ready: boolean;
+  error: string | null;
   answerSheetList: AnswerSheet[];
   classroomList: Classroom[];
   examList: Exam[];
@@ -63,6 +64,7 @@ let toastTimer: number | undefined;
 
 export const useAppStore = create<AppStore>((set, get) => ({
   ready: false,
+  error: null,
   answerSheetList: [],
   classroomList: [],
   examList: [],
@@ -89,20 +91,27 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
   clearReview: () => set({ review: null }),
   initialize: async () => {
-    const [answerSheets, classrooms, exams] = await Promise.all([
-      fetchAnswerSheetListService(),
-      fetchClassroomListService(),
-      fetchExamListService(),
-    ]);
-    set({
-      answerSheetList: answerSheets,
-      answerSheetMap: toMap(answerSheets),
-      classroomList: classrooms,
-      classroomMap: toMap(classrooms),
-      examList: exams,
-      examMap: toMap(exams),
-      ready: true,
-    });
+    try {
+      const [answerSheets, classrooms, exams] = await Promise.all([
+        fetchAnswerSheetListService(),
+        fetchClassroomListService(),
+        fetchExamListService(),
+      ]);
+      set({
+        answerSheetList: answerSheets,
+        answerSheetMap: toMap(answerSheets),
+        classroomList: classrooms,
+        classroomMap: toMap(classrooms),
+        examList: exams,
+        examMap: toMap(exams),
+        ready: true,
+        error: null,
+      });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : "数据加载失败，请重试",
+      });
+    }
   },
   fetchAnswerSheetList: async () => {
     const list = await fetchAnswerSheetListService();

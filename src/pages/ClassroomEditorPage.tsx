@@ -8,6 +8,7 @@ import SubmitButton from "../components/SubmitButton";
 import { Check } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Classroom, Student } from "../lib/roster";
+import { newId } from "../lib/id";
 import { useAppStore } from "../store/appStore";
 
 export default function ClassroomEditorPage() {
@@ -19,31 +20,36 @@ export default function ClassroomEditorPage() {
   const classroom = classroomMap[id ?? ""] ?? classroomMap[examMap[id ?? ""]?.classroomId ?? ""];
   const [name, setName] = useState(classroom?.name ?? "");
   const [students, setStudents] = useState<Student[]>(
-    classroom?.students ?? [{ id: crypto.randomUUID(), name: "", studentNumber: "" }],
+    classroom?.students ?? [{ id: newId(), name: "", studentNumber: "" }],
   );
   const editing = Boolean(classroom);
   const save = async () => {
     if (!name.trim()) return;
     const next: Classroom = {
-      id: classroom?.id ?? crypto.randomUUID(),
+      id: classroom?.id ?? newId(),
       name: name.trim(),
       students: students.filter((student) => student.name.trim() && student.studentNumber),
       isTemplate: classroom?.isTemplate ?? true,
     };
     const store = useAppStore.getState();
     const examId = pathname.startsWith("/exams/") ? id : undefined;
-    if (examId) {
-      await store.updateClassroom(next);
-      store.notify("考试班级已保存");
-      navigate(`/exams/${examId}`);
+    try {
+      if (examId) {
+        await store.updateClassroom(next);
+        store.notify("考试班级已保存");
+        navigate(`/exams/${examId}`);
+        return;
+      }
+      if (store.classroomMap[next.id]) {
+        await store.updateClassroom(next);
+        store.notify("班级已保存");
+      } else {
+        await store.createClassroom(next);
+        store.notify("班级已创建");
+      }
+    } catch (error) {
+      store.notify(error instanceof Error ? `保存失败：${error.message}` : "保存失败，请重试");
       return;
-    }
-    if (store.classroomMap[next.id]) {
-      await store.updateClassroom(next);
-      store.notify("班级已保存");
-    } else {
-      await store.createClassroom(next);
-      store.notify("班级已创建");
     }
     navigate(`/students/${next.id}`);
   };

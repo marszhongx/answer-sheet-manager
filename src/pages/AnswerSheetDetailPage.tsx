@@ -6,7 +6,8 @@ import { Navigate, useNavigate, useParams } from "react-router-dom";
 import DeleteDialog from "../components/DeleteDialog";
 import ActionButton, { ActionList } from "../components/ActionButton";
 import InfoList, { InfoRow } from "../components/InfoList";
-import { answerSheetSections, questionCount } from "../lib/omr";
+import { answerSheetSections, AnswerSheet, questionCount } from "../lib/omr";
+import { newId } from "../lib/id";
 import { useAppStore } from "../store/appStore";
 
 export default function AnswerSheetDetailPage() {
@@ -20,12 +21,13 @@ export default function AnswerSheetDetailPage() {
     0,
   );
   const copy = async () => {
-    const { records: _omit, ...clean } = answerSheet as typeof answerSheet & {
+    // 剥离历史版本残留在存储中的 records 字段，避免副本携带过时的成绩数据
+    const { records: _obsolete, ...clean } = answerSheet as typeof answerSheet & {
       records?: unknown;
     };
-    const copied = {
+    const copied: AnswerSheet = {
       ...clean,
-      id: crypto.randomUUID(),
+      id: newId(),
       name: `${answerSheet.name} 副本`,
       sections: answerSheet.sections.map((section) => ({
         ...section,
@@ -34,12 +36,26 @@ export default function AnswerSheetDetailPage() {
       createdAt: new Date().toISOString(),
       isTemplate: true,
     };
-    await useAppStore.getState().createAnswerSheet(copied);
+    try {
+      await useAppStore.getState().createAnswerSheet(copied);
+    } catch (error) {
+      useAppStore
+        .getState()
+        .notify(error instanceof Error ? `复制失败：${error.message}` : "复制失败，请重试");
+      return;
+    }
     useAppStore.getState().notify("已复制答题卡");
     navigate(`/answer-sheets/${copied.id}`);
   };
   const confirmDelete = async () => {
-    await useAppStore.getState().deleteAnswerSheet(answerSheet.id);
+    try {
+      await useAppStore.getState().deleteAnswerSheet(answerSheet.id);
+    } catch (error) {
+      useAppStore
+        .getState()
+        .notify(error instanceof Error ? `删除失败：${error.message}` : "删除失败，请重试");
+      return;
+    }
     useAppStore.getState().notify("答题卡已删除");
     navigate("/answer-sheets");
   };

@@ -1,3 +1,5 @@
+import { newId } from "./id";
+
 export const OPTION_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"] as const;
 export type Option = (typeof OPTION_LABELS)[number];
 
@@ -93,7 +95,7 @@ export function defaultSections(): QuestionSection[] {
 
 export function createQuestions(count: number): Question[] {
   return Array.from({ length: count }, () => ({
-    id: crypto.randomUUID(),
+    id: newId(),
     answer: "A" as Option,
   }));
 }

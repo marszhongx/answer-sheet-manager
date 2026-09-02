@@ -9,6 +9,9 @@ import SubmitButton from "../components/SubmitButton";
 import { Check } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Exam } from "../lib/exam";
+import { newId } from "../lib/id";
+import { AnswerSheet } from "../lib/omr";
+import { Classroom } from "../lib/roster";
 import { useAppStore } from "../store/appStore";
 
 export default function NewExamPage() {
@@ -34,33 +37,50 @@ export default function NewExamPage() {
   const save = async () => {
     if (!canSave) return;
     const store = useAppStore.getState();
-    if (exam) {
-      await store.updateExam({
-        ...exam,
+    try {
+      if (exam) {
+        await store.updateExam({
+          ...exam,
+          name: name.trim(),
+        });
+        store.notify("考试已保存");
+        navigate(`/exams/${exam.id}`);
+        return;
+      }
+      const sourceSheet = answerSheetMap[answerSheetId];
+      const sourceClassroom = classroomMap[classroomId];
+      if (!sourceSheet || !sourceClassroom) return;
+      const sheetCopy: AnswerSheet = {
+        ...sourceSheet,
+        id: newId(),
+        isTemplate: false,
+        sections: sourceSheet.sections.map((section) => ({
+          ...section,
+          questions: section.questions.map((question) => ({ ...question })),
+        })),
+      };
+      const classroomCopy: Classroom = {
+        ...sourceClassroom,
+        id: newId(),
+        isTemplate: false,
+        students: sourceClassroom.students.map((student) => ({ ...student })),
+      };
+      await store.createAnswerSheet(sheetCopy);
+      await store.createClassroom(classroomCopy);
+      const nextExam: Exam = {
+        id: newId(),
         name: name.trim(),
-      });
-      store.notify("考试已保存");
-      navigate(`/exams/${exam.id}`);
-      return;
+        answerSheetId: sheetCopy.id,
+        classroomId: classroomCopy.id,
+        scanRecords: [],
+        createdAt: new Date().toISOString(),
+      };
+      await store.createExam(nextExam);
+      store.notify("考试已创建");
+      navigate(`/exams/${nextExam.id}`);
+    } catch (error) {
+      store.notify(error instanceof Error ? `保存失败：${error.message}` : "保存失败，请重试");
     }
-    const sourceSheet = answerSheetMap[answerSheetId];
-    const sourceClassroom = classroomMap[classroomId];
-    if (!sourceSheet || !sourceClassroom) return;
-    const sheetCopy = { ...sourceSheet, id: crypto.randomUUID(), isTemplate: false };
-    const classroomCopy = { ...sourceClassroom, id: crypto.randomUUID(), isTemplate: false };
-    await store.createAnswerSheet(sheetCopy);
-    await store.createClassroom(classroomCopy);
-    const nextExam: Exam = {
-      id: crypto.randomUUID(),
-      name: name.trim(),
-      answerSheetId: sheetCopy.id,
-      classroomId: classroomCopy.id,
-      scanRecords: [],
-      createdAt: new Date().toISOString(),
-    };
-    await store.createExam(nextExam);
-    store.notify("考试已创建");
-    navigate(`/exams/${nextExam.id}`);
   };
   return (
     <>

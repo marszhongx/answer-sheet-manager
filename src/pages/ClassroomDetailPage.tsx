@@ -17,7 +17,14 @@ export default function ClassroomDetailPage() {
   const [confirming, setConfirming] = useState(false);
   if (!classroom) return <Navigate to="/students" replace />;
   const confirmDelete = async () => {
-    await useAppStore.getState().deleteClassroom(classroom.id);
+    try {
+      await useAppStore.getState().deleteClassroom(classroom.id);
+    } catch (error) {
+      useAppStore
+        .getState()
+        .notify(error instanceof Error ? `删除失败：${error.message}` : "删除失败，请重试");
+      return;
+    }
     useAppStore.getState().notify("班级已删除");
     navigate("/students");
   };

@@ -23,6 +23,24 @@ const ScanPage = lazy(() => import("./pages/ScanPage"));
 
 export default function App() {
   const ready = useAppStore((state) => state.ready);
+  const error = useAppStore((state) => state.error);
+  if (error)
+    return (
+      <div className={styles.shell}>
+        <Page>
+          <EmptyState
+            card
+            title="数据加载失败"
+            description={error}
+            actionLabel="重新加载"
+            onAction={() => {
+              useAppStore.setState({ error: null });
+              useAppStore.getState().initialize();
+            }}
+          />
+        </Page>
+      </div>
+    );
   if (!ready)
     return (
       <div className={styles.shell}>
