@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import BottomNav from "./components/BottomNav";
 import EmptyState from "./components/EmptyState";
 import Page from "./components/Page";
@@ -24,6 +24,10 @@ const ScanPage = lazy(() => import("./pages/ScanPage"));
 export default function App() {
   const ready = useAppStore((state) => state.ready);
   const error = useAppStore((state) => state.error);
+  const { pathname } = useLocation();
+  // 新建页与编辑页共用同一组件，靠 pathname 作 key 才能在两条路由间切换时重建实例，
+  // 否则 React 会复用组件、useState 的初始值不刷新，编辑页会显示上一次的空表单。
+  const formKey = pathname;
   if (error)
     return (
       <div className={styles.shell}>
@@ -54,16 +58,16 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/answer-sheets" replace />} />
         <Route path="/answer-sheets" element={<AnswerSheetsPage />} />
-        <Route path="/answer-sheets/new" element={<NewAnswerSheetPage />} />
+        <Route path="/answer-sheets/new" element={<NewAnswerSheetPage key={formKey} />} />
         <Route path="/answer-sheets/:id/preview" element={<AnswerSheetPreviewPage />} />
         <Route path="/answer-sheets/:id" element={<AnswerSheetDetailPage />} />
-        <Route path="/answer-sheets/:id/edit" element={<NewAnswerSheetPage />} />
+        <Route path="/answer-sheets/:id/edit" element={<NewAnswerSheetPage key={formKey} />} />
         <Route path="/exams" element={<ExamsPage />} />
-        <Route path="/exams/new" element={<NewExamPage />} />
-        <Route path="/exams/:id/edit" element={<NewExamPage />} />
-        <Route path="/exams/:id/answer-sheet/edit" element={<NewAnswerSheetPage />} />
+        <Route path="/exams/new" element={<NewExamPage key={formKey} />} />
+        <Route path="/exams/:id/edit" element={<NewExamPage key={formKey} />} />
+        <Route path="/exams/:id/answer-sheet/edit" element={<NewAnswerSheetPage key={formKey} />} />
         <Route path="/exams/:id/answer-sheet/preview" element={<AnswerSheetPreviewPage />} />
-        <Route path="/exams/:id/classroom/edit" element={<ClassroomEditorPage />} />
+        <Route path="/exams/:id/classroom/edit" element={<ClassroomEditorPage key={formKey} />} />
         <Route path="/exams/:id" element={<ExamDetailPage />} />
         <Route
           path="/exams/:id/scan"
@@ -76,9 +80,9 @@ export default function App() {
         <Route path="/exams/:id/review" element={<ReviewPage />} />
         <Route path="/exams/:id/results" element={<AnalysisPage />} />
         <Route path="/students" element={<StudentsPage />} />
-        <Route path="/students/new" element={<ClassroomEditorPage />} />
+        <Route path="/students/new" element={<ClassroomEditorPage key={formKey} />} />
         <Route path="/students/:id" element={<ClassroomDetailPage />} />
-        <Route path="/students/:id/edit" element={<ClassroomEditorPage />} />
+        <Route path="/students/:id/edit" element={<ClassroomEditorPage key={formKey} />} />
         <Route path="*" element={<Navigate to="/answer-sheets" replace />} />
       </Routes>
       <BottomNav />

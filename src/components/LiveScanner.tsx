@@ -1,17 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Camera, Check, LoaderCircle, RotateCcw, ScanLine, X } from "lucide-react";
 import {
   answerOf,
   AnswerSheet,
+  CardLayout,
   createLayout,
+  Option,
   questionCount,
   questionOptions,
   questionPoints,
   Recognition,
-  recognizeWarpedCard,
+  recognizeCard,
 } from "../lib/omr";
 import { getOpenCv } from "../lib/opencv";
 import styles from "./LiveScanner.module.css";
+
+// 答题卡定位到之后结果通常已经稳定，没必要再按搜索期的频率跑满帧
+const SEARCH_INTERVAL = 180;
+const STABLE_INTERVAL = 420;
 
 type Props = {
   answerSheet: AnswerSheet;
@@ -46,12 +52,12 @@ function chooseCorners(points: Point[]): Point[] | null {
   if (!bottomLeft) return null;
   const corners = [topLeft, topRight, bottomRight, bottomLeft];
   const lengths = corners.map((point, index) => {
-    const next = corners[(index + 1) % corners.length];
+    const next = corners[(index + 1) % corners.length] ?? point;
     return Math.hypot(next.x - point.x, next.y - point.y);
   });
   const area = Math.abs(
     corners.reduce((sum, point, index) => {
-      const next = corners[(index + 1) % corners.length];
+      const next = corners[(index + 1) % corners.length] ?? point;
       return sum + point.x * next.y - point.y * next.x;
     }, 0) / 2,
   );
@@ -62,11 +68,30 @@ function chooseCorners(points: Point[]): Point[] | null {
     : null;
 }
 
+// 答题卡位置与识别结果都没变时才算稳定；只比对答案会让“移动中的卡”也降频，浮层就会滞后
+type FrameResult = { recognition: Recognition; signature: string } | null;
+
+function frameSignature(corners: Point[], recognition: Recognition): string {
+  const centerX = corners.reduce((sum, point) => sum + point.x, 0) / corners.length / 5;
+  const centerY = corners.reduce((sum, point) => sum + point.y, 0) / corners.length / 5;
+  return `${Math.round(centerX)},${Math.round(centerY)}|${recognition.answers.join("")}`;
+}
+// 每帧都要用到、但只随答题卡变化的数据，预先算好避免逐帧重复分配
+type FrameContext = {
+  layout: CardLayout;
+  options: Option[][];
+  standard: Option[];
+  candidateNumberLength: number;
+  warped: HTMLCanvasElement;
+};
+
 function project(point: Point, matrix: number[]): Point {
-  const denominator = matrix[6] * point.x + matrix[7] * point.y + matrix[8];
+  // OpenCV 的透视矩阵固定为 3x3，解构出默认值避免逐项下标访问
+  const [m0 = 0, m1 = 0, m2 = 0, m3 = 0, m4 = 0, m5 = 0, m6 = 0, m7 = 0, m8 = 1] = matrix;
+  const denominator = m6 * point.x + m7 * point.y + m8;
   return {
-    x: (matrix[0] * point.x + matrix[1] * point.y + matrix[2]) / denominator,
-    y: (matrix[3] * point.x + matrix[4] * point.y + matrix[5]) / denominator,
+    x: (m0 * point.x + m1 * point.y + m2) / denominator,
+    y: (m3 * point.x + m4 * point.y + m5) / denominator,
   };
 }
 
@@ -78,11 +103,26 @@ export default function LiveScanner({ answerSheet, onConfirm, onClose }: Props) 
   const streamRef = useRef<MediaStream | undefined>(undefined);
   const lastRun = useRef(0);
   const processingRef = useRef(false);
+  const stableRef = useRef(false);
+  const lastSignature = useRef("");
+  const warpedRef = useRef<HTMLCanvasElement | null>(null);
   const [state, setState] = useState<ScannerState>("loading");
   const [message, setMessage] = useState("正在启动相机");
   const [recognition, setRecognition] = useState<Recognition | null>(null);
   const points = questionPoints(answerSheet);
   const totalScore = points.reduce((sum, point) => sum + point, 0);
+  // 布局、选项表、标准答案只由答题卡决定，逐帧重算会随题目数呈 O(n²) 增长
+  const options = useMemo(() => questionOptions(answerSheet), [answerSheet]);
+  const layout = useMemo(
+    () =>
+      createLayout(
+        questionCount(answerSheet),
+        answerSheet.candidateNumberLength,
+        options.map((item) => item.length),
+      ),
+    [answerSheet, options],
+  );
+  const standard = useMemo(() => answerOf(answerSheet), [answerSheet]);
 
   useEffect(() => {
     let disposed = false;
@@ -128,7 +168,11 @@ export default function LiveScanner({ answerSheet, onConfirm, onClose }: Props) 
     if (state !== "searching" && state !== "ready") return;
     const tick = (time: number) => {
       requestRef.current = requestAnimationFrame(tick);
-      if (processingRef.current || time - lastRun.current < 180) return;
+      if (
+        processingRef.current ||
+        time - lastRun.current < (stableRef.current ? STABLE_INTERVAL : SEARCH_INTERVAL)
+      )
+        return;
       lastRun.current = time;
       const video = videoRef.current;
       const frame = frameRef.current;
@@ -145,23 +189,29 @@ export default function LiveScanner({ answerSheet, onConfirm, onClose }: Props) 
       if (!frameCtx || !overlayCtx) return;
       frameCtx.drawImage(video, 0, 0, width, height);
       overlayCtx.clearRect(0, 0, width, height);
+      if (!warpedRef.current) warpedRef.current = document.createElement("canvas");
+      const context: FrameContext = {
+        layout,
+        options,
+        standard,
+        candidateNumberLength: answerSheet.candidateNumberLength,
+        warped: warpedRef.current,
+      };
       processingRef.current = true;
-      void processFrame(
-        frame,
-        overlayCtx,
-        answerSheet,
-        setState,
-        setMessage,
-        setRecognition,
-      ).finally(() => {
-        processingRef.current = false;
-      });
+      void processFrame(frame, overlayCtx, context, setState, setMessage, setRecognition)
+        .then((result) => {
+          stableRef.current = result !== null && result.signature === lastSignature.current;
+          lastSignature.current = result?.signature ?? "";
+        })
+        .finally(() => {
+          processingRef.current = false;
+        });
     };
     requestRef.current = requestAnimationFrame(tick);
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
-  }, [state, answerSheet]);
+  }, [state, answerSheet.candidateNumberLength, layout, options, standard]);
 
   return (
     <div className={styles.screen}>
@@ -209,7 +259,7 @@ export default function LiveScanner({ answerSheet, onConfirm, onClose }: Props) 
           <b>
             {recognition.answers.reduce(
               (sum, answer, index) =>
-                answer === answerOf(answerSheet)[index] ? sum + points[index] : sum,
+                answer !== null && answer === standard[index] ? sum + (points[index] ?? 0) : sum,
               0,
             )}
           </b>
@@ -233,11 +283,12 @@ export default function LiveScanner({ answerSheet, onConfirm, onClose }: Props) 
 async function processFrame(
   frame: HTMLCanvasElement,
   overlay: CanvasRenderingContext2D,
-  answerSheet: AnswerSheet,
+  context: FrameContext,
   setState: (state: ScannerState) => void,
   setMessage: (message: string) => void,
   setRecognition: (recognition: Recognition | null) => void,
-) {
+): Promise<FrameResult> {
+  const { layout, options, standard, candidateNumberLength, warped: warpedCanvas } = context;
   let src: any;
   let gray: any;
   let binary: any;
@@ -281,14 +332,8 @@ async function processFrame(
       setState("searching");
       setRecognition(null);
       setMessage("请让四个黑色定位方块完整进入画面");
-      return;
+      return null;
     }
-    const options = questionOptions(answerSheet);
-    const layout = createLayout(
-      questionCount(answerSheet),
-      answerSheet.candidateNumberLength,
-      options.map((item) => item.length),
-    );
     const destination = layout.markers.map((marker) => ({
       x: marker.x + marker.size / 2,
       y: marker.y + marker.size / 2,
@@ -318,19 +363,23 @@ async function processFrame(
       cv.BORDER_CONSTANT,
       new cv.Scalar(255, 255, 255, 255),
     );
-    const warpedCanvas = document.createElement("canvas");
-    warpedCanvas.width = layout.width;
-    warpedCanvas.height = layout.height;
-    cv.imshow(warpedCanvas, warped);
+    // 复用同一个离屏画布：每帧新建 canvas 会让浏览器反复分配/回收上千像素的位图
+    if (warpedCanvas.width !== layout.width || warpedCanvas.height !== layout.height) {
+      warpedCanvas.width = layout.width;
+      warpedCanvas.height = layout.height;
+    }
     const warpedContext = warpedCanvas.getContext("2d", { willReadFrequently: true });
     if (!warpedContext) throw new Error("无法读取相机帧");
-    const recognition = recognizeWarpedCard(
+    cv.imshow(warpedCanvas, warped);
+    const recognition = recognizeCard(
       warpedContext.getImageData(0, 0, layout.width, layout.height),
-      answerSheet,
+      layout,
+      options,
+      candidateNumberLength,
       true,
     );
     const inverseMatrix = Array.from(inverse.data64F as Float64Array);
-    drawOverlay(overlay, corners, layout, inverseMatrix, recognition, answerSheet);
+    drawOverlay(overlay, corners, layout, inverseMatrix, recognition, standard);
     setRecognition(recognition);
     setState("ready");
     setMessage(
@@ -338,10 +387,12 @@ async function processFrame(
         ? "检测到未填或多填项，请检查标记"
         : "识别稳定，可确认阅卷",
     );
+    return { recognition, signature: frameSignature(corners, recognition) };
   } catch {
     setState("searching");
     setRecognition(null);
     setMessage("正在调整识别，请保持答题卡平整并避免反光");
+    return null;
   } finally {
     [
       src,
@@ -361,23 +412,26 @@ async function processFrame(
 function drawOverlay(
   overlay: CanvasRenderingContext2D,
   corners: Point[],
-  layout: ReturnType<typeof createLayout>,
+  layout: CardLayout,
   inverse: number[],
   recognition: Recognition,
-  answerSheet: AnswerSheet,
+  standard: Option[],
 ) {
   overlay.lineWidth = 3;
   overlay.strokeStyle = "#36dfbd";
-  overlay.beginPath();
-  overlay.moveTo(corners[0].x, corners[0].y);
-  corners.slice(1).forEach((point) => overlay.lineTo(point.x, point.y));
-  overlay.closePath();
-  overlay.stroke();
+  const origin = corners[0];
+  if (origin) {
+    overlay.beginPath();
+    overlay.moveTo(origin.x, origin.y);
+    corners.slice(1).forEach((point) => overlay.lineTo(point.x, point.y));
+    overlay.closePath();
+    overlay.stroke();
+  }
   layout.bubbles.forEach((bubble) => {
     const answer = recognition.answers[bubble.question];
     if (answer !== bubble.option) return;
     const point = project({ x: bubble.x, y: bubble.y }, inverse);
-    const correct = answer === answerOf(answerSheet)[bubble.question];
+    const correct = answer === standard[bubble.question];
     overlay.fillStyle = correct ? "rgba(46, 228, 187, .72)" : "rgba(255, 84, 101, .76)";
     overlay.beginPath();
     overlay.arc(point.x, point.y, 9, 0, Math.PI * 2);

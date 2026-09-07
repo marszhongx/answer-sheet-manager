@@ -1,6 +1,6 @@
 import { FileUp } from "lucide-react";
 import { useState } from "react";
-import { parseStudentCSV, Student } from "../lib/roster";
+import { normalizeStudentNumber, parseStudentCSV, Student } from "../lib/roster";
 import { newId } from "../lib/id";
 import EditableTable from "./EditableTable";
 import FileUploader from "./FileUploader";
@@ -49,10 +49,13 @@ export default function StudentRosterTable({ students, onChange }: Props) {
       setError("未读取到姓名和学号，请使用 CSV 文件。");
       return;
     }
-    const existing = new Set(students.map((student) => student.studentNumber));
+    const existing = new Set(
+      students.map((student) => normalizeStudentNumber(student.studentNumber)),
+    );
     const deduped = imported.filter((student) => {
-      if (existing.has(student.studentNumber)) return false;
-      existing.add(student.studentNumber);
+      const key = normalizeStudentNumber(student.studentNumber);
+      if (existing.has(key)) return false;
+      existing.add(key);
       return true;
     });
     onChange([...students, ...deduped.map((student) => ({ id: newId(), ...student }))]);

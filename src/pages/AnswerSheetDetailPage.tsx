@@ -41,7 +41,10 @@ export default function AnswerSheetDetailPage() {
     } catch (error) {
       useAppStore
         .getState()
-        .notify(error instanceof Error ? `复制失败：${error.message}` : "复制失败，请重试");
+        .notify(
+          error instanceof Error ? `复制失败：${error.message}` : "复制失败，请重试",
+          "error",
+        );
       return;
     }
     useAppStore.getState().notify("已复制答题卡");
@@ -53,7 +56,10 @@ export default function AnswerSheetDetailPage() {
     } catch (error) {
       useAppStore
         .getState()
-        .notify(error instanceof Error ? `删除失败：${error.message}` : "删除失败，请重试");
+        .notify(
+          error instanceof Error ? `删除失败：${error.message}` : "删除失败，请重试",
+          "error",
+        );
       return;
     }
     useAppStore.getState().notify("答题卡已删除");

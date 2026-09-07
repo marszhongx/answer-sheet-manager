@@ -1,13 +1,19 @@
-import { Check } from "lucide-react";
+import { Check, TriangleAlert } from "lucide-react";
 import { useAppStore } from "../store/appStore";
 import styles from "./Toast.module.css";
 
 export default function Toast() {
   const message = useAppStore((state) => state.message);
-  return message ? (
-    <div className={styles.toast} role="status">
-      <Check size={16} />
+  const tone = useAppStore((state) => state.messageTone);
+  if (!message) return null;
+  const isError = tone === "error";
+  return (
+    <div
+      className={isError ? `${styles.toast} ${styles.error}` : styles.toast}
+      role={isError ? "alert" : "status"}
+    >
+      {isError ? <TriangleAlert size={16} /> : <Check size={16} />}
       {message}
     </div>
-  ) : null;
+  );
 }

@@ -64,7 +64,20 @@ export default function NewAnswerSheetPage() {
     value: string | number,
   ) =>
     setSections((current) =>
-      current.map((section) => (section.id === sectionId ? { ...section, [key]: value } : section)),
+      current.map((section) => {
+        if (section.id !== sectionId) return section;
+        if (key !== "optionCount") return { ...section, [key]: value };
+        // 缩小选项数量后，原本落在被裁掉选项上的答案会变成“无人可答对”的死题，
+        // 因此统一回退到 A，避免用户看不到答案却保存出一份无效答题卡。
+        const allowed = OPTION_LABELS.slice(0, value as number);
+        return {
+          ...section,
+          optionCount: value as number,
+          questions: section.questions.map((question) =>
+            allowed.includes(question.answer) ? question : { ...question, answer: "A" as Option },
+          ),
+        };
+      }),
     );
   const setQuestionCount = (sectionId: string, count: number) =>
     setSections((current) =>
@@ -138,7 +151,10 @@ export default function NewAnswerSheetPage() {
         await store.createAnswerSheet(candidate);
       }
     } catch (cause) {
-      store.notify(cause instanceof Error ? `保存失败：${cause.message}` : "保存失败，请重试");
+      store.notify(
+        cause instanceof Error ? `保存失败：${cause.message}` : "保存失败，请重试",
+        "error",
+      );
       return;
     }
     store.notify("答题卡已保存");

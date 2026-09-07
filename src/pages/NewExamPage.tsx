@@ -79,7 +79,10 @@ export default function NewExamPage() {
       store.notify("考试已创建");
       navigate(`/exams/${nextExam.id}`);
     } catch (error) {
-      store.notify(error instanceof Error ? `保存失败：${error.message}` : "保存失败，请重试");
+      store.notify(
+        error instanceof Error ? `保存失败：${error.message}` : "保存失败，请重试",
+        "error",
+      );
     }
   };
   return (

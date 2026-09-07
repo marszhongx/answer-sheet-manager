@@ -23,13 +23,23 @@ export default function AnswerSheetPreviewPage() {
     if (answerSheet && ref.current) setPrintable(drawA4PrintPage(ref.current, answerSheet));
   }, [answerSheet]);
   if (!answerSheet) return <Navigate to={fromExam ? "/exams" : "/answer-sheets"} replace />;
+  // A4 尺寸的 toDataURL 会生成数 MB 的 base64 字符串，iOS Safari 会直接失败，改用 toBlob
   const download = () => {
-    if (!ref.current || !printable) return;
-    const link = document.createElement("a");
-    link.href = ref.current.toDataURL("image/png");
-    link.download = `${answerSheet.name.replace(/[\\/:*?"<>|]/g, "_")}.png`;
-    link.click();
-    useAppStore.getState().notify("答题卡已下载");
+    const canvas = ref.current;
+    if (!canvas || !printable) return;
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        useAppStore.getState().notify("答题卡生成失败，请重试", "error");
+        return;
+      }
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${answerSheet.name.replace(/[\\/:*?"<>|]/g, "_")}.png`;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      useAppStore.getState().notify("答题卡已下载");
+    }, "image/png");
   };
   return (
     <>

@@ -22,6 +22,14 @@
   color: var(--color-success-bright);
 }
 
+.error {
+  background: var(--color-danger);
+}
+
+.error svg {
+  color: #ffd9d3;
+}
+
 @keyframes rise {
   from {
     transform: translate(-50%, 12px);

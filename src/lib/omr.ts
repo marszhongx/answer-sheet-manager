@@ -291,6 +291,7 @@ export function drawAnswerSheet(canvas: HTMLCanvasElement, answerSheet: AnswerSh
   );
   groups.forEach((bubbles, question) => {
     const first = bubbles[0];
+    if (!first) return;
     ctx.fillStyle = "#222";
     ctx.font = "17px sans-serif";
     ctx.textAlign = "right";
@@ -407,8 +408,10 @@ function darkness(data: ImageData, x: number, y: number, radius: number): number
         dy = py - y;
       if (dx * dx + dy * dy > radius * radius) continue;
       const index = (py * data.width + px) * 4;
-      const luminance =
-        data.data[index] * 0.299 + data.data[index + 1] * 0.587 + data.data[index + 2] * 0.114;
+      const red = data.data[index] ?? 0;
+      const green = data.data[index + 1] ?? 0;
+      const blue = data.data[index + 2] ?? 0;
+      const luminance = red * 0.299 + green * 0.587 + blue * 0.114;
       if (luminance < 150) dark++;
       count++;
     }
@@ -437,49 +440,54 @@ export function classifyFillRates(
     const sorted = rates
       .map((rate, index) => ({ rate, index }))
       .toSorted((a, b) => b.rate - a.rate);
+    const best = sorted[0];
+    const second = sorted[1];
+    const labels = options[question];
+    if (!best || !second || !labels) {
+      answers.push(null);
+      confidence.push(0);
+      return;
+    }
     answers.push(
-      sorted[0].rate >= 0.18 && sorted[0].rate - sorted[1].rate >= 0.06
-        ? options[question][sorted[0].index]
-        : null,
+      best.rate >= 0.18 && best.rate - second.rate >= 0.06 ? (labels[best.index] ?? null) : null,
     );
-    confidence.push(Math.max(0, Math.min(1, (sorted[0].rate - sorted[1].rate) / 0.25)));
+    confidence.push(Math.max(0, Math.min(1, (best.rate - second.rate) / 0.25)));
   });
   return { answers, confidence };
 }
 
-export function recognizeWarpedCard(
+// 热路径版本：允许调用方复用已算好的 layout/options，避免逐帧重算整张答题卡的布局
+export function recognizeCard(
   imageData: ImageData,
-  answerSheet: AnswerSheet,
+  layout: CardLayout,
+  options: Option[][],
+  candidateNumberLength = DEFAULT_CANDIDATE_LENGTH,
   markerValid = true,
 ): Recognition {
-  const options = questionOptions(answerSheet);
-  const layout = cardLayout(answerSheet);
   const fillRates = options.map((item) => Array(item.length).fill(0));
   layout.bubbles.forEach((bubble) => {
-    fillRates[bubble.question][options[bubble.question].indexOf(bubble.option)] = darkness(
-      imageData,
-      bubble.x,
-      bubble.y,
-      bubble.radius * 0.57,
-    );
+    const rates = fillRates[bubble.question];
+    const labels = options[bubble.question];
+    if (!rates || !labels) return;
+    const index = labels.indexOf(bubble.option);
+    if (index < 0) return;
+    rates[index] = darkness(imageData, bubble.x, bubble.y, bubble.radius * 0.57);
   });
-  const studentLength = answerSheet.candidateNumberLength ?? DEFAULT_CANDIDATE_LENGTH;
+  const studentLength = Math.max(1, Math.min(10, candidateNumberLength));
   const studentRates = Array.from({ length: studentLength }, () => Array(10).fill(0));
   layout.studentNumberBubbles.forEach((bubble) => {
-    studentRates[bubble.digitIndex][bubble.value] = darkness(
-      imageData,
-      bubble.x,
-      bubble.y,
-      bubble.radius * 0.7,
-    );
+    const rates = studentRates[bubble.digitIndex];
+    if (!rates) return;
+    rates[bubble.value] = darkness(imageData, bubble.x, bubble.y, bubble.radius * 0.7);
   });
   const digits = studentRates.map((rates) => {
     const sorted = rates
       .map((rate, value) => ({ rate, value }))
       .toSorted((a, b) => b.rate - a.rate);
-    return sorted[0].rate >= 0.18 && sorted[0].rate - sorted[1].rate >= 0.06
-      ? String(sorted[0].value)
-      : null;
+    const best = sorted[0];
+    const second = sorted[1];
+    if (!best || !second) return null;
+    return best.rate >= 0.18 && best.rate - second.rate >= 0.06 ? String(best.value) : null;
   });
   return {
     ...classifyFillRates(fillRates, options),
@@ -487,6 +495,20 @@ export function recognizeWarpedCard(
     markerValid,
     studentNumber: digits.every((digit) => digit !== null) ? digits.join("") : null,
   };
+}
+
+export function recognizeWarpedCard(
+  imageData: ImageData,
+  answerSheet: AnswerSheet,
+  markerValid = true,
+): Recognition {
+  return recognizeCard(
+    imageData,
+    cardLayout(answerSheet),
+    questionOptions(answerSheet),
+    answerSheet.candidateNumberLength ?? DEFAULT_CANDIDATE_LENGTH,
+    markerValid,
+  );
 }
 
 export function recognizeAnswerSheet(

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { AnswerSheet, Recognition } from "../lib/omr";
-import { Classroom } from "../lib/roster";
+import { Classroom, findStudentByNumber } from "../lib/roster";
 import { Exam } from "../lib/exam";
 import {
   createAnswerSheetService,
@@ -27,6 +27,8 @@ export type ReviewState = {
   fileName: string;
 };
 
+export type ToastTone = "success" | "error";
+
 function toMap<T extends { id: string }>(list: T[]): Record<string, T> {
   return Object.fromEntries(list.map((item) => [item.id, item]));
 }
@@ -41,7 +43,8 @@ type AppStore = {
   classroomMap: Record<string, Classroom>;
   examMap: Record<string, Exam>;
   message: string | null;
-  notify: (text: string) => void;
+  messageTone: ToastTone;
+  notify: (text: string, tone?: ToastTone) => void;
   review: ReviewState | null;
   startReview: (examId: string, recognition: Recognition, fileName: string) => boolean;
   clearReview: () => void;
@@ -72,8 +75,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
   classroomMap: {},
   examMap: {},
   message: null,
-  notify: (text) => {
-    set({ message: text });
+  messageTone: "success",
+  notify: (text, tone = "success") => {
+    set({ message: text, messageTone: tone });
     window.clearTimeout(toastTimer);
     toastTimer = window.setTimeout(() => set({ message: null }), 2200);
   },
@@ -82,9 +86,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     if (!recognition.markerValid || !recognition.studentNumber) return false;
     const exam = get().examMap[examId];
     const classroom = exam ? get().classroomMap[exam.classroomId] : undefined;
-    const student = classroom?.students.find(
-      (item) => item.studentNumber === recognition.studentNumber,
-    );
+    const student = findStudentByNumber(classroom, recognition.studentNumber ?? "");
     if (!student) return false;
     set({ review: { examId, recognition, fileName } });
     return true;

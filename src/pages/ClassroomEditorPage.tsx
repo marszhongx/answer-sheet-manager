@@ -48,7 +48,10 @@ export default function ClassroomEditorPage() {
         store.notify("班级已创建");
       }
     } catch (error) {
-      store.notify(error instanceof Error ? `保存失败：${error.message}` : "保存失败，请重试");
+      store.notify(
+        error instanceof Error ? `保存失败：${error.message}` : "保存失败，请重试",
+        "error",
+      );
       return;
     }
     navigate(`/students/${next.id}`);

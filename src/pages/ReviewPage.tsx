@@ -5,6 +5,7 @@ import SubmitButton from "../components/SubmitButton";
 import { Check, FileImage } from "lucide-react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { gradeAnswers } from "../lib/grading";
+import { findStudentByNumber, sameStudentNumber } from "../lib/roster";
 import { answerOf, OPTION_LABELS, Option } from "../lib/omr";
 import { useAppStore } from "../store/appStore";
 import styles from "./ReviewPage.module.css";
@@ -19,9 +20,7 @@ export default function ReviewPage() {
   const exam = examMap[id ?? ""];
   const answerSheet = exam ? answerSheetMap[exam.answerSheetId] : undefined;
   const classroom = exam ? classroomMap[exam.classroomId] : undefined;
-  const student = classroom?.students.find(
-    (item) => item.studentNumber === review?.recognition.studentNumber,
-  );
+  const student = findStudentByNumber(classroom, review?.recognition.studentNumber ?? "");
   const recognition = review?.recognition;
   const fileName = review?.fileName ?? "answer-sheet.jpg";
   const [answers, setAnswers] = useState<Array<Option | null>>(recognition?.answers ?? []);
@@ -38,20 +37,27 @@ export default function ReviewPage() {
     if (!canSave) return;
     const studentNumber = review.recognition.studentNumber ?? "";
     const record = gradeAnswers(review.fileName, answers, recognition.confidence, studentNumber);
-    const existing = exam.scanRecords.some((item) => item.studentNumber === studentNumber);
+    const existing = exam.scanRecords.some((item) =>
+      sameStudentNumber(item.studentNumber, studentNumber),
+    );
     try {
       await useAppStore.getState().updateExam({
         ...exam,
         scanRecords: existing
           ? exam.scanRecords.map((existingRecord) =>
-              existingRecord.studentNumber === studentNumber ? record : existingRecord,
+              sameStudentNumber(existingRecord.studentNumber, studentNumber)
+                ? record
+                : existingRecord,
             )
           : [...exam.scanRecords, record],
       });
     } catch (error) {
       useAppStore
         .getState()
-        .notify(error instanceof Error ? `保存失败：${error.message}` : "保存失败，请重试");
+        .notify(
+          error instanceof Error ? `保存失败：${error.message}` : "保存失败，请重试",
+          "error",
+        );
       return;
     }
     useAppStore.getState().clearReview();

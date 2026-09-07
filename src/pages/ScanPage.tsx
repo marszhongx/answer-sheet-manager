@@ -34,6 +34,7 @@ export default function ScanPage() {
         !recognition.markerValid || !recognition.studentNumber
           ? "未识别完整准考证号，请重新扫描"
           : `未找到学号 ${recognition.studentNumber} 对应的学生`,
+        "error",
       );
   };
   const importImage = (file: File) => {
@@ -61,7 +62,7 @@ export default function ScanPage() {
       () => {
         URL.revokeObjectURL(url);
         setProcessing(false);
-        useAppStore.getState().notify("图片无法读取");
+        useAppStore.getState().notify("图片无法读取", "error");
       },
       { once: true },
     );

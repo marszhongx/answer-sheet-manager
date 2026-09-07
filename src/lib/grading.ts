@@ -1,5 +1,5 @@
 import { answerOf, AnswerSheet, Option, questionCount, questionPoints } from "./omr";
-import { Classroom } from "./roster";
+import { Classroom, findStudentByNumber } from "./roster";
 
 export type ScanRecord = {
   studentNumber: string;
@@ -18,10 +18,7 @@ export function gradeAnswers(
 }
 
 export function studentNameOf(classroom: Classroom | undefined, studentNumber: string): string {
-  return (
-    classroom?.students.find((student) => student.studentNumber === studentNumber)?.name ??
-    "未命名学生"
-  );
+  return findStudentByNumber(classroom, studentNumber)?.name ?? "未命名学生";
 }
 
 export function wrongOf(answerSheet: AnswerSheet, answers: Array<Option | null>): boolean[] {

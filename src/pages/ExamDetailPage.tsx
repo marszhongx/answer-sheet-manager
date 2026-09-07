@@ -27,7 +27,10 @@ export default function ExamDetailPage() {
     } catch (error) {
       useAppStore
         .getState()
-        .notify(error instanceof Error ? `删除失败：${error.message}` : "删除失败，请重试");
+        .notify(
+          error instanceof Error ? `删除失败：${error.message}` : "删除失败，请重试",
+          "error",
+        );
       return;
     }
     useAppStore.getState().notify("考试已删除");
