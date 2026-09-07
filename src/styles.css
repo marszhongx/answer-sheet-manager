@@ -1,88 +1,78 @@
 :root {
   color-scheme: light;
 
-  /* 品牌色 */
-  --color-primary: #16705d;
-  --color-primary-hover: #125f50;
-  --color-primary-active: #0d4d41;
-  --color-primary-dark: #0f594b;
-  --color-primary-muted: #70ae98;
-  --color-primary-pale: #e8f4ee;
-  --color-primary-pale-hover: #dceee5;
+  /* Ink and mint: a quiet workbench palette for daily grading tasks */
+  --color-primary: #146b59;
+  --color-primary-hover: #0e5b4b;
+  --color-primary-active: #09483c;
+  --color-primary-dark: #0f5144;
+  --color-primary-muted: #6da995;
+  --color-primary-pale: #e2f1e9;
+  --color-primary-pale-hover: #d4e9df;
   --color-on-primary: #ffffff;
-  --color-on-primary-muted: #d8ebe3;
+  --color-on-primary-muted: #d9eee5;
 
-  /* 文本层级 */
-  --color-text: #20302a;
-  --color-text-secondary: #3e5149;
-  --color-text-muted: #6b7b74;
-  --color-text-subtle: #87958f;
-  --color-text-disabled: #a5b0ab;
+  --color-text: #19332b;
+  --color-text-secondary: #3d574e;
+  --color-text-muted: #6e8078;
+  --color-text-subtle: #8c9b95;
+  --color-text-disabled: #aab8b2;
 
-  /* 表面 */
-  --color-bg: #e9f0ec;
-  --color-bg-wide: #dfe9e3;
+  --color-bg: #e7efeb;
+  --color-bg-wide: #dce8e1;
   --color-surface: #ffffff;
-  --color-surface-sunken: #f7faf8;
-  --color-surface-muted: #f0f5f2;
-  --color-surface-disabled: #e9efec;
-  --color-surface-inverse: #263d35;
+  --color-surface-sunken: #f8fbf9;
+  --color-surface-muted: #eef5f1;
+  --color-surface-disabled: #e8efeb;
+  --color-surface-inverse: #193b31;
 
-  /* 边框 */
-  --color-border: #dbe6df;
-  --color-border-control: #d2dfd8;
-  --color-border-strong: #b9cdc2;
-  --color-border-subtle: #edf2ef;
-  --color-border-disabled: #e1e9e5;
+  --color-border: #d6e4dc;
+  --color-border-control: #c9dbd1;
+  --color-border-strong: #a8c4b7;
+  --color-border-subtle: #e8f0eb;
+  --color-border-disabled: #dfe9e4;
 
-  /* 状态色 */
-  --color-danger: #c04438;
-  --color-danger-hover: #aa372e;
-  --color-danger-soft: #e2745f;
-  --color-danger-bg: #fff4f2;
-  --color-danger-bg-hover: #fdeae7;
-  --color-danger-border: #efc3bd;
-  --color-success: #2f8f6f;
-  --color-success-bg: #e8f6ee;
-  --color-success-border: #bfe4d3;
-  --color-warning: #a46723;
-  --color-warning-bg: #fff3df;
-  --color-warning-border: #d9b174;
-  --color-rate-low: #d98a4f;
+  --color-danger: #b84439;
+  --color-danger-hover: #9f382f;
+  --color-danger-soft: #d96f5c;
+  --color-danger-bg: #fff5f2;
+  --color-danger-bg-hover: #fde9e5;
+  --color-danger-border: #edc2bb;
+  --color-on-danger-muted: #ffd9d3;
+  --color-success: #2d866a;
+  --color-success-bg: #e7f5ed;
+  --color-success-border: #b8ddcb;
+  --color-warning: #a16928;
+  --color-warning-bg: #fff5e5;
+  --color-warning-border: #e2bf84;
+  --color-rate-low: #cc7d42;
 
-  /* 圆角：控件使用轻圆角，交互入口使用胶囊 */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  --radius-sm: 7px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
   --radius-pill: 999px;
 
-  /* 阴影 */
-  --shadow-xs: 0 1px 2px #1e332a08;
-  --shadow-sm: 0 2px 6px #1e332a0b, 0 1px 2px #1e332a08;
-  --shadow-md: 0 8px 22px #1e332a12;
-  --shadow-lg: 0 18px 42px #1e332a18;
-  --shadow-brand: 0 5px 14px #176b5828;
-  --shadow-sheet: 0 -8px 32px #16231e2e;
-  --shadow-shell: 0 12px 38px #284a3e18;
-  --shadow-nav: 0 -2px 16px #1e332a0d;
+  --shadow-xs: 0 1px 2px #173c2f0b;
+  --shadow-sm: 0 3px 10px #173c2f0d, 0 1px 2px #173c2f08;
+  --shadow-md: 0 10px 26px #173c2f14;
+  --shadow-lg: 0 20px 48px #173c2f18;
+  --shadow-brand: 0 6px 16px #126b592b;
+  --shadow-sheet: 0 -10px 34px #17352b30;
+  --shadow-shell: 0 18px 44px #244b3c18;
+  --shadow-nav: 0 -3px 18px #173c2f10;
 
-  /* 浮层 */
   --color-surface-translucent: #ffffffed;
-  --color-backdrop: #16231e8c;
-  --color-success-bright: #c8ec8d;
-
-  /* 焦点环 */
+  --color-backdrop: #102a218c;
+  --color-success-bright: #c9ef9d;
   --ring-width: 3px;
-  --ring-color: #70ae9859;
+  --ring-color: #6da99566;
   --ring: 0 0 0 var(--ring-width) var(--ring-color);
 
-  /* 动效 */
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --duration-fast: 0.12s;
   --duration: 0.18s;
 
-  /* 层级 */
   --z-header: 4;
   --z-nav: 5;
   --z-menu: 20;
@@ -90,11 +80,10 @@
   --z-dialog: 40;
   --z-scanner: 50;
 
-  /* 尺寸 */
   --nav-height: 72px;
   --page-gutter: 20px;
   --tap-min: 40px;
-  --shell-max-width: 680px;
+  --shell-max-width: 720px;
 
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei",

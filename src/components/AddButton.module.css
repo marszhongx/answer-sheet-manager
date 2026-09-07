@@ -1,8 +1,8 @@
 .button {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   color: var(--color-on-primary);
   border: 0;
   border-radius: var(--radius-pill);

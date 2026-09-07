@@ -6,13 +6,13 @@
   margin: auto;
   overflow-x: clip;
   padding-bottom: calc(var(--nav-height) + 18px + env(safe-area-inset-bottom));
-  background: var(--color-surface-sunken);
+  background: linear-gradient(180deg, var(--color-surface-sunken) 0%, #f4f9f6 100%);
 }
 
 @media (min-width: 601px) {
   .shell {
-    border-right: 1px solid #d6e2db;
-    border-left: 1px solid #d6e2db;
+    border-right: 1px solid var(--color-border);
+    border-left: 1px solid var(--color-border);
     box-shadow: var(--shadow-shell);
   }
 }
