@@ -35,20 +35,31 @@ function isClose(a: Point, b: Point): boolean {
 
 function chooseCorners(points: Point[]): Point[] | null {
   if (points.length < 4) return null;
-  const unique = (point: Point, used: Point[]) => !used.some((item) => isClose(point, item));
-  const select = (sort: (a: Point, b: Point) => number, used: Point[]) =>
-    points.toSorted(sort).find((point) => unique(point, used));
+  // 四个角分别取 min(x+y)、max(x-y)、max(x+y)、min(y-x)；其中 min(y-x) 等价于 max(x-y)，
+  // 因此只需按 x+y 与 x-y 各排序一次，再线性扫描，避免原先四次 toSorted 复制（F14）。
+  const bySum = points.toSorted((a, b) => a.x + a.y - (b.x + b.y));
+  const byDiff = points.toSorted((a, b) => a.x - a.y - (b.x - b.y));
+  const notClose = (point: Point, used: Point[]) => !used.some((item) => isClose(point, item));
+  const firstMatch = (candidates: Point[], used: Point[]) =>
+    candidates.find((point) => notClose(point, used));
+  const lastMatch = (candidates: Point[], used: Point[]) => {
+    for (let index = candidates.length - 1; index >= 0; index--) {
+      const point = candidates[index];
+      if (point && notClose(point, used)) return point;
+    }
+    return undefined;
+  };
   const selected: Point[] = [];
-  const topLeft = select((a, b) => a.x + a.y - b.x - b.y, selected);
+  const topLeft = firstMatch(bySum, selected);
   if (!topLeft) return null;
   selected.push(topLeft);
-  const topRight = select((a, b) => b.x - b.y - a.x + a.y, selected);
+  const topRight = lastMatch(byDiff, selected);
   if (!topRight) return null;
   selected.push(topRight);
-  const bottomRight = select((a, b) => b.x + b.y - a.x - a.y, selected);
+  const bottomRight = lastMatch(bySum, selected);
   if (!bottomRight) return null;
   selected.push(bottomRight);
-  const bottomLeft = select((a, b) => a.y - a.x - b.y + b.x, selected);
+  const bottomLeft = lastMatch(byDiff, selected);
   if (!bottomLeft) return null;
   const corners = [topLeft, topRight, bottomRight, bottomLeft];
   const lengths = corners.map((point, index) => {
@@ -93,6 +104,25 @@ function project(point: Point, matrix: number[]): Point {
     x: (m0 * point.x + m1 * point.y + m2) / denominator,
     y: (m3 * point.x + m4 * point.y + m5) / denominator,
   };
+}
+
+// OpenCV 的 Size/Scalar 是堆对象，逐帧 new 会泄漏；布局尺寸固定时复用同一实例（F13）。
+let warpSizeCache: { width: number; height: number; instance: any } | null = null;
+let whiteScalar: any = null;
+
+function warpSize(cv: any, width: number, height: number): any {
+  if (warpSizeCache?.width === width && warpSizeCache?.height === height) {
+    return warpSizeCache.instance;
+  }
+  warpSizeCache?.instance?.delete();
+  const instance = new cv.Size(width, height);
+  warpSizeCache = { width, height, instance };
+  return instance;
+}
+
+function whiteScalarInstance(cv: any): any {
+  if (!whiteScalar) whiteScalar = new cv.Scalar(255, 255, 255, 255);
+  return whiteScalar;
 }
 
 export default function LiveScanner({ answerSheet, onConfirm, onClose }: Props) {
@@ -179,6 +209,9 @@ export default function LiveScanner({ answerSheet, onConfirm, onClose }: Props) 
       const overlay = overlayRef.current;
       if (!video || !frame || !overlay || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA)
         return;
+      // 帧处理固定降到 720 宽：在识别精度与性能间取折中，也降低主线程逐帧处理的开销（F21）。
+      // 轮廓搜索范围仍覆盖整帧；若需彻底消除主线程阻塞，后续应把灰度/阈值/轮廓/透视/识别
+      // 整体迁到 Web Worker，本任务暂不 Worker 化（工程量大、风险高）。
       const width = 720;
       const height = Math.round(width / (video.videoWidth / video.videoHeight));
       if (!height) return;
@@ -352,16 +385,22 @@ async function processFrame(
     );
     transform = cv.getPerspectiveTransform(sourcePoints, targetPoints);
     inverse = new cv.Mat();
-    cv.invert(transform, inverse);
+    // cv.invert 对奇异矩阵返回 0，此时 inverse 为垃圾值，后续 project 会得到 NaN 坐标（F2）
+    if (!cv.invert(transform, inverse)) {
+      setState("searching");
+      setRecognition(null);
+      setMessage("请让四个黑色定位方块完整进入画面");
+      return null;
+    }
     warped = new cv.Mat();
     cv.warpPerspective(
       src,
       warped,
       transform,
-      new cv.Size(layout.width, layout.height),
+      warpSize(cv, layout.width, layout.height),
       cv.INTER_LINEAR,
       cv.BORDER_CONSTANT,
-      new cv.Scalar(255, 255, 255, 255),
+      whiteScalarInstance(cv),
     );
     // 复用同一个离屏画布：每帧新建 canvas 会让浏览器反复分配/回收上千像素的位图
     if (warpedCanvas.width !== layout.width || warpedCanvas.height !== layout.height) {

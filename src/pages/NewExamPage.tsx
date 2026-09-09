@@ -8,10 +8,6 @@ import Select from "../components/Select";
 import SubmitButton from "../components/SubmitButton";
 import { Check } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Exam } from "../lib/exam";
-import { newId } from "../lib/id";
-import { AnswerSheet } from "../lib/omr";
-import { Classroom } from "../lib/roster";
 import { useAppStore } from "../store/appStore";
 
 export default function NewExamPage() {
@@ -50,32 +46,11 @@ export default function NewExamPage() {
       const sourceSheet = answerSheetMap[answerSheetId];
       const sourceClassroom = classroomMap[classroomId];
       if (!sourceSheet || !sourceClassroom) return;
-      const sheetCopy: AnswerSheet = {
-        ...sourceSheet,
-        id: newId(),
-        isTemplate: false,
-        sections: sourceSheet.sections.map((section) => ({
-          ...section,
-          questions: section.questions.map((question) => ({ ...question })),
-        })),
-      };
-      const classroomCopy: Classroom = {
-        ...sourceClassroom,
-        id: newId(),
-        isTemplate: false,
-        students: sourceClassroom.students.map((student) => ({ ...student })),
-      };
-      await store.createAnswerSheet(sheetCopy);
-      await store.createClassroom(classroomCopy);
-      const nextExam: Exam = {
-        id: newId(),
-        name: name.trim(),
-        answerSheetId: sheetCopy.id,
-        classroomId: classroomCopy.id,
-        scanRecords: [],
-        createdAt: new Date().toISOString(),
-      };
-      await store.createExam(nextExam);
+      const nextExam = await store.createExamWithCopies(
+        sourceSheet,
+        sourceClassroom,
+        name.trim(),
+      );
       store.notify("考试已创建");
       navigate(`/exams/${nextExam.id}`);
     } catch (error) {

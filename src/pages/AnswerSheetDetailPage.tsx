@@ -21,14 +21,12 @@ export default function AnswerSheetDetailPage() {
     0,
   );
   const copy = async () => {
-    // 剥离历史版本残留在存储中的 records 字段，避免副本携带过时的成绩数据
-    const { records: _obsolete, ...clean } = answerSheet as typeof answerSheet & {
-      records?: unknown;
-    };
+    // 副本只复制已知字段，历史版本残留在存储中的 records 字段自然被丢弃（F20）
     const copied: AnswerSheet = {
-      ...clean,
       id: newId(),
       name: `${answerSheet.name} 副本`,
+      subject: answerSheet.subject,
+      candidateNumberLength: answerSheet.candidateNumberLength,
       sections: answerSheet.sections.map((section) => ({
         ...section,
         questions: section.questions.map((question) => ({ ...question })),

@@ -7,7 +7,7 @@ import StudentRosterTable from "../components/StudentRosterTable";
 import SubmitButton from "../components/SubmitButton";
 import { Check } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { Classroom, Student } from "../lib/roster";
+import { Classroom, normalizeStudentNumber, Student } from "../lib/roster";
 import { newId } from "../lib/id";
 import { useAppStore } from "../store/appStore";
 
@@ -25,13 +25,25 @@ export default function ClassroomEditorPage() {
   const editing = Boolean(classroom);
   const save = async () => {
     if (!name.trim()) return;
+    // 手动录入与 CSV 导入统一按 normalizeStudentNumber 去重：保留先出现的行，丢弃后续重复行（F3）
+    const filled = students.filter((student) => student.name.trim() && student.studentNumber);
+    const seen = new Set<string>();
+    const deduped: Student[] = [];
+    for (const student of filled) {
+      const key = normalizeStudentNumber(student.studentNumber);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      deduped.push(student);
+    }
     const next: Classroom = {
       id: classroom?.id ?? newId(),
       name: name.trim(),
-      students: students.filter((student) => student.name.trim() && student.studentNumber),
+      students: deduped,
       isTemplate: classroom?.isTemplate ?? true,
     };
     const store = useAppStore.getState();
+    const dropped = filled.length - deduped.length;
+    if (dropped > 0) store.notify(`已忽略 ${dropped} 个重复学号`);
     const examId = pathname.startsWith("/exams/") ? id : undefined;
     try {
       if (examId) {

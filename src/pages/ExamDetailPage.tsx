@@ -21,9 +21,9 @@ export default function ExamDetailPage() {
   if (!exam || !answerSheet || !classroom) return <Navigate to="/exams" replace />;
   const confirmDelete = async () => {
     try {
-      await useAppStore.getState().deleteExam(exam.id);
-      await useAppStore.getState().deleteAnswerSheet(exam.answerSheetId);
-      await useAppStore.getState().deleteClassroom(exam.classroomId);
+      await useAppStore
+        .getState()
+        .deleteExamWithCopies(exam.id, exam.answerSheetId, exam.classroomId);
     } catch (error) {
       useAppStore
         .getState()

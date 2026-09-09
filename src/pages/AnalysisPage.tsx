@@ -2,6 +2,7 @@ import EmptyState from "../components/EmptyState";
 import Page from "../components/Page";
 import PageHeader from "../components/PageHeader";
 import { BarChart3, Download } from "lucide-react";
+import { useMemo } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import {
   averageScore,
@@ -46,9 +47,19 @@ export default function AnalysisPage() {
         </Page>
       </>
     );
-  const rates = questionRates(answerSheet, records);
-  const average = averageScore(answerSheet, records);
+  const scores = useMemo(
+    () => records.map((record) => scoreOf(answerSheet, record.answers)),
+    [answerSheet, records],
+  );
+  const rates = useMemo(() => questionRates(answerSheet, records), [answerSheet, records]);
+  const average = useMemo(() => averageScore(answerSheet, records), [answerSheet, records]);
   const totalScore = totalScoreOf(answerSheet);
+  // 用 reduce 取极值，避免 Math.max/min 对长数组展开造成栈溢出（F8）
+  const maxScore = scores.reduce((max, score) => (score > max ? score : max), 0);
+  const minScore = scores.reduce(
+    (min, score) => (score < min ? score : min),
+    Number.POSITIVE_INFINITY,
+  );
   return (
     <>
       <PageHeader
@@ -65,11 +76,11 @@ export default function AnalysisPage() {
         </section>
         <section className={styles.grid}>
           <div>
-            <b>{Math.max(...records.map((record) => scoreOf(answerSheet, record.answers)))}</b>
+            <b>{maxScore}</b>
             <span>最高分</span>
           </div>
           <div>
-            <b>{Math.min(...records.map((record) => scoreOf(answerSheet, record.answers)))}</b>
+            <b>{minScore}</b>
             <span>最低分</span>
           </div>
           <div>
@@ -113,13 +124,13 @@ export default function AnalysisPage() {
               <span>答对题数</span>
               <span>得分</span>
             </div>
-            {records.map((record) => (
+            {records.map((record, index) => (
               <div className={styles.studentRow} key={record.studentNumber}>
                 <span>{studentNameOf(classroom, record.studentNumber)}</span>
                 <span>
                   {correctCountOf(answerSheet, record.answers)} / {questionCount(answerSheet)}
                 </span>
-                <b>{scoreOf(answerSheet, record.answers)}</b>
+                <b>{scores[index] ?? 0}</b>
               </div>
             ))}
           </div>

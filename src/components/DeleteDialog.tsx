@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Trash2, X } from "lucide-react";
 import styles from "./DeleteDialog.module.css";
 
@@ -17,9 +18,20 @@ export default function DeleteDialog({
 }) {
   const sheetRef = useRef<HTMLElement>(null);
   const titleId = useId();
+  const descriptionId = useId();
 
   useEffect(() => {
+    // 保存触发元素引用，关闭时焦点返还；同时把背景内容 inert + aria-hidden（F15）
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const appRoot = document.getElementById("root");
+    appRoot?.setAttribute("inert", "");
+    appRoot?.setAttribute("aria-hidden", "true");
     sheetRef.current?.querySelector<HTMLButtonElement>(FOCUSABLE)?.focus();
+    return () => {
+      appRoot?.removeAttribute("inert");
+      appRoot?.removeAttribute("aria-hidden");
+      previouslyFocused?.focus();
+    };
   }, []);
 
   useEffect(() => {
@@ -48,13 +60,14 @@ export default function DeleteDialog({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [onCancel]);
 
-  return (
+  return createPortal(
     <div className={styles.backdrop}>
       <section
         className={styles.sheet}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        aria-describedby={descriptionId}
         ref={sheetRef}
       >
         <header>
@@ -64,7 +77,7 @@ export default function DeleteDialog({
           <h2 id={titleId}>删除{label}</h2>
           <span />
         </header>
-        <p>将删除“{name}”及相关数据，此操作无法撤销。</p>
+        <p id={descriptionId}>将删除“{name}”及相关数据，此操作无法撤销。</p>
         <div>
           <button onClick={onCancel}>取消</button>
           <button className={styles.danger} onClick={onConfirm}>
@@ -73,6 +86,7 @@ export default function DeleteDialog({
           </button>
         </div>
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -89,6 +89,12 @@
   font-weight: 600;
 }
 
+/* 键盘导航高亮（aria-activedescendant 方案），与 hover 视觉保持一致 */
+.optionActive {
+  color: var(--color-primary-dark);
+  background: var(--color-primary-pale-hover);
+}
+
 .option svg {
   color: var(--color-primary);
 }

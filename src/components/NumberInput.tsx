@@ -13,6 +13,14 @@ type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "onC
   onChange: (value: number) => void;
 };
 
+// 显式地把 type=number 的字符串草稿转成数字并夹取到 [min, max]，消除对 Number() 隐式转换的依赖（F16）。
+function parseDraft(raw: string, min: number, max: number): number {
+  if (raw === "") return min;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed)) return min;
+  return Math.min(max, Math.max(min, parsed));
+}
+
 export default function NumberInput({
   value,
   min,
@@ -32,7 +40,7 @@ export default function NumberInput({
     setDraft(String(value));
   }
   const commit = (raw: string) => {
-    const next = raw === "" ? min : Math.min(max, Math.max(min, Number(raw) || min));
+    const next = parseDraft(raw, min, max);
     setDraft(String(next));
     if (next !== value) onChange(next);
   };

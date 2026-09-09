@@ -5,6 +5,8 @@ import styles from "./EditableTable.module.css";
 type Column<Row> = {
   key: keyof Row;
   label: string;
+  // 可选注入点：把字符串草稿转成字段真正需要的类型；缺省时按字符串原样写入（F17）
+  parse?: (value: string) => unknown;
   render: (row: Row, onChange: (value: string) => void) => ReactNode;
 };
 type Props<Row extends { id: string }> = {
@@ -24,8 +26,14 @@ export default function EditableTable<Row extends { id: string }>({
   title,
   actions,
 }: Props<Row>) {
-  const update = (id: string, key: keyof Row, value: string) =>
-    onChange(rows.map((row) => (row.id === id ? { ...row, [key]: value } : row)));
+  const update = (id: string, column: Column<Row>, value: string) =>
+    onChange(
+      rows.map((row) =>
+        row.id === id
+          ? ({ ...row, [column.key]: column.parse ? column.parse(value) : value } as Row)
+          : row,
+      ),
+    );
   const addRow = () => onChange([...rows, createRow()]);
 
   return (
@@ -49,7 +57,7 @@ export default function EditableTable<Row extends { id: string }>({
           <div className={styles.row} role="row" key={row.id}>
             {columns.map((column) => (
               <div role="cell" key={String(column.key)}>
-                {column.render(row, (value) => update(row.id, column.key, value))}
+                {column.render(row, (value) => update(row.id, column, value))}
               </div>
             ))}
             <button

@@ -36,7 +36,9 @@ export default function AnswerSheetPreviewPage() {
       const link = document.createElement("a");
       link.href = url;
       link.download = `${answerSheet.name.replace(/[\\/:*?"<>|]/g, "_")}.png`;
+      document.body.appendChild(link);
       link.click();
+      link.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
       useAppStore.getState().notify("答题卡已下载");
     }, "image/png");
