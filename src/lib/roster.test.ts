@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { parseStudentCSV } from "./roster";
+import { normalizeStudentNumber, parseStudentCSV, sameStudentNumber } from "./roster";
+
+describe("学号双语义比较", () => {
+  it("忽略前导零后把 0088 与 88 视为同一学号", () => {
+    expect(sameStudentNumber("0088", "88")).toBe(true);
+    expect(sameStudentNumber("88", "0088")).toBe(true);
+    expect(normalizeStudentNumber("0088")).toBe("88");
+    expect(sameStudentNumber("0088", "007")).toBe(false);
+  });
+});
 
 describe("学生名单导入", () => {
   it("读取带姓名和学号表头的 CSV，并保留前导零", () => {
@@ -9,7 +18,7 @@ describe("学生名单导入", () => {
     ]);
   });
 
-  it("读取无表头的前两列", () => {
+  it("读取无表头的前两列，且学号保留前导零", () => {
     expect(parseStudentCSV("王同学,03\n赵同学,4")).toEqual([
       { name: "王同学", studentNumber: "03" },
       { name: "赵同学", studentNumber: "4" },

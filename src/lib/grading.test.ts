@@ -60,6 +60,19 @@ describe("真实答案批改", () => {
     expect(wrongOf(answerSheet, record.answers)).toEqual([false, true, true]);
   });
 
+  it("答案比题目少时按未识别补齐，长度与题目数一致", () => {
+    const record = gradeAnswers("short.jpg", ["A"], [1], "88");
+    expect(wrongOf(answerSheet, record.answers)).toEqual([false, true, true]);
+    expect(wrongOf(answerSheet, record.answers)).toHaveLength(3);
+    expect(scoreOf(answerSheet, record.answers)).toBe(3);
+  });
+
+  it("答案比题目多时截断多余项", () => {
+    const record = gradeAnswers("long.jpg", ["A", "B", "C", "A"], [1, 1, 1, 1], "88");
+    expect(wrongOf(answerSheet, record.answers)).toHaveLength(3);
+    expect(scoreOf(answerSheet, record.answers)).toBe(12);
+  });
+
   it("从真实批改记录计算正确率与平均分", () => {
     const first = gradeAnswers("1.jpg", ["A", "B", "C"], [1, 1, 1], "88");
     const second = gradeAnswers("2.jpg", ["A", "A", "C"], [1, 1, 1], "66");

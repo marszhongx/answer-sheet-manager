@@ -16,7 +16,9 @@ import {
 } from "../services/classroomService";
 import {
   createExamService,
+  createExamWithCopies as createExamWithCopiesService,
   deleteExamService,
+  deleteExamWithCopies as deleteExamWithCopiesService,
   fetchExamListService,
   updateExamService,
 } from "../services/examService";
@@ -61,6 +63,16 @@ type AppStore = {
   createExam: (exam: Exam) => Promise<void>;
   updateExam: (exam: Exam) => Promise<void>;
   deleteExam: (id: string) => Promise<void>;
+  createExamWithCopies: (
+    sourceSheet: AnswerSheet,
+    sourceClassroom: Classroom,
+    examName: string,
+  ) => Promise<Exam>;
+  deleteExamWithCopies: (
+    examId: string,
+    answerSheetId: string,
+    classroomId: string,
+  ) => Promise<void>;
 };
 
 let toastTimer: number | undefined;
@@ -163,6 +175,21 @@ export const useAppStore = create<AppStore>((set, get) => ({
     await deleteExamService(id);
     await get().fetchExamList();
   },
+  createExamWithCopies: async (sourceSheet, sourceClassroom, examName) => {
+    const exam = await createExamWithCopiesService(sourceSheet, sourceClassroom, examName);
+    await Promise.all([
+      get().fetchAnswerSheetList(),
+      get().fetchClassroomList(),
+      get().fetchExamList(),
+    ]);
+    return exam;
+  },
+  deleteExamWithCopies: async (examId, answerSheetId, classroomId) => {
+    await deleteExamWithCopiesService(examId, answerSheetId, classroomId);
+    await Promise.all([
+      get().fetchAnswerSheetList(),
+      get().fetchClassroomList(),
+      get().fetchExamList(),
+    ]);
+  },
 }));
-
-useAppStore.getState().initialize();

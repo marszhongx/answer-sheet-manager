@@ -55,6 +55,24 @@ export type Recognition = {
   studentNumber: string | null;
 };
 
+// —— OMR 识别阈值（F7 常量化）——
+// 判定一个像素“偏暗”的亮度上限（0~255），低于该值计入填充比例。
+const LUMINANCE_THRESHOLD = 150;
+// 答题格/准考证号位被判定为“已填涂”的最低填充比例。
+const MIN_FILL_RATE = 0.18;
+// 已填涂与次优填涂之间所需的最小差距，避免把相邻的轻微污渍误判为涂写。
+const MIN_MARGIN = 0.06;
+// 定位方块中心采样半径相对方块边长的比例。
+const MARKER_SAMPLE_RADIUS_FACTOR = 0.3;
+// 定位方块被判定为“存在”的最低填充比例。
+const MARKER_DARKNESS = 0.8;
+// 答题格填充采样半径相对格半径的比例。
+const ANSWER_BUBBLE_RADIUS_FACTOR = 0.57;
+// 准考证号位填充采样半径相对格半径的比例。
+const STUDENT_NUMBER_BUBBLE_RADIUS_FACTOR = 0.7;
+// 置信度归一化分母：把 (best - second) 映射到 0~1。
+const CONFIDENCE_SPAN = 0.25;
+
 const ROWS_PER_COLUMN = 20;
 const A4_DOUBLE_CARD_GAP = 24;
 const OUTER_PADDING = 42;
@@ -412,7 +430,7 @@ function darkness(data: ImageData, x: number, y: number, radius: number): number
       const green = data.data[index + 1] ?? 0;
       const blue = data.data[index + 2] ?? 0;
       const luminance = red * 0.299 + green * 0.587 + blue * 0.114;
-      if (luminance < 150) dark++;
+      if (luminance < LUMINANCE_THRESHOLD) dark++;
       count++;
     }
   return count ? dark / count : 0;
@@ -425,8 +443,8 @@ export function hasValidMarkers(imageData: ImageData, layout: CardLayout): boole
         imageData,
         marker.x + marker.size / 2,
         marker.y + marker.size / 2,
-        marker.size * 0.3,
-      ) >= 0.8,
+        marker.size * MARKER_SAMPLE_RADIUS_FACTOR,
+      ) >= MARKER_DARKNESS,
   );
 }
 
@@ -449,9 +467,13 @@ export function classifyFillRates(
       return;
     }
     answers.push(
-      best.rate >= 0.18 && best.rate - second.rate >= 0.06 ? (labels[best.index] ?? null) : null,
+      best.rate >= MIN_FILL_RATE && best.rate - second.rate >= MIN_MARGIN
+        ? (labels[best.index] ?? null)
+        : null,
     );
-    confidence.push(Math.max(0, Math.min(1, (best.rate - second.rate) / 0.25)));
+    confidence.push(
+      Math.max(0, Math.min(1, (best.rate - second.rate) / CONFIDENCE_SPAN)),
+    );
   });
   return { answers, confidence };
 }
@@ -471,14 +493,19 @@ export function recognizeCard(
     if (!rates || !labels) return;
     const index = labels.indexOf(bubble.option);
     if (index < 0) return;
-    rates[index] = darkness(imageData, bubble.x, bubble.y, bubble.radius * 0.57);
+    rates[index] = darkness(imageData, bubble.x, bubble.y, bubble.radius * ANSWER_BUBBLE_RADIUS_FACTOR);
   });
   const studentLength = Math.max(1, Math.min(10, candidateNumberLength));
   const studentRates = Array.from({ length: studentLength }, () => Array(10).fill(0));
   layout.studentNumberBubbles.forEach((bubble) => {
     const rates = studentRates[bubble.digitIndex];
     if (!rates) return;
-    rates[bubble.value] = darkness(imageData, bubble.x, bubble.y, bubble.radius * 0.7);
+    rates[bubble.value] = darkness(
+      imageData,
+      bubble.x,
+      bubble.y,
+      bubble.radius * STUDENT_NUMBER_BUBBLE_RADIUS_FACTOR,
+    );
   });
   const digits = studentRates.map((rates) => {
     const sorted = rates
@@ -487,7 +514,9 @@ export function recognizeCard(
     const best = sorted[0];
     const second = sorted[1];
     if (!best || !second) return null;
-    return best.rate >= 0.18 && best.rate - second.rate >= 0.06 ? String(best.value) : null;
+    return best.rate >= MIN_FILL_RATE && best.rate - second.rate >= MIN_MARGIN
+      ? String(best.value)
+      : null;
   });
   return {
     ...classifyFillRates(fillRates, options),

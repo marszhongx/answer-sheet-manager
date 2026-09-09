@@ -21,9 +21,19 @@ export function studentNameOf(classroom: Classroom | undefined, studentNumber: s
   return findStudentByNumber(classroom, studentNumber)?.name ?? "未命名学生";
 }
 
+// 规整 answers 到 questionCount 长度：截断多余项、缺失项补 null，避免越界取到 undefined（F9）。
+function normalizeAnswers(
+  answerSheet: AnswerSheet,
+  answers: Array<Option | null>,
+): Array<Option | null> {
+  const count = questionCount(answerSheet);
+  return Array.from({ length: count }, (_, index) => answers[index] ?? null);
+}
+
 export function wrongOf(answerSheet: AnswerSheet, answers: Array<Option | null>): boolean[] {
   const standard = answerOf(answerSheet);
-  return standard.map((correct, index) => answers[index] !== correct);
+  const normalized = normalizeAnswers(answerSheet, answers);
+  return standard.map((correct, index) => normalized[index] !== correct);
 }
 
 export function correctCountOf(answerSheet: AnswerSheet, answers: Array<Option | null>): number {
@@ -32,8 +42,9 @@ export function correctCountOf(answerSheet: AnswerSheet, answers: Array<Option |
 
 export function scoreOf(answerSheet: AnswerSheet, answers: Array<Option | null>): number {
   const standard = answerOf(answerSheet);
+  const normalized = normalizeAnswers(answerSheet, answers);
   return questionPoints(answerSheet).reduce(
-    (sum, point, index) => (answers[index] === standard[index] ? sum + point : sum),
+    (sum, point, index) => (normalized[index] === standard[index] ? sum + point : sum),
     0,
   );
 }
@@ -48,7 +59,9 @@ export function questionRates(answerSheet: AnswerSheet, records: ScanRecord[]): 
   const standard = answerOf(answerSheet);
   return Array.from({ length: count }, (_, index) =>
     Math.round(
-      (records.filter((record) => record.answers[index] === standard[index]).length /
+      (records.filter(
+        (record) => normalizeAnswers(answerSheet, record.answers)[index] === standard[index],
+      ).length /
         records.length) *
         100,
     ),
