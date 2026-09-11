@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { dbClear, dbGetAll, StoreName, withStores } from "./db";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { dbClear, dbGetAll, dbPut, StoreName, withStores } from "./db";
 
 beforeEach(async () => {
   await Promise.all([
@@ -7,6 +7,30 @@ beforeEach(async () => {
     dbClear(StoreName.Classrooms),
     dbClear(StoreName.Exams),
   ]);
+});
+
+describe("单 store 事务", () => {
+  it("写入 Promise 在事务 complete 后才完成", async () => {
+    const originalTransaction = IDBDatabase.prototype.transaction;
+    let transaction: IDBTransaction | undefined;
+    const spy = vi.spyOn(IDBDatabase.prototype, "transaction").mockImplementation(function (
+      this: IDBDatabase,
+      ...args: Parameters<IDBDatabase["transaction"]>
+    ) {
+      transaction = originalTransaction.apply(this, args);
+      return transaction;
+    });
+    const events: string[] = [];
+
+    const write = dbPut(StoreName.AnswerSheets, { id: "sheet-complete" });
+    await Promise.resolve();
+    expect(transaction).toBeDefined();
+    transaction?.addEventListener("complete", () => events.push("complete"));
+    await write.then(() => events.push("resolved"));
+    spy.mockRestore();
+
+    expect(events).toEqual(["complete", "resolved"]);
+  });
 });
 
 describe("withStores 原子事务", () => {

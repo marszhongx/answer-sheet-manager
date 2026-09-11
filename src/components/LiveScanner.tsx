@@ -13,6 +13,7 @@ import {
   recognizeCard,
 } from "../lib/omr";
 import { getOpenCv } from "../lib/opencv";
+import { chooseCorners, Point } from "../lib/scannerGeometry";
 import styles from "./LiveScanner.module.css";
 
 // 答题卡定位到之后结果通常已经稳定，没必要再按搜索期的频率跑满帧
@@ -26,58 +27,6 @@ type Props = {
 };
 
 type ScannerState = "loading" | "searching" | "ready" | "error";
-
-type Point = { x: number; y: number };
-
-function isClose(a: Point, b: Point): boolean {
-  return Math.hypot(a.x - b.x, a.y - b.y) < 12;
-}
-
-function chooseCorners(points: Point[]): Point[] | null {
-  if (points.length < 4) return null;
-  // 四个角分别取 min(x+y)、max(x-y)、max(x+y)、min(y-x)；其中 min(y-x) 等价于 max(x-y)，
-  // 因此只需按 x+y 与 x-y 各排序一次，再线性扫描，避免原先四次 toSorted 复制（F14）。
-  const bySum = points.toSorted((a, b) => a.x + a.y - (b.x + b.y));
-  const byDiff = points.toSorted((a, b) => a.x - a.y - (b.x - b.y));
-  const notClose = (point: Point, used: Point[]) => !used.some((item) => isClose(point, item));
-  const firstMatch = (candidates: Point[], used: Point[]) =>
-    candidates.find((point) => notClose(point, used));
-  const lastMatch = (candidates: Point[], used: Point[]) => {
-    for (let index = candidates.length - 1; index >= 0; index--) {
-      const point = candidates[index];
-      if (point && notClose(point, used)) return point;
-    }
-    return undefined;
-  };
-  const selected: Point[] = [];
-  const topLeft = firstMatch(bySum, selected);
-  if (!topLeft) return null;
-  selected.push(topLeft);
-  const topRight = lastMatch(byDiff, selected);
-  if (!topRight) return null;
-  selected.push(topRight);
-  const bottomRight = lastMatch(bySum, selected);
-  if (!bottomRight) return null;
-  selected.push(bottomRight);
-  const bottomLeft = lastMatch(byDiff, selected);
-  if (!bottomLeft) return null;
-  const corners = [topLeft, topRight, bottomRight, bottomLeft];
-  const lengths = corners.map((point, index) => {
-    const next = corners[(index + 1) % corners.length] ?? point;
-    return Math.hypot(next.x - point.x, next.y - point.y);
-  });
-  const area = Math.abs(
-    corners.reduce((sum, point, index) => {
-      const next = corners[(index + 1) % corners.length] ?? point;
-      return sum + point.x * next.y - point.y * next.x;
-    }, 0) / 2,
-  );
-  return area >= 20_000 &&
-    Math.min(...lengths) >= 80 &&
-    Math.max(...lengths) / Math.min(...lengths) <= 2.2
-    ? corners
-    : null;
-}
 
 // 答题卡位置与识别结果都没变时才算稳定；只比对答案会让“移动中的卡”也降频，浮层就会滞后
 type FrameResult = { recognition: Recognition; signature: string } | null;

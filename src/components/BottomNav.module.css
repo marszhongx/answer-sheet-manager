@@ -29,7 +29,9 @@
   border: 0;
   border-radius: var(--radius-lg);
   background: transparent;
-  transition: color var(--duration-fast) var(--ease), background-color var(--duration-fast) var(--ease);
+  transition:
+    color var(--duration-fast) var(--ease),
+    background-color var(--duration-fast) var(--ease);
 }
 
 .nav button.active {

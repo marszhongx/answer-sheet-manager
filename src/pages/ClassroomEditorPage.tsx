@@ -6,7 +6,7 @@ import PageHeader from "../components/PageHeader";
 import StudentRosterTable from "../components/StudentRosterTable";
 import SubmitButton from "../components/SubmitButton";
 import { Check } from "lucide-react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Classroom, normalizeStudentNumber, Student } from "../lib/roster";
 import { newId } from "../lib/id";
 import { useAppStore } from "../store/appStore";
@@ -23,6 +23,10 @@ export default function ClassroomEditorPage() {
     classroom?.students ?? [{ id: newId(), name: "", studentNumber: "" }],
   );
   const editing = Boolean(classroom);
+  const examRoute = pathname.startsWith("/exams/");
+  if (examRoute && (!examMap[id ?? ""] || !classroom)) return <Navigate to="/exams" replace />;
+  if (!examRoute && pathname.endsWith("/edit") && !classroom)
+    return <Navigate to="/students" replace />;
   const save = async () => {
     if (!name.trim()) return;
     // 手动录入与 CSV 导入统一按 normalizeStudentNumber 去重：保留先出现的行，丢弃后续重复行（F3）

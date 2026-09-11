@@ -99,4 +99,18 @@ describe("真实答案批改", () => {
     expect(csv).toContain('"一班\n二班",88,"李""四"",同学",A,B,C,12,12');
     expect(csv.split("\n").length).toBe(3);
   });
+
+  it("CSV 将缺失答案补齐后再写入得分列", () => {
+    const record = gradeAnswers("short.jpg", ["A"], [1], "88");
+    const row = toCSV(answerSheet, [record], classroom).split("\n")[1];
+    expect(row).toBe("一班,88,张同学,A,未识别,未识别,3,12");
+    expect(row?.split(",")).toHaveLength(8);
+  });
+
+  it("CSV 截断超出题目数量的答案", () => {
+    const record = gradeAnswers("long.jpg", ["A", "B", "C", "D"], [1, 1, 1, 1], "88");
+    const row = toCSV(answerSheet, [record], classroom).split("\n")[1];
+    expect(row).toBe("一班,88,张同学,A,B,C,12,12");
+    expect(row?.split(",")).toHaveLength(8);
+  });
 });

@@ -29,6 +29,12 @@ export default function AnalysisPage() {
   if (!exam || !answerSheet) return <Navigate to="/exams" replace />;
   const records = exam.scanRecords;
   const classroom = classroomMap[exam.classroomId];
+  const scores = useMemo(
+    () => records.map((record) => scoreOf(answerSheet, record.answers)),
+    [answerSheet, records],
+  );
+  const rates = useMemo(() => questionRates(answerSheet, records), [answerSheet, records]);
+  const average = useMemo(() => averageScore(answerSheet, records), [answerSheet, records]);
   if (!records.length)
     return (
       <>
@@ -47,12 +53,6 @@ export default function AnalysisPage() {
         </Page>
       </>
     );
-  const scores = useMemo(
-    () => records.map((record) => scoreOf(answerSheet, record.answers)),
-    [answerSheet, records],
-  );
-  const rates = useMemo(() => questionRates(answerSheet, records), [answerSheet, records]);
-  const average = useMemo(() => averageScore(answerSheet, records), [answerSheet, records]);
   const totalScore = totalScoreOf(answerSheet);
   // 用 reduce 取极值，避免 Math.max/min 对长数组展开造成栈溢出（F8）
   const maxScore = scores.reduce((max, score) => (score > max ? score : max), 0);

@@ -98,7 +98,7 @@ export function toCSV(
     classroom?.name ?? "",
     record.studentNumber,
     studentNameOf(classroom, record.studentNumber),
-    ...record.answers.map((answer) => answer ?? "未识别"),
+    ...normalizeAnswers(answerSheet, record.answers).map((answer) => answer ?? "未识别"),
     scoreOf(answerSheet, record.answers),
     totalScore,
   ]);

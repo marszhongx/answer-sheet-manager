@@ -6,7 +6,7 @@ import { Check, FileImage } from "lucide-react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { gradeAnswers } from "../lib/grading";
 import { findStudentByNumber, sameStudentNumber } from "../lib/roster";
-import { answerOf, OPTION_LABELS, Option } from "../lib/omr";
+import { answerOf, Option, questionOptions } from "../lib/omr";
 import { useAppStore } from "../store/appStore";
 import styles from "./ReviewPage.module.css";
 
@@ -23,12 +23,20 @@ export default function ReviewPage() {
   const student = findStudentByNumber(classroom, review?.recognition.studentNumber ?? "");
   const recognition = review?.recognition;
   const fileName = review?.fileName ?? "answer-sheet.jpg";
-  const [answers, setAnswers] = useState<Array<Option | null>>(recognition?.answers ?? []);
+  const questionOptionsList = answerSheet ? questionOptions(answerSheet) : [];
+  const questionTotal = questionOptionsList.length;
+  const [answers, setAnswers] = useState<Array<Option | null>>(() =>
+    Array.from({ length: questionTotal }, (_, index) => recognition?.answers[index] ?? null),
+  );
   if (!exam || !answerSheet || !classroom || !student || !recognition || review?.examId !== exam.id)
     return <Navigate to="/exams" replace />;
   const unresolved = answers.filter((answer) => answer === null).length;
-  const canSave = unresolved === 0;
   const standard = answerOf(answerSheet);
+  const canSave =
+    unresolved === 0 &&
+    answers.every(
+      (answer, index) => answer !== null && questionOptionsList[index]?.includes(answer),
+    );
   const cancel = () => {
     useAppStore.getState().clearReview();
     navigate(`/exams/${exam.id}/scan`);
@@ -107,7 +115,7 @@ export default function ReviewPage() {
                 <small>正确：{standard[index]}</small>
               </div>
               <div>
-                {OPTION_LABELS.map((option) => (
+                {(questionOptionsList[index] ?? []).map((option) => (
                   <button
                     key={option}
                     onClick={() =>

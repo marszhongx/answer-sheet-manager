@@ -471,9 +471,7 @@ export function classifyFillRates(
         ? (labels[best.index] ?? null)
         : null,
     );
-    confidence.push(
-      Math.max(0, Math.min(1, (best.rate - second.rate) / CONFIDENCE_SPAN)),
-    );
+    confidence.push(Math.max(0, Math.min(1, (best.rate - second.rate) / CONFIDENCE_SPAN)));
   });
   return { answers, confidence };
 }
@@ -493,7 +491,12 @@ export function recognizeCard(
     if (!rates || !labels) return;
     const index = labels.indexOf(bubble.option);
     if (index < 0) return;
-    rates[index] = darkness(imageData, bubble.x, bubble.y, bubble.radius * ANSWER_BUBBLE_RADIUS_FACTOR);
+    rates[index] = darkness(
+      imageData,
+      bubble.x,
+      bubble.y,
+      bubble.radius * ANSWER_BUBBLE_RADIUS_FACTOR,
+    );
   });
   const studentLength = Math.max(1, Math.min(10, candidateNumberLength));
   const studentRates = Array.from({ length: studentLength }, () => Array(10).fill(0));

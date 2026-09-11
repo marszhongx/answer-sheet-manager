@@ -50,6 +50,13 @@ export default function ScanPage() {
             recognizeAnswerSheet(image, image.naturalWidth, image.naturalHeight, answerSheet),
             file.name,
           );
+        } catch (error) {
+          useAppStore
+            .getState()
+            .notify(
+              error instanceof Error ? `图片识别失败：${error.message}` : "图片识别失败，请重试",
+              "error",
+            );
         } finally {
           URL.revokeObjectURL(url);
           setProcessing(false);
@@ -81,11 +88,18 @@ export default function ScanPage() {
     );
   return (
     <>
-      <PageHeader title="扫描答卷" onBack={() => navigate("/exams")} backLabel="返回考试详情" />
+      <PageHeader
+        title="扫描答卷"
+        onBack={() => navigate(exam ? `/exams/${exam.id}` : "/exams")}
+        backLabel="返回考试详情"
+      />
       <Page className={styles.scanPage}>
         {answerSheet ? (
           <>
-            <button onClick={() => navigate("/exams")} className={styles.picker}>
+            <button
+              onClick={() => navigate(exam ? `/exams/${exam.id}` : "/exams")}
+              className={styles.picker}
+            >
               <div className={styles.examIcon}>
                 <LayoutTemplate size={21} />
               </div>

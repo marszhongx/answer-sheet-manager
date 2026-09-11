@@ -7,7 +7,7 @@ import PageHeader from "../components/PageHeader";
 import Select from "../components/Select";
 import SubmitButton from "../components/SubmitButton";
 import { Check, Plus, Trash2 } from "lucide-react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   AnswerSheet,
   createQuestions,
@@ -48,6 +48,8 @@ export default function NewAnswerSheetPage() {
   );
   const [error, setError] = useState<string | null>(null);
   const editing = Boolean(answerSheet);
+  const examRoute = pathname.startsWith("/exams/");
+  const exam = examRoute ? examMap[id ?? ""] : undefined;
   const totals = useMemo(
     () => ({
       questions: sections.reduce((sum, section) => sum + section.questions.length, 0),
@@ -120,6 +122,9 @@ export default function NewAnswerSheetPage() {
           : section,
       ),
     );
+  if (examRoute && (!exam || !answerSheet)) return <Navigate to="/exams" replace />;
+  if (!examRoute && pathname.endsWith("/edit") && !answerSheet)
+    return <Navigate to="/answer-sheets" replace />;
   const save = async () => {
     const cleanName = name.trim();
     if (!cleanName || !totals.questions) return;

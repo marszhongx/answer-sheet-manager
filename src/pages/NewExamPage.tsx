@@ -7,7 +7,7 @@ import PageHeader from "../components/PageHeader";
 import Select from "../components/Select";
 import SubmitButton from "../components/SubmitButton";
 import { Check } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { useAppStore } from "../store/appStore";
 
 export default function NewExamPage() {
@@ -30,6 +30,7 @@ export default function NewExamPage() {
   const [classroomId, setClassroomId] = useState(exam?.classroomId ?? classrooms[0]?.id ?? "");
   const editing = Boolean(exam);
   const canSave = Boolean(name.trim() && (editing || (answerSheetId && classroomId)));
+  if (id && !exam) return <Navigate to="/exams" replace />;
   const save = async () => {
     if (!canSave) return;
     const store = useAppStore.getState();
@@ -46,11 +47,7 @@ export default function NewExamPage() {
       const sourceSheet = answerSheetMap[answerSheetId];
       const sourceClassroom = classroomMap[classroomId];
       if (!sourceSheet || !sourceClassroom) return;
-      const nextExam = await store.createExamWithCopies(
-        sourceSheet,
-        sourceClassroom,
-        name.trim(),
-      );
+      const nextExam = await store.createExamWithCopies(sourceSheet, sourceClassroom, name.trim());
       store.notify("考试已创建");
       navigate(`/exams/${nextExam.id}`);
     } catch (error) {

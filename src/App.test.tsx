@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -20,6 +20,41 @@ async function resetStore() {
     dbClear(StoreName.Classrooms),
     dbClear(StoreName.Exams),
   ]);
+  await useAppStore.getState().initialize();
+}
+
+async function seedExam(scanRecords: Array<Record<string, unknown>> = []) {
+  await dbPut(StoreName.AnswerSheets, {
+    id: "sheet-1",
+    name: "期中测验答题卡",
+    subject: "数学",
+    candidateNumberLength: 2,
+    isTemplate: false,
+    sections: [
+      {
+        id: "s1",
+        name: "第一大题",
+        pointsPerQuestion: 5,
+        optionCount: 4,
+        questions: [{ id: "q1", answer: "A" }],
+      },
+    ],
+    createdAt: "2025-01-01T00:00:00.000Z",
+  });
+  await dbPut(StoreName.Classrooms, {
+    id: "class-1",
+    name: "三年级二班",
+    students: [{ id: "stu-1", name: "张同学", studentNumber: "1" }],
+    isTemplate: false,
+  });
+  await dbPut(StoreName.Exams, {
+    id: "exam-1",
+    name: "期中测验",
+    answerSheetId: "sheet-1",
+    classroomId: "class-1",
+    scanRecords,
+    createdAt: "2025-01-01T00:00:00.000Z",
+  });
   await useAppStore.getState().initialize();
 }
 
@@ -95,40 +130,87 @@ describe("Answer Sheet Manager H5", () => {
     expect(answerSheets.find((sheet) => sheet.name === "单元测验 副本")?.records).toBeUndefined();
   });
 
+  it("does not turn a missing answer sheet edit route into a creation form", async () => {
+    window.history.replaceState({}, "", "/answer-sheets/missing/edit");
+    renderApp();
+
+    expect(window.location.pathname).toBe("/answer-sheets");
+    expect(screen.getByText("还没有答题卡")).toBeInTheDocument();
+  });
+
+  it("does not turn a missing exam edit route into a creation form", async () => {
+    window.history.replaceState({}, "", "/exams/missing/edit");
+    renderApp();
+
+    expect(window.location.pathname).toBe("/exams");
+    expect(screen.queryByRole("heading", { name: "新建考试" })).not.toBeInTheDocument();
+  });
+
+  it("does not create an orphan classroom from a missing exam route", async () => {
+    window.history.replaceState({}, "", "/exams/missing/classroom/edit");
+    renderApp();
+
+    expect(window.location.pathname).toBe("/exams");
+    expect(screen.queryByRole("heading", { name: "新建班级" })).not.toBeInTheDocument();
+  });
+
+  it("review only offers options configured for each question", async () => {
+    await seedExam();
+    useAppStore.setState({
+      review: {
+        examId: "exam-1",
+        fileName: "paper.jpg",
+        recognition: {
+          answers: [null],
+          confidence: [0],
+          fillRates: [[0, 0, 0, 0]],
+          markerValid: true,
+          studentNumber: "01",
+        },
+      },
+    });
+    window.history.replaceState({}, "", "/exams/exam-1/review");
+    renderApp();
+
+    expect(screen.getByRole("button", { name: "D" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "E" })).not.toBeInTheDocument();
+  });
+
+  it("renders results when records change from empty to non-empty", async () => {
+    await seedExam();
+    window.history.replaceState({}, "", "/exams/exam-1/results");
+    renderApp();
+    expect(screen.getByText("暂无阅卷记录")).toBeInTheDocument();
+
+    const exam = useAppStore.getState().examMap["exam-1"]!;
+    await act(async () => {
+      useAppStore.setState({
+        examList: [
+          {
+            ...exam,
+            scanRecords: [
+              { studentNumber: "1", fileName: "paper.jpg", answers: ["A"], confidence: [1] },
+            ],
+          },
+        ],
+        examMap: {
+          ...useAppStore.getState().examMap,
+          "exam-1": {
+            ...exam,
+            scanRecords: [
+              { studentNumber: "1", fileName: "paper.jpg", answers: ["A"], confidence: [1] },
+            ],
+          },
+        },
+      });
+    });
+
+    expect(screen.getByText("班级平均分")).toBeInTheDocument();
+  });
+
   it("opens the answer sheet preview from the exam detail page", async () => {
     const user = userEvent.setup();
-    await dbPut(StoreName.AnswerSheets, {
-      id: "sheet-1",
-      name: "期中测验答题卡",
-      subject: "数学",
-      candidateNumberLength: 4,
-      isTemplate: false,
-      sections: [
-        {
-          id: "s1",
-          name: "第一大题",
-          pointsPerQuestion: 5,
-          optionCount: 4,
-          questions: [{ id: "q1", answer: "A" }],
-        },
-      ],
-      createdAt: "2025-01-01T00:00:00.000Z",
-    });
-    await dbPut(StoreName.Classrooms, {
-      id: "class-1",
-      name: "三年级二班",
-      students: [{ id: "stu-1", name: "张同学", studentNumber: "1" }],
-      isTemplate: false,
-    });
-    await dbPut(StoreName.Exams, {
-      id: "exam-1",
-      name: "期中测验",
-      answerSheetId: "sheet-1",
-      classroomId: "class-1",
-      scanRecords: [],
-      createdAt: "2025-01-01T00:00:00.000Z",
-    });
-    await useAppStore.getState().initialize();
+    await seedExam();
     window.history.replaceState({}, "", "/exams/exam-1");
     renderApp();
 

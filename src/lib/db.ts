@@ -80,23 +80,41 @@ function withStore<T>(
     (db) =>
       new Promise<T>((resolve, reject) => {
         const transaction = db.transaction(storeName, mode);
+        let result: T;
+        let settled = false;
+        const settleError = (error: unknown) => {
+          if (settled) return;
+          settled = true;
+          reject(error);
+        };
         const request = run(transaction.objectStore(storeName));
-        request.addEventListener("success", () => resolve(request.result));
-        request.addEventListener("error", () => reject(request.error));
-        transaction.addEventListener("abort", () => {
-          // 事务中断只 reject 本次调用，连接缓存保持不变（F10）
-          reject(transaction.error ?? new Error("数据库事务中断，请重试"));
+        request.addEventListener("success", () => {
+          result = request.result;
         });
+        request.addEventListener("error", () =>
+          settleError(request.error ?? new Error("数据库请求失败，请重试")),
+        );
+        transaction.addEventListener("complete", () => {
+          if (settled) return;
+          settled = true;
+          resolve(result);
+        });
+        transaction.addEventListener("abort", () =>
+          settleError(transaction.error ?? new Error("数据库事务中断，请重试")),
+        );
+        transaction.addEventListener("error", () =>
+          settleError(transaction.error ?? new Error("数据库事务失败，请重试")),
+        );
       }),
   );
 }
 
-// 单事务内操作多个 store：run 同步抛错或返回的 Promise reject 时主动 abort，
-// 保证多个 store 的写要么全部落盘、要么全部回滚（F1 原子性）。
+// 单事务内操作多个 store。回调必须同步排队所有 IDBRequest，避免跨 await 后事务自动提交；
+// run 抛错时主动 abort，保证多个 store 的写要么全部落盘、要么全部回滚（F1 原子性）。
 export function withStores(
   storeNames: StoreName[],
   mode: IDBTransactionMode,
-  run: (stores: Record<StoreName, IDBObjectStore>) => void | Promise<void>,
+  run: (stores: Record<StoreName, IDBObjectStore>) => void,
 ): Promise<void> {
   return openDB().then(
     (db) =>
@@ -119,16 +137,16 @@ export function withStores(
         transaction.addEventListener("error", () =>
           settle(runError ?? transaction.error ?? new Error("数据库事务中断，请重试")),
         );
-        Promise.resolve()
-          .then(() => run(stores))
-          .catch((error) => {
-            runError = error;
-            try {
-              transaction.abort();
-            } catch {
-              // 事务可能已结束，忽略
-            }
-          });
+        try {
+          run(stores);
+        } catch (error) {
+          runError = error;
+          try {
+            transaction.abort();
+          } catch {
+            settle(error);
+          }
+        }
       }),
   );
 }
