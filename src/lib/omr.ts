@@ -191,11 +191,13 @@ export function createLayout(
     IDENTITY_FIELD_LINE_START + IDENTITY_FIELD_LINE_MIN_WIDTH,
     answerDividerX - IDENTITY_FIELD_LINE_END_PADDING,
   );
+  // 与 scannerGeometry.chooseCorners 保持顺时针顺序：左上、右上、右下、左下。
+  // 透视变换按数组下标配对源点和目标点，底部两点不可交换。
   const markers = [
     { x: OUTER_PADDING, y: OUTER_PADDING },
     { x: width - OUTER_PADDING - MARKER_SIZE, y: OUTER_PADDING },
-    { x: OUTER_PADDING, y: height - OUTER_PADDING - MARKER_SIZE },
     { x: width - OUTER_PADDING - MARKER_SIZE, y: height - OUTER_PADDING - MARKER_SIZE },
+    { x: OUTER_PADDING, y: height - OUTER_PADDING - MARKER_SIZE },
   ];
   const bubbles: Bubble[] = [];
   const studentNumberBubbles: StudentNumberBubble[] = [];

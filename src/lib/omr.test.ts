@@ -45,6 +45,16 @@ function imageWithMarkers(includeLast = true): ImageData {
 }
 
 describe("OMR marker validation", () => {
+  it("orders markers clockwise for perspective transforms", () => {
+    const { markers } = createLayout(3);
+    expect(markers.map(({ x, y }) => [x, y])).toEqual([
+      [markers[0]?.x, markers[0]?.y],
+      [markers[1]?.x, markers[0]?.y],
+      [markers[1]?.x, markers[2]?.y],
+      [markers[0]?.x, markers[2]?.y],
+    ]);
+  });
+
   it("accepts four dark corner markers", () => {
     const layout = createLayout(3);
     expect(hasValidMarkers(imageWithMarkers(), layout)).toBe(true);

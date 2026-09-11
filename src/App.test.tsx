@@ -208,6 +208,21 @@ describe("Answer Sheet Manager H5", () => {
     expect(screen.getByText("班级平均分")).toBeInTheDocument();
   });
 
+  it("redirects safely when the displayed results exam is removed", async () => {
+    await seedExam([
+      { studentNumber: "1", fileName: "paper.jpg", answers: ["A"], confidence: [1] },
+    ]);
+    window.history.replaceState({}, "", "/exams/exam-1/results");
+    renderApp();
+    expect(screen.getByText("班级平均分")).toBeInTheDocument();
+
+    await act(async () => {
+      useAppStore.setState({ examList: [], examMap: {} });
+    });
+
+    expect(window.location.pathname).toBe("/exams");
+  });
+
   it("opens the answer sheet preview from the exam detail page", async () => {
     const user = userEvent.setup();
     await seedExam();

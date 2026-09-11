@@ -4,6 +4,7 @@ import PageHeader from "../components/PageHeader";
 import { BarChart3, Download } from "lucide-react";
 import { useMemo } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { Exam } from "../lib/exam";
 import {
   averageScore,
   correctCountOf,
@@ -18,6 +19,8 @@ import { questionCount } from "../lib/omr";
 import { useAppStore } from "../store/appStore";
 import styles from "./AnalysisPage.module.css";
 
+const EMPTY_RECORDS: Exam["scanRecords"] = [];
+
 export default function AnalysisPage() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -26,15 +29,21 @@ export default function AnalysisPage() {
   const classroomMap = useAppStore((state) => state.classroomMap);
   const exam = examMap[id ?? ""];
   const answerSheet = exam ? answerSheetMap[exam.answerSheetId] : undefined;
-  if (!exam || !answerSheet) return <Navigate to="/exams" replace />;
-  const records = exam.scanRecords;
-  const classroom = classroomMap[exam.classroomId];
+  const records = exam?.scanRecords ?? EMPTY_RECORDS;
   const scores = useMemo(
-    () => records.map((record) => scoreOf(answerSheet, record.answers)),
+    () => (answerSheet ? records.map((record) => scoreOf(answerSheet, record.answers)) : []),
     [answerSheet, records],
   );
-  const rates = useMemo(() => questionRates(answerSheet, records), [answerSheet, records]);
-  const average = useMemo(() => averageScore(answerSheet, records), [answerSheet, records]);
+  const rates = useMemo(
+    () => (answerSheet ? questionRates(answerSheet, records) : []),
+    [answerSheet, records],
+  );
+  const average = useMemo(
+    () => (answerSheet ? averageScore(answerSheet, records) : 0),
+    [answerSheet, records],
+  );
+  if (!exam || !answerSheet) return <Navigate to="/exams" replace />;
+  const classroom = classroomMap[exam.classroomId];
   if (!records.length)
     return (
       <>
