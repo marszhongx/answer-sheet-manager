@@ -22,12 +22,40 @@ export function sameStudentNumber(a: string, b: string): boolean {
   return normalizeStudentNumber(a) === normalizeStudentNumber(b);
 }
 
+function parseCSVRows(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = "";
+  let quoted = false;
+  for (let index = 0; index < text.length; index++) {
+    const character = text[index];
+    if (character === '"') {
+      if (quoted && text[index + 1] === '"') {
+        cell += '"';
+        index++;
+      } else {
+        quoted = !quoted;
+      }
+    } else if (character === "," && !quoted) {
+      row.push(cell.trim());
+      cell = "";
+    } else if ((character === "\n" || character === "\r") && !quoted) {
+      if (character === "\r" && text[index + 1] === "\n") index++;
+      row.push(cell.trim());
+      if (row.some(Boolean)) rows.push(row);
+      row = [];
+      cell = "";
+    } else {
+      cell += character;
+    }
+  }
+  row.push(cell.trim());
+  if (row.some(Boolean)) rows.push(row);
+  return rows;
+}
+
 export function parseStudentCSV(text: string): Array<{ name: string; studentNumber: string }> {
-  const rows = text
-    .replace(/^\uFEFF/, "")
-    .split(/\r?\n/)
-    .map((line) => line.split(",").map((cell) => cell.trim()))
-    .filter((row) => row.some(Boolean));
+  const rows = parseCSVRows(text.replace(/^\uFEFF/, ""));
   if (!rows.length) return [];
   const header = rows[0] ?? [];
   const nameIndex = header.findIndex((cell) => /^(姓名|学生姓名)$/.test(cell));

@@ -24,4 +24,11 @@ describe("学生名单导入", () => {
       { name: "赵同学", studentNumber: "4" },
     ]);
   });
+
+  it("支持包含逗号、双引号和换行的标准 CSV 字段", () => {
+    expect(parseStudentCSV('姓名,学号\r\n"张三,三年级",0088\r\n"李""小""明\n同学",0012')).toEqual([
+      { name: "张三,三年级", studentNumber: "0088" },
+      { name: '李"小"明\n同学', studentNumber: "0012" },
+    ]);
+  });
 });

@@ -7,7 +7,8 @@ import { Camera, ChevronRight, ImagePlus, LayoutTemplate, ScanLine } from "lucid
 import { useNavigate, useParams } from "react-router-dom";
 import LiveScanner from "../components/LiveScanner";
 import EmptyState from "../components/EmptyState";
-import { AnswerSheet, questionCount, Recognition, recognizeAnswerSheet } from "../lib/omr";
+import { AnswerSheet, questionCount, Recognition } from "../lib/omr";
+import { recognizeImageWithOpenCv } from "../lib/imageRecognition";
 import { useAppStore } from "../store/appStore";
 import styles from "./ScanPage.module.css";
 
@@ -45,22 +46,20 @@ export default function ScanPage() {
     image.addEventListener(
       "load",
       () => {
-        try {
-          handleScanned(
-            recognizeAnswerSheet(image, image.naturalWidth, image.naturalHeight, answerSheet),
-            file.name,
-          );
-        } catch (error) {
-          useAppStore
-            .getState()
-            .notify(
-              error instanceof Error ? `图片识别失败：${error.message}` : "图片识别失败，请重试",
-              "error",
-            );
-        } finally {
-          URL.revokeObjectURL(url);
-          setProcessing(false);
-        }
+        void recognizeImageWithOpenCv(image, answerSheet)
+          .then((recognition) => handleScanned(recognition, file.name))
+          .catch((error) =>
+            useAppStore
+              .getState()
+              .notify(
+                error instanceof Error ? `图片识别失败：${error.message}` : "图片识别失败，请重试",
+                "error",
+              ),
+          )
+          .finally(() => {
+            URL.revokeObjectURL(url);
+            setProcessing(false);
+          });
       },
       { once: true },
     );
