@@ -55,7 +55,7 @@ function project(point: Point, matrix: number[]): Point {
   };
 }
 
-// OpenCV 的 Size/Scalar 是堆对象，逐帧 new 会泄漏；布局尺寸固定时复用同一实例（F13）。
+// Size/Scalar 是普通 JS 值对象，复用以减少分配；它们不需要也不支持 delete()。
 let warpSizeCache: { width: number; height: number; instance: any } | null = null;
 let whiteScalar: any = null;
 
@@ -63,7 +63,6 @@ function warpSize(cv: any, width: number, height: number): any {
   if (warpSizeCache?.width === width && warpSizeCache?.height === height) {
     return warpSizeCache.instance;
   }
-  warpSizeCache?.instance?.delete();
   const instance = new cv.Size(width, height);
   warpSizeCache = { width, height, instance };
   return instance;
@@ -306,10 +305,13 @@ async function processFrame(
         ratio > 1.28
       )
         continue;
-      if (rect.width * rect.height < 170) continue;
       candidates.push({ x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 });
     }
-    const corners = chooseCorners(candidates);
+    const [topLeft, topRight, , bottomLeft] = layout.markers;
+    const corners = chooseCorners(
+      candidates,
+      (topRight!.x - topLeft!.x) / (bottomLeft!.y - topLeft!.y),
+    );
     if (!corners) {
       setState("searching");
       setRecognition(null);

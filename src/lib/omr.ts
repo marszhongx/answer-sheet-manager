@@ -270,7 +270,13 @@ export function drawAnswerSheet(canvas: HTMLCanvasElement, answerSheet: AnswerSh
     layout.width - OUTER_PADDING * 2,
     layout.height - OUTER_PADDING * 2,
   );
-  layout.markers.forEach((marker) => ctx.fillRect(marker.x, marker.y, marker.size, marker.size));
+  // 定位块必须是独立轮廓，白色留边切断相邻外框，供 RETR_EXTERNAL 检测。
+  layout.markers.forEach((marker) => {
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(marker.x - 8, marker.y - 8, marker.size + 16, marker.size + 16);
+    ctx.fillStyle = "#111";
+    ctx.fillRect(marker.x, marker.y, marker.size, marker.size);
+  });
 
   ctx.textAlign = "center";
   ctx.font = "bold 25px sans-serif";

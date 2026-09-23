@@ -1,10 +1,13 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import { dbClear, dbGetAll, dbPut, StoreName } from "./lib/db";
 import { useAppStore } from "./store/appStore";
+import { Exam } from "./lib/exam";
+import { scoreOf } from "./lib/grading";
+import { Option } from "./lib/omr";
 
 function renderApp() {
   return render(
@@ -58,7 +61,22 @@ async function seedExam(scanRecords: Array<Record<string, unknown>> = []) {
   await useAppStore.getState().initialize();
 }
 
+function startReview(answer: Option | null) {
+  useAppStore.getState().startReview(
+    "exam-1",
+    {
+      answers: [answer],
+      confidence: [answer ? 1 : 0],
+      fillRates: [[0, 0, 0, 0]],
+      markerValid: true,
+      studentNumber: "01",
+    },
+    "paper.jpg",
+  );
+}
+
 beforeEach(async () => {
+  useAppStore.setState({ review: null, message: null });
   window.history.replaceState({}, "", "/answer-sheets");
   await resetStore();
   vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
@@ -174,6 +192,67 @@ describe("Answer Sheet Manager H5", () => {
 
     expect(screen.getByRole("button", { name: "D" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "E" })).not.toBeInTheDocument();
+  });
+
+  it("saves a confirmed blank as null with zero points, but requires explicit review first", async () => {
+    await seedExam();
+    startReview(null);
+    window.history.replaceState({}, "", "/exams/exam-1/review");
+    renderApp();
+    const user = userEvent.setup();
+
+    expect(screen.getByRole("button", { name: /请先/ })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "确认空答或无效作答" }));
+    await user.click(screen.getByRole("button", { name: "确认批改并保存" }));
+
+    await waitFor(() => expect(useAppStore.getState().review).toBeNull());
+    const exams = await dbGetAll<Exam>(StoreName.Exams);
+    expect(exams[0]?.scanRecords[0]?.answers).toEqual([null]);
+    expect(
+      scoreOf(useAppStore.getState().answerSheetMap["sheet-1"]!, exams[0]!.scanRecords[0]!.answers),
+    ).toBe(0);
+  });
+
+  it("opens results and clears the review after saving", async () => {
+    await seedExam();
+    startReview("A");
+    window.history.replaceState({}, "", "/exams/exam-1/review");
+    renderApp();
+
+    await userEvent.setup().click(screen.getByRole("button", { name: "确认批改并保存" }));
+    expect(await screen.findByText("班级平均分")).toBeInTheDocument();
+    expect(window.location.pathname).toBe("/exams/exam-1/results");
+    expect(useAppStore.getState().review).toBeNull();
+  });
+
+  it("returns to scanning and clears the review on cancel", async () => {
+    await seedExam();
+    startReview("A");
+    window.history.replaceState({}, "", "/exams/exam-1/review");
+    renderApp();
+
+    await userEvent.setup().click(screen.getByRole("button", { name: "取消本次识别" }));
+    expect(await screen.findByRole("heading", { name: "扫描答卷" })).toBeInTheDocument();
+    expect(window.location.pathname).toBe("/exams/exam-1/scan");
+    expect(useAppStore.getState().review).toBeNull();
+    expect((await dbGetAll<Exam>(StoreName.Exams))[0]?.scanRecords).toEqual([]);
+  });
+
+  it.each([
+    ["/exams/exam-1/answer-sheet/edit", "保存答题卡"],
+    ["/exams/exam-1/classroom/edit", "保存班级"],
+    ["/exams/exam-1/edit", "保存考试"],
+    ["/answer-sheets/sheet-1/edit", "保存答题卡"],
+    ["/students/class-1/edit", "保存班级"],
+  ])("blocks editing a graded exam through %s", async (path, saveLabel) => {
+    await seedExam([
+      { studentNumber: "1", fileName: "paper.jpg", answers: ["A"], confidence: [1] },
+    ]);
+    window.history.replaceState({}, "", path);
+    renderApp();
+
+    expect(screen.queryByRole("button", { name: saveLabel })).not.toBeInTheDocument();
+    expect(window.location.pathname).toBe("/exams/exam-1");
   });
 
   it("renders results when records change from empty to non-empty", async () => {

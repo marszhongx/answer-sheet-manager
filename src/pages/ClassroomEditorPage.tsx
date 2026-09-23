@@ -24,6 +24,10 @@ export default function ClassroomEditorPage() {
   );
   const editing = Boolean(classroom);
   const examRoute = pathname.startsWith("/exams/");
+  const lockedExam = Object.values(examMap).find(
+    (item) => item.classroomId === classroom?.id && item.scanRecords.length > 0,
+  );
+  if (lockedExam) return <Navigate to={`/exams/${lockedExam.id}`} replace />;
   if (examRoute && (!examMap[id ?? ""] || !classroom)) return <Navigate to="/exams" replace />;
   if (!examRoute && pathname.endsWith("/edit") && !classroom)
     return <Navigate to="/students" replace />;

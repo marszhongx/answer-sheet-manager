@@ -31,6 +31,7 @@ export default function NewExamPage() {
   const editing = Boolean(exam);
   const canSave = Boolean(name.trim() && (editing || (answerSheetId && classroomId)));
   if (id && !exam) return <Navigate to="/exams" replace />;
+  if (exam?.scanRecords.length) return <Navigate to={`/exams/${exam.id}`} replace />;
   const save = async () => {
     if (!canSave) return;
     const store = useAppStore.getState();

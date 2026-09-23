@@ -17,7 +17,6 @@ function warpSize(cv: any, width: number, height: number): any {
   if (warpSizeCache?.width === width && warpSizeCache.height === height) {
     return warpSizeCache.instance;
   }
-  warpSizeCache?.instance?.delete();
   const instance = new cv.Size(width, height);
   warpSizeCache = { width, height, instance };
   return instance;
@@ -28,7 +27,7 @@ function whiteScalarInstance(cv: any): any {
   return whiteScalar;
 }
 
-function findMarkerCorners(cv: any, source: any): Point[] | null {
+function findMarkerCorners(cv: any, source: any, layout: CardLayout): Point[] | null {
   const gray = new cv.Mat();
   const binary = new cv.Mat();
   const contours = new cv.MatVector();
@@ -49,8 +48,7 @@ function findMarkerCorners(cv: any, source: any): Point[] | null {
           rect.width <= 90 &&
           rect.height <= 90 &&
           ratio >= 0.72 &&
-          ratio <= 1.28 &&
-          rect.width * rect.height >= 170
+          ratio <= 1.28
         ) {
           candidates.push({ x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 });
         }
@@ -58,7 +56,8 @@ function findMarkerCorners(cv: any, source: any): Point[] | null {
         contour.delete();
       }
     }
-    return chooseCorners(candidates);
+    const [topLeft, topRight, , bottomLeft] = layout.markers;
+    return chooseCorners(candidates, (topRight!.x - topLeft!.x) / (bottomLeft!.y - topLeft!.y));
   } finally {
     gray.delete();
     binary.delete();
@@ -94,7 +93,7 @@ export async function recognizeImageWithOpenCv(
     } else {
       detectionSource = source;
     }
-    corners = findMarkerCorners(cv, detectionSource);
+    corners = findMarkerCorners(cv, detectionSource, layout);
     if (!corners) throw new Error("未找到答题卡四个定位方块");
     if (scale < 1) {
       corners = corners.map((point) => ({ x: point.x / scale, y: point.y / scale }));
