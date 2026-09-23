@@ -96,6 +96,11 @@
     transform var(--duration-fast) var(--ease);
 }
 
+.question button.blankAnswer {
+  width: auto;
+  padding: 0 10px;
+}
+
 .question button.selected {
   color: var(--color-on-primary);
   border-color: var(--color-primary);

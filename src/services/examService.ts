@@ -1,12 +1,4 @@
-import {
-  dbAdd,
-  dbDelete,
-  dbGetAll,
-  dbGetAllByIndex,
-  dbPut,
-  StoreName,
-  withStores,
-} from "../lib/db";
+import { dbAdd, dbDelete, dbGetAll, dbGetAllByIndex, StoreName, withStores } from "../lib/db";
 import { Exam } from "../lib/exam";
 import { newId } from "../lib/id";
 import { AnswerSheet } from "../lib/omr";
@@ -30,7 +22,42 @@ export function createExamService(exam: Exam): Promise<void> {
 }
 
 export function updateExamService(exam: Exam): Promise<void> {
-  return dbPut(StoreName.Exams, exam);
+  return withStores([StoreName.Exams], "readwrite", (stores, abort) => {
+    const store = stores[StoreName.Exams];
+    const request = store.get(exam.id);
+    request.addEventListener("success", () => {
+      const current = request.result as Exam | undefined;
+      if (
+        current?.scanRecords.length &&
+        (current.name !== exam.name ||
+          current.answerSheetId !== exam.answerSheetId ||
+          current.classroomId !== exam.classroomId ||
+          exam.scanRecords.length < current.scanRecords.length)
+      ) {
+        abort(new Error("已有阅卷记录，不能修改考试信息或移除成绩"));
+        return;
+      }
+      store.put(exam);
+    });
+  });
+}
+
+// 校验和写入共享 Exams 的读写锁，防止另一标签页刚保存成绩后仍能修改评分依据。
+export function updateExamResource(
+  storeName: StoreName.AnswerSheets | StoreName.Classrooms,
+  record: AnswerSheet | Classroom,
+): Promise<void> {
+  const index = storeName === StoreName.AnswerSheets ? "answerSheetId" : "classroomId";
+  return withStores([StoreName.Exams, storeName], "readwrite", (stores, abort) => {
+    const request = stores[StoreName.Exams].index(index).getAll(record.id);
+    request.addEventListener("success", () => {
+      if ((request.result as Exam[]).some((exam) => exam.scanRecords.length > 0)) {
+        abort(new Error("已有阅卷记录，不能修改考试答题卡或班级"));
+        return;
+      }
+      stores[storeName].put(record);
+    });
+  });
 }
 
 export function deleteExamService(id: string): Promise<void> {

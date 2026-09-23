@@ -122,6 +122,10 @@ export default function NewAnswerSheetPage() {
           : section,
       ),
     );
+  const lockedExam = Object.values(examMap).find(
+    (item) => item.answerSheetId === answerSheet?.id && item.scanRecords.length > 0,
+  );
+  if (lockedExam) return <Navigate to={`/exams/${lockedExam.id}`} replace />;
   if (examRoute && (!exam || !answerSheet)) return <Navigate to="/exams" replace />;
   if (!examRoute && pathname.endsWith("/edit") && !answerSheet)
     return <Navigate to="/answer-sheets" replace />;

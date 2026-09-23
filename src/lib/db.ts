@@ -109,12 +109,12 @@ function withStore<T>(
   );
 }
 
-// 单事务内操作多个 store。回调必须同步排队所有 IDBRequest，避免跨 await 后事务自动提交；
-// run 抛错时主动 abort，保证多个 store 的写要么全部落盘、要么全部回滚（F1 原子性）。
+// 单事务内操作多个 store。请求需在 run 或 IDB 请求回调内排队，不可跨 await；
+// 请求回调可调用 abort(error) 拒绝写入，run 抛错也会回滚所有 store。
 export function withStores(
   storeNames: StoreName[],
   mode: IDBTransactionMode,
-  run: (stores: Record<StoreName, IDBObjectStore>) => void,
+  run: (stores: Record<StoreName, IDBObjectStore>, abort: (error: unknown) => void) => void,
 ): Promise<void> {
   return openDB().then(
     (db) =>
@@ -137,15 +137,18 @@ export function withStores(
         transaction.addEventListener("error", () =>
           settle(runError ?? transaction.error ?? new Error("数据库事务中断，请重试")),
         );
-        try {
-          run(stores);
-        } catch (error) {
+        const abort = (error: unknown) => {
           runError = error;
           try {
             transaction.abort();
           } catch {
             settle(error);
           }
+        };
+        try {
+          run(stores, abort);
+        } catch (error) {
+          abort(error);
         }
       }),
   );

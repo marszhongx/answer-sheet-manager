@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import BottomNav from "./components/BottomNav";
 import EmptyState from "./components/EmptyState";
@@ -26,6 +26,13 @@ export default function App() {
   const error = useAppStore((state) => state.error);
   const review = useAppStore((state) => state.review);
   const { pathname } = useLocation();
+  // 等路由离开复核页后再清理，避免复核页的兜底 Navigate 抢走保存/取消的跳转。
+  useEffect(() => {
+    const currentReview = useAppStore.getState().review;
+    if (currentReview && pathname !== `/exams/${currentReview.examId}/review`) {
+      useAppStore.getState().clearReview();
+    }
+  }, [pathname]);
   // 新建页与编辑页共用同一组件，靠 pathname 作 key 才能在两条路由间切换时重建实例，
   // 否则 React 会复用组件、useState 的初始值不刷新，编辑页会显示上一次的空表单。
   const formKey = pathname;

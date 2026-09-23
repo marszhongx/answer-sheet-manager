@@ -4,7 +4,7 @@ function isClose(a: Point, b: Point): boolean {
   return Math.hypot(a.x - b.x, a.y - b.y) < 12;
 }
 
-export function chooseCorners(points: Point[]): Point[] | null {
+export function chooseCorners(points: Point[], expectedAspectRatio = 1): Point[] | null {
   if (points.length < 4) return null;
   const bySum = points.toSorted((a, b) => a.x + a.y - (b.x + b.y));
   const byDiff = points.toSorted((a, b) => a.x - a.y - (b.x - b.y));
@@ -41,9 +41,12 @@ export function chooseCorners(points: Point[]): Point[] | null {
       return sum + point.x * next.y - point.y * next.x;
     }, 0) / 2,
   );
+  const aspectRatio = (lengths[0]! + lengths[2]!) / (lengths[1]! + lengths[3]!);
+  const relativeRatio = aspectRatio / expectedAspectRatio;
   return area >= 20_000 &&
     Math.min(...lengths) >= 80 &&
-    Math.max(...lengths) / Math.min(...lengths) <= 2.2
+    relativeRatio >= 1 / 2.2 &&
+    relativeRatio <= 2.2
     ? corners
     : null;
 }

@@ -25,26 +25,30 @@ export default function ReviewPage() {
   const fileName = review?.fileName ?? "answer-sheet.jpg";
   const questionOptionsList = answerSheet ? questionOptions(answerSheet) : [];
   const questionTotal = questionOptionsList.length;
-  const [answers, setAnswers] = useState<Array<Option | null>>(() =>
-    Array.from({ length: questionTotal }, (_, index) => recognition?.answers[index] ?? null),
+  // undefined 为待复核；null 仅表示人工已确认的空答/无效作答。
+  const [answers, setAnswers] = useState<Array<Option | null | undefined>>(() =>
+    Array.from({ length: questionTotal }, (_, index) => recognition?.answers[index] ?? undefined),
   );
   if (!exam || !answerSheet || !classroom || !student || !recognition || review?.examId !== exam.id)
     return <Navigate to="/exams" replace />;
-  const unresolved = answers.filter((answer) => answer === null).length;
+  const unresolved = answers.filter((answer) => answer === undefined).length;
   const standard = answerOf(answerSheet);
   const canSave =
     unresolved === 0 &&
     answers.every(
-      (answer, index) => answer !== null && questionOptionsList[index]?.includes(answer),
+      (answer, index) =>
+        answer === null || (answer !== undefined && questionOptionsList[index]?.includes(answer)),
     );
-  const cancel = () => {
-    useAppStore.getState().clearReview();
-    navigate(`/exams/${exam.id}/scan`);
-  };
+  const cancel = () => navigate(`/exams/${exam.id}/scan`);
   const save = async () => {
     if (!canSave) return;
     const studentNumber = review.recognition.studentNumber ?? "";
-    const record = gradeAnswers(review.fileName, answers, recognition.confidence, studentNumber);
+    const record = gradeAnswers(
+      review.fileName,
+      answers.map((answer) => answer ?? null),
+      recognition.confidence,
+      studentNumber,
+    );
     const existing = exam.scanRecords.some((item) =>
       sameStudentNumber(item.studentNumber, studentNumber),
     );
@@ -68,7 +72,6 @@ export default function ReviewPage() {
         );
       return;
     }
-    useAppStore.getState().clearReview();
     useAppStore.getState().notify(existing ? "已更新该学生成绩" : "成绩已保存");
     navigate(`/exams/${exam.id}/results`);
   };
@@ -97,7 +100,9 @@ export default function ReviewPage() {
         >
           <Check size={19} />
           <span>
-            {unresolved ? `${unresolved} 题未识别，请手动选择` : "全部题目已识别，可确认批改"}
+            {unresolved
+              ? `${unresolved} 题待复核，请选择答案或确认空答`
+              : "全部题目已确认，可保存批改"}
           </span>
         </div>
         <section className={styles.grid}>
@@ -128,12 +133,24 @@ export default function ReviewPage() {
                     {option}
                   </button>
                 ))}
+                <button
+                  aria-label="确认空答或无效作答"
+                  aria-pressed={answer === null}
+                  className={`${styles.blankAnswer} ${answer === null ? styles.selected : ""}`}
+                  onClick={() =>
+                    setAnswers((current) =>
+                      current.map((value, item) => (item === index ? null : value)),
+                    )
+                  }
+                >
+                  空答 / 无效
+                </button>
               </div>
             </div>
           ))}
         </section>
         <SubmitButton icon={<Check size={19} />} disabled={!canSave} onClick={save}>
-          {canSave ? "确认批改并保存" : "请先补全所有题目"}
+          {canSave ? "确认批改并保存" : "请先复核所有题目"}
         </SubmitButton>
         <small className={styles.fileName}>
           <FileImage size={14} />
