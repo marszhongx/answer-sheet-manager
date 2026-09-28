@@ -47,6 +47,8 @@ export default function NewAnswerSheetPage() {
     answerSheet ? answerSheetSections(answerSheet) : defaultSections(),
   );
   const [error, setError] = useState<string | null>(null);
+  // 保存进行中禁用提交，避免连点并发写库
+  const [busy, setBusy] = useState(false);
   const editing = Boolean(answerSheet);
   const examRoute = pathname.startsWith("/exams/");
   const exam = examRoute ? examMap[id ?? ""] : undefined;
@@ -131,7 +133,7 @@ export default function NewAnswerSheetPage() {
     return <Navigate to="/answer-sheets" replace />;
   const save = async () => {
     const cleanName = name.trim();
-    if (!cleanName || !totals.questions) return;
+    if (busy || !cleanName || !totals.questions) return;
     const candidate: AnswerSheet = {
       id: answerSheet?.id ?? newId(),
       name: cleanName,
@@ -147,6 +149,7 @@ export default function NewAnswerSheetPage() {
     }
     const store = useAppStore.getState();
     const examId = pathname.startsWith("/exams/") ? id : undefined;
+    setBusy(true);
     try {
       if (examId) {
         await store.updateAnswerSheet(candidate);
@@ -165,6 +168,8 @@ export default function NewAnswerSheetPage() {
         "error",
       );
       return;
+    } finally {
+      setBusy(false);
     }
     store.notify("答题卡已保存");
     navigate(`/answer-sheets/${candidate.id}`);
@@ -323,7 +328,7 @@ export default function NewAnswerSheetPage() {
         )}
         <SubmitButton
           icon={<Check size={19} />}
-          disabled={!name.trim() || !totals.questions}
+          disabled={busy || !name.trim() || !totals.questions}
           onClick={save}
         >
           {editing ? "保存答题卡" : "创建答题卡"}

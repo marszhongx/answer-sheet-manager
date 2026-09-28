@@ -1,4 +1,4 @@
-import { dbAdd, dbDelete, dbGetAll, dbGetAllByIndex, StoreName, withStores } from "../lib/db";
+import { dbAdd, dbGetAll, StoreName, withStores } from "../lib/db";
 import { Exam } from "../lib/exam";
 import { newId } from "../lib/id";
 import { AnswerSheet } from "../lib/omr";
@@ -6,15 +6,6 @@ import { Classroom } from "../lib/roster";
 
 export function fetchExamListService(): Promise<Exam[]> {
   return dbGetAll<Exam>(StoreName.Exams);
-}
-
-// 按关联 id 查询考试，走 answerSheetId / classroomId 索引，避免 getAll 后内存过滤（F5）。
-export function fetchExamsByAnswerSheetService(answerSheetId: string): Promise<Exam[]> {
-  return dbGetAllByIndex<Exam>(StoreName.Exams, "answerSheetId", answerSheetId);
-}
-
-export function fetchExamsByClassroomService(classroomId: string): Promise<Exam[]> {
-  return dbGetAllByIndex<Exam>(StoreName.Exams, "classroomId", classroomId);
 }
 
 export function createExamService(exam: Exam): Promise<void> {
@@ -58,10 +49,6 @@ export function updateExamResource(
       stores[storeName].put(record);
     });
   });
-}
-
-export function deleteExamService(id: string): Promise<void> {
-  return dbDelete(StoreName.Exams, id);
 }
 
 // 原子创建“考试 + 答题卡副本 + 班级副本”：三者同一事务写入，任一失败全部回滚（F1）。

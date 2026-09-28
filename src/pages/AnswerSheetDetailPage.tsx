@@ -15,12 +15,17 @@ export default function AnswerSheetDetailPage() {
   const navigate = useNavigate();
   const answerSheet = useAppStore((state) => state.answerSheetMap)[id ?? ""];
   const [confirming, setConfirming] = useState(false);
+  // 复制/删除各自加 busy 守卫：复制连点会创建多份副本，删除连点会重复请求
+  const [copying, setCopying] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   if (!answerSheet) return <Navigate to="/answer-sheets" replace />;
   const total = answerSheetSections(answerSheet).reduce(
     (sum, section) => sum + section.questions.length * section.pointsPerQuestion,
     0,
   );
   const copy = async () => {
+    if (copying) return;
+    setCopying(true);
     // 副本只复制已知字段，历史版本残留在存储中的 records 字段自然被丢弃（F20）
     const copied: AnswerSheet = {
       id: newId(),
@@ -44,11 +49,15 @@ export default function AnswerSheetDetailPage() {
           "error",
         );
       return;
+    } finally {
+      setCopying(false);
     }
     useAppStore.getState().notify("已复制答题卡");
     navigate(`/answer-sheets/${copied.id}`);
   };
   const confirmDelete = async () => {
+    if (deleting) return;
+    setDeleting(true);
     try {
       await useAppStore.getState().deleteAnswerSheet(answerSheet.id);
     } catch (error) {
@@ -59,6 +68,8 @@ export default function AnswerSheetDetailPage() {
           "error",
         );
       return;
+    } finally {
+      setDeleting(false);
     }
     useAppStore.getState().notify("答题卡已删除");
     navigate("/answer-sheets");
@@ -106,6 +117,7 @@ export default function AnswerSheetDetailPage() {
         <DeleteDialog
           name={answerSheet.name}
           label="答题卡"
+          busy={deleting}
           onCancel={() => setConfirming(false)}
           onConfirm={confirmDelete}
         />

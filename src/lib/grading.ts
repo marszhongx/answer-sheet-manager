@@ -57,12 +57,11 @@ export function questionRates(answerSheet: AnswerSheet, records: ScanRecord[]): 
   const count = questionCount(answerSheet);
   if (records.length === 0) return Array.from({ length: count }, () => 0);
   const standard = answerOf(answerSheet);
+  // 每条记录只规整一次：逐题在 filter 里重复 normalize 会造成 O(题数²×记录数) 的分配
+  const normalized = records.map((record) => normalizeAnswers(answerSheet, record.answers));
   return Array.from({ length: count }, (_, index) =>
     Math.round(
-      (records.filter(
-        (record) => normalizeAnswers(answerSheet, record.answers)[index] === standard[index],
-      ).length /
-        records.length) *
+      (normalized.filter((answers) => answers[index] === standard[index]).length / records.length) *
         100,
     ),
   );

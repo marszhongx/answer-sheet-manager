@@ -15,8 +15,11 @@ export default function ClassroomDetailPage() {
   const navigate = useNavigate();
   const classroom = useAppStore((state) => state.classroomMap)[id ?? ""];
   const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   if (!classroom) return <Navigate to="/students" replace />;
   const confirmDelete = async () => {
+    if (deleting) return;
+    setDeleting(true);
     try {
       await useAppStore.getState().deleteClassroom(classroom.id);
     } catch (error) {
@@ -27,6 +30,8 @@ export default function ClassroomDetailPage() {
           "error",
         );
       return;
+    } finally {
+      setDeleting(false);
     }
     useAppStore.getState().notify("班级已删除");
     navigate("/students");
@@ -73,6 +78,7 @@ export default function ClassroomDetailPage() {
         <DeleteDialog
           name={classroom.name}
           label="班级"
+          busy={deleting}
           onCancel={() => setConfirming(false)}
           onConfirm={confirmDelete}
         />

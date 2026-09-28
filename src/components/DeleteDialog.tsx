@@ -10,11 +10,14 @@ export default function DeleteDialog({
   label,
   onCancel,
   onConfirm,
+  busy = false,
 }: {
   name: string;
   label: string;
   onCancel: () => void;
   onConfirm: () => void;
+  // 删除进行中时禁用确认按钮，避免连点触发两次删除
+  busy?: boolean;
 }) {
   const sheetRef = useRef<HTMLElement>(null);
   const titleId = useId();
@@ -80,7 +83,7 @@ export default function DeleteDialog({
         <p id={descriptionId}>将删除“{name}”及相关数据，此操作无法撤销。</p>
         <div>
           <button onClick={onCancel}>取消</button>
-          <button className={styles.danger} onClick={onConfirm}>
+          <button className={styles.danger} onClick={onConfirm} disabled={busy}>
             <Trash2 size={18} />
             确认删除
           </button>

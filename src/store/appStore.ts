@@ -17,7 +17,6 @@ import {
 import {
   createExamService,
   createExamWithCopies as createExamWithCopiesService,
-  deleteExamService,
   deleteExamWithCopies as deleteExamWithCopiesService,
   fetchExamListService,
   updateExamService,
@@ -62,7 +61,6 @@ type AppStore = {
   deleteClassroom: (id: string) => Promise<void>;
   createExam: (exam: Exam) => Promise<void>;
   updateExam: (exam: Exam) => Promise<void>;
-  deleteExam: (id: string) => Promise<void>;
   createExamWithCopies: (
     sourceSheet: AnswerSheet,
     sourceClassroom: Classroom,
@@ -169,10 +167,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
   updateExam: async (exam) => {
     await updateExamService(exam);
-    await get().fetchExamList();
-  },
-  deleteExam: async (id) => {
-    await deleteExamService(id);
     await get().fetchExamList();
   },
   createExamWithCopies: async (sourceSheet, sourceClassroom, examName) => {

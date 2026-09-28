@@ -389,34 +389,6 @@ export function drawA4PrintPage(canvas: HTMLCanvasElement, answerSheet: AnswerSh
   return true;
 }
 
-function cropAndScale(
-  image: CanvasImageSource,
-  sourceWidth: number,
-  sourceHeight: number,
-  target: CardLayout,
-): ImageData {
-  const canvas = document.createElement("canvas");
-  canvas.width = target.width;
-  canvas.height = target.height;
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  if (!ctx) throw new Error("浏览器不支持 Canvas");
-  const sourceRatio = sourceWidth / sourceHeight;
-  const targetRatio = target.width / target.height;
-  let sx = 0,
-    sy = 0,
-    sw = sourceWidth,
-    sh = sourceHeight;
-  if (sourceRatio > targetRatio) {
-    sw = sourceHeight * targetRatio;
-    sx = (sourceWidth - sw) / 2;
-  } else {
-    sh = sourceWidth / targetRatio;
-    sy = (sourceHeight - sh) / 2;
-  }
-  ctx.drawImage(image, sx, sy, sw, sh, 0, 0, target.width, target.height);
-  return ctx.getImageData(0, 0, target.width, target.height);
-}
-
 function darkness(data: ImageData, x: number, y: number, radius: number): number {
   let dark = 0,
     count = 0;
@@ -537,6 +509,7 @@ export function recognizeCard(
   };
 }
 
+// ImageData 直接识别的纯函数入口（无透视），供测试与潜在调用方复用 recognizeCard。
 export function recognizeWarpedCard(
   imageData: ImageData,
   answerSheet: AnswerSheet,
@@ -549,15 +522,4 @@ export function recognizeWarpedCard(
     answerSheet.candidateNumberLength ?? DEFAULT_CANDIDATE_LENGTH,
     markerValid,
   );
-}
-
-export function recognizeAnswerSheet(
-  image: CanvasImageSource,
-  sourceWidth: number,
-  sourceHeight: number,
-  answerSheet: AnswerSheet,
-): Recognition {
-  const layout = cardLayout(answerSheet);
-  const imageData = cropAndScale(image, sourceWidth, sourceHeight, layout);
-  return recognizeWarpedCard(imageData, answerSheet, hasValidMarkers(imageData, layout));
 }

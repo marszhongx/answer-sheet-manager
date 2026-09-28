@@ -16,6 +16,7 @@ import {
   totalScoreOf,
 } from "../lib/grading";
 import { questionCount } from "../lib/omr";
+import { sanitizeFileName } from "../lib/fileName";
 import { useAppStore } from "../store/appStore";
 import styles from "./AnalysisPage.module.css";
 
@@ -118,7 +119,7 @@ export default function AnalysisPage() {
             <button
               onClick={() =>
                 downloadCSV(
-                  `${answerSheet.name}-成绩表.csv`,
+                  `${sanitizeFileName(answerSheet.name)}-成绩表.csv`,
                   toCSV(answerSheet, records, classroom),
                 )
               }

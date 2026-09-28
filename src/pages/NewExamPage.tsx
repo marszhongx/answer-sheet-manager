@@ -28,12 +28,15 @@ export default function NewExamPage() {
     exam?.answerSheetId ?? answerSheets[0]?.id ?? "",
   );
   const [classroomId, setClassroomId] = useState(exam?.classroomId ?? classrooms[0]?.id ?? "");
+  // 保存进行中禁用提交：createExamWithCopies 每次都会生成新的副本 id，双击会创建两套考试数据
+  const [busy, setBusy] = useState(false);
   const editing = Boolean(exam);
   const canSave = Boolean(name.trim() && (editing || (answerSheetId && classroomId)));
   if (id && !exam) return <Navigate to="/exams" replace />;
   if (exam?.scanRecords.length) return <Navigate to={`/exams/${exam.id}`} replace />;
   const save = async () => {
-    if (!canSave) return;
+    if (busy || !canSave) return;
+    setBusy(true);
     const store = useAppStore.getState();
     try {
       if (exam) {
@@ -56,6 +59,8 @@ export default function NewExamPage() {
         error instanceof Error ? `保存失败：${error.message}` : "保存失败，请重试",
         "error",
       );
+    } finally {
+      setBusy(false);
     }
   };
   return (
@@ -137,7 +142,7 @@ export default function NewExamPage() {
             </>
           )}
         </FormSection>
-        <SubmitButton icon={<Check size={19} />} disabled={!canSave} onClick={save}>
+        <SubmitButton icon={<Check size={19} />} disabled={busy || !canSave} onClick={save}>
           {editing ? "保存考试" : "创建考试"}
         </SubmitButton>
         {!editing && (!answerSheets.length || !classrooms.length) && (

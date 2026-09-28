@@ -6,6 +6,7 @@ import PageHeader from "../components/PageHeader";
 import PrintPreview from "../components/PrintPreview";
 import SubmitButton from "../components/SubmitButton";
 import { drawA4PrintPage } from "../lib/omr";
+import { sanitizeFileName } from "../lib/fileName";
 import { useAppStore } from "../store/appStore";
 
 export default function AnswerSheetPreviewPage() {
@@ -35,7 +36,7 @@ export default function AnswerSheetPreviewPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${answerSheet.name.replace(/[\\/:*?"<>|]/g, "_")}.png`;
+      link.download = `${sanitizeFileName(answerSheet.name)}.png`;
       document.body.appendChild(link);
       link.click();
       link.remove();

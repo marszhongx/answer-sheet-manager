@@ -163,8 +163,16 @@ export default function LiveScanner({ answerSheet, onConfirm, onClose }: Props) 
       const width = 720;
       const height = Math.round(width / (video.videoWidth / video.videoHeight));
       if (!height) return;
-      frame.width = overlay.width = width;
-      frame.height = overlay.height = height;
+      // canvas 赋 width/height 即使同值也会重置位图，仅在尺寸变化时赋值，
+      // 与下方 warpedCanvas 的复用策略保持一致
+      if (frame.width !== width || frame.height !== height) {
+        frame.width = width;
+        frame.height = height;
+      }
+      if (overlay.width !== width || overlay.height !== height) {
+        overlay.width = width;
+        overlay.height = height;
+      }
       const frameCtx = frame.getContext("2d", { willReadFrequently: true });
       const overlayCtx = overlay.getContext("2d");
       if (!frameCtx || !overlayCtx) return;
@@ -210,6 +218,9 @@ export default function LiveScanner({ answerSheet, onConfirm, onClose }: Props) 
         <button
           aria-label="切换为重新定位"
           onClick={() => {
+            // 同步清掉稳定签名，否则下一帧与旧签名相同会立刻判回稳定并跳过搜索期频率
+            stableRef.current = false;
+            lastSignature.current = "";
             setRecognition(null);
             setState("searching");
           }}

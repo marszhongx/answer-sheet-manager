@@ -29,6 +29,8 @@ export default function ReviewPage() {
   const [answers, setAnswers] = useState<Array<Option | null | undefined>>(() =>
     Array.from({ length: questionTotal }, (_, index) => recognition?.answers[index] ?? undefined),
   );
+  // 保存进行中禁用提交，避免连点重复写库
+  const [busy, setBusy] = useState(false);
   if (!exam || !answerSheet || !classroom || !student || !recognition || review?.examId !== exam.id)
     return <Navigate to="/exams" replace />;
   const unresolved = answers.filter((answer) => answer === undefined).length;
@@ -41,7 +43,8 @@ export default function ReviewPage() {
     );
   const cancel = () => navigate(`/exams/${exam.id}/scan`);
   const save = async () => {
-    if (!canSave) return;
+    if (busy || !canSave) return;
+    setBusy(true);
     const studentNumber = review.recognition.studentNumber ?? "";
     const record = gradeAnswers(
       review.fileName,
@@ -71,6 +74,8 @@ export default function ReviewPage() {
           "error",
         );
       return;
+    } finally {
+      setBusy(false);
     }
     useAppStore.getState().notify(existing ? "已更新该学生成绩" : "成绩已保存");
     navigate(`/exams/${exam.id}/results`);
@@ -149,7 +154,7 @@ export default function ReviewPage() {
             </div>
           ))}
         </section>
-        <SubmitButton icon={<Check size={19} />} disabled={!canSave} onClick={save}>
+        <SubmitButton icon={<Check size={19} />} disabled={busy || !canSave} onClick={save}>
           {canSave ? "确认批改并保存" : "请先复核所有题目"}
         </SubmitButton>
         <small className={styles.fileName}>

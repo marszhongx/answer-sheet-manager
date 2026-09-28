@@ -22,6 +22,8 @@ export default function ClassroomEditorPage() {
   const [students, setStudents] = useState<Student[]>(
     classroom?.students ?? [{ id: newId(), name: "", studentNumber: "" }],
   );
+  // 保存进行中禁用提交，避免连点并发写库
+  const [busy, setBusy] = useState(false);
   const editing = Boolean(classroom);
   const examRoute = pathname.startsWith("/exams/");
   const lockedExam = Object.values(examMap).find(
@@ -32,7 +34,7 @@ export default function ClassroomEditorPage() {
   if (!examRoute && pathname.endsWith("/edit") && !classroom)
     return <Navigate to="/students" replace />;
   const save = async () => {
-    if (!name.trim()) return;
+    if (busy || !name.trim()) return;
     // 手动录入与 CSV 导入统一按 normalizeStudentNumber 去重：保留先出现的行，丢弃后续重复行（F3）
     const filled = students.filter((student) => student.name.trim() && student.studentNumber);
     const seen = new Set<string>();
@@ -53,6 +55,7 @@ export default function ClassroomEditorPage() {
     const dropped = filled.length - deduped.length;
     if (dropped > 0) store.notify(`已忽略 ${dropped} 个重复学号`);
     const examId = pathname.startsWith("/exams/") ? id : undefined;
+    setBusy(true);
     try {
       if (examId) {
         await store.updateClassroom(next);
@@ -73,6 +76,8 @@ export default function ClassroomEditorPage() {
         "error",
       );
       return;
+    } finally {
+      setBusy(false);
     }
     navigate(`/students/${next.id}`);
   };
@@ -92,7 +97,7 @@ export default function ClassroomEditorPage() {
           </label>
         </FormSection>
         <StudentRosterTable students={students} onChange={setStudents} />
-        <SubmitButton icon={<Check size={19} />} disabled={!name.trim()} onClick={save}>
+        <SubmitButton icon={<Check size={19} />} disabled={busy || !name.trim()} onClick={save}>
           {editing ? "保存班级" : "创建班级"}
         </SubmitButton>
       </Page>

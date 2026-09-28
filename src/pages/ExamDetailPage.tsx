@@ -18,8 +18,11 @@ export default function ExamDetailPage() {
   const answerSheet = exam ? answerSheetMap[exam.answerSheetId] : undefined;
   const classroom = exam ? classroomMap[exam.classroomId] : undefined;
   const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   if (!exam || !answerSheet || !classroom) return <Navigate to="/exams" replace />;
   const confirmDelete = async () => {
+    if (deleting) return;
+    setDeleting(true);
     try {
       await useAppStore
         .getState()
@@ -32,6 +35,8 @@ export default function ExamDetailPage() {
           "error",
         );
       return;
+    } finally {
+      setDeleting(false);
     }
     useAppStore.getState().notify("考试已删除");
     navigate("/exams");
@@ -99,6 +104,7 @@ export default function ExamDetailPage() {
         <DeleteDialog
           name={exam.name}
           label="考试"
+          busy={deleting}
           onCancel={() => setConfirming(false)}
           onConfirm={confirmDelete}
         />

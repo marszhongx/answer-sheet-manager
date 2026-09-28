@@ -27,6 +27,32 @@ function whiteScalarInstance(cv: any): any {
   return whiteScalar;
 }
 
+// cv.imread 按图片原始尺寸分配 wasm 内存，数千万像素的直拍照片可能超出堆上限，
+// 因此先经 canvas 把输入压到长边 ≤ MAX_INPUT_SIDE 再 imread（透视输出本就不超过 A4 尺寸）
+const MAX_INPUT_SIDE = 2048;
+
+function intrinsicSize(image: CanvasImageSource): { width: number; height: number } {
+  if (image instanceof HTMLImageElement)
+    return { width: image.naturalWidth, height: image.naturalHeight };
+  if (image instanceof HTMLVideoElement)
+    return { width: image.videoWidth, height: image.videoHeight };
+  if (image instanceof HTMLCanvasElement || image instanceof OffscreenCanvas)
+    return { width: image.width, height: image.height };
+  return { width: (image as ImageBitmap).width, height: (image as ImageBitmap).height };
+}
+
+function toBoundedCanvas(image: CanvasImageSource): HTMLCanvasElement {
+  const { width, height } = intrinsicSize(image);
+  const scale = Math.min(1, MAX_INPUT_SIDE / Math.max(width, height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(width * scale));
+  canvas.height = Math.max(1, Math.round(height * scale));
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  if (!context) throw new Error("无法读取图片");
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  return canvas;
+}
+
 function findMarkerCorners(cv: any, source: any, layout: CardLayout): Point[] | null {
   const gray = new cv.Mat();
   const binary = new cv.Mat();
@@ -85,7 +111,7 @@ export async function recognizeImageWithOpenCv(
   let transform: any;
   let warped: any;
   try {
-    source = cv.imread(image);
+    source = cv.imread(toBoundedCanvas(image));
     const scale = Math.min(1, 1280 / Math.max(source.cols, source.rows));
     if (scale < 1) {
       detectionSource = new cv.Mat();

@@ -67,6 +67,11 @@ function openDB(): Promise<IDBDatabase> {
       dbPromise = undefined;
       reject(request.error);
     });
+    request.addEventListener("blocked", () => {
+      // 另一标签页仍持有旧版本连接时 open 会一直挂起，必须 reject 才能结束加载态
+      dbPromise = undefined;
+      reject(new Error("数据库被其他标签页占用，请关闭其他标签页后刷新"));
+    });
   });
   return dbPromise;
 }
@@ -156,14 +161,6 @@ export function withStores(
 
 export function dbGetAll<T>(storeName: StoreName): Promise<T[]> {
   return withStore(storeName, "readonly", (store) => store.getAll());
-}
-
-export function dbGetAllByIndex<T>(
-  storeName: StoreName,
-  indexName: string,
-  key: string,
-): Promise<T[]> {
-  return withStore(storeName, "readonly", (store) => store.index(indexName).getAll(key));
 }
 
 export function dbAdd<T extends { id: string }>(storeName: StoreName, record: T): Promise<void> {
